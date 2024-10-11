@@ -1,3 +1,5 @@
 
 scholarChainEnv/
 __pycache__/
+output_images/
+.env

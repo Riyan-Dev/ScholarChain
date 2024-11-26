@@ -5,6 +5,8 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
+from langchain_mistralai import ChatMistralAI
+
 
 import getpass
 import os
@@ -15,11 +17,10 @@ load_dotenv()
 # Specify model
 api_key = os.getenv("api_key")
 
-from langchain_mistralai import ChatMistralAI
 
 llm = ChatMistralAI(model="open-mistral-7b", api_key=api_key)
 
-def run_RAG(docs):
+def run_RAG(docs, query):
     # loading already done in rag_services when pdf was converted into images and then fed to Vision LLM
     docs_as_documents = [Document(page_content=doc['page_content'], metadata=doc['metadata']) for doc in docs]
     #now we will splitting the docs in chunk for efficient retrieval
@@ -40,7 +41,7 @@ def run_RAG(docs):
 
     retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
 
-    retrieved_docs = retriever.invoke("What is the account balance in Canadian Dollars?")
+    retrieved_docs = retriever.invoke(query)
 
     print(len(retrieved_docs))
     print(retrieved_docs[0].page_content)
@@ -65,6 +66,6 @@ def run_RAG(docs):
     )
 
     response = []
-    for chunk in rag_chain.stream("What is the account balance in Canadian Dollars?"):
+    for chunk in rag_chain.stream(query):
         response.append(chunk)  # Add each chunk to the list
     return ''.join(response)

@@ -9,45 +9,8 @@ from services.rag_services import pdf_to_images, vision_model
 from services.langchain_services import run_RAG
 router = APIRouter()
 
-@router.post("/process_documents")
-async def process_documents(query: str, file: UploadFile = File(...)):
-    image_paths = await pdf_to_images(file)
-    
-    # # Prepare the message with multiple images
-    # image_contents = []
-    # for image_path in image_paths:
-    #     if os.path.exists(image_path):
-    #         # Load and encode the local image
-    #         with open(image_path, "rb") as image_file:
-    #             image_bytes = image_file.read()
-
-    #         # Convert image bytes to base64
-    #         image_base64 = base64.b64encode(image_bytes).decode("utf-8")
-
-    #         # Append the base64 image content to the list
-    #         image_contents.append(
-    #             {
-    #                 "type": "image_url",
-    #                 "image_url": f"data:image/jpeg;base64,{image_base64}"
-    #             }
-    #         )
-
-    # # Define the messages, with multiple images
-    # messages = [
-    #     {
-    #         "role": "user",
-    #         "content": [
-    #             {
-    #                 "type": "text",
-    #                 "text": "What's in these images?"
-    #             },
-    #             *image_contents  # Add the list of images to the message content
-    #         ]
-    #     }
-    # ]
-
-    # response = vision_model(messages)
-    # print(response)
+@router.post("/upload-documents")
+async def process_documents():
 
     docs =  [
         {
@@ -103,7 +66,7 @@ async def process_documents(query: str, file: UploadFile = File(...)):
     # More splits for remaining sections of the essay...
     ]
 
-    return run_RAG(docs)
+    return run_RAG(docs, "how much money I have in the in canadians dollar")
 
 
 

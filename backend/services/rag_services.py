@@ -55,7 +55,8 @@ def vision_model(messages):
     # Get the chat response
     chat_response = client.chat.complete(
         model=model,
-        messages=messages
+        messages=messages,
+        response_format = {"type": "json_object", }
     )
 
     # Print the content of the response

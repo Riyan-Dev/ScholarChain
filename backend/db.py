@@ -11,3 +11,5 @@ client = AsyncIOMotorClient(MONGO_URI)
 db = client["ScholarChain"]
 
 user_collection = db["users"]
+application_collection = db["application"]
+risk_assessment_collection = db["risk_assessment"]

@@ -15,7 +15,8 @@ class Document(BaseModel):
     metadata: DocumentMetadata
 
 class User(BaseModel):
+    _id: str
     username: str
     email: str
-    password: str
+    hashed_password: str
     documents: Optional[List[Document]] = []

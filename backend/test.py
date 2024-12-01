@@ -1,9 +1,4 @@
 from mistralai import Mistral
-import requests
-import numpy as np
-import faiss
-import os
-from getpass import getpass
 
 api_key= "wYLGrahRTTDV5O2pJBbjpLXQpD2qLwse"
 client = Mistral(api_key=api_key)

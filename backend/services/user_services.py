@@ -2,6 +2,7 @@
 from models.user import User
 from middleware.JWT_authentication import get_password_hash, verify_password
 from db import user_collection
+from utility import transform_user_document
 # from utils import hash_password, user_exists, create_user
 
 class UserService:
@@ -55,3 +56,16 @@ class UserService:
             }
 
         return {"status": "error", "message": "No documents were added."}
+    
+    @staticmethod 
+    async def get_user_by_username(username: str):
+        user_doc = await user_collection.find_one({"username": username})
+        transformed_user = transform_user_document(user_doc)
+        user = User(**transformed_user)
+        return user
+    
+    staticmethod 
+    async def get_user_doc_by_username(username: str):
+        user_doc = await user_collection.find_one({"username": username})
+       
+        return user_doc

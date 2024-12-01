@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.insert(0, "/Users/ryan/Developer/ScholarChain/backend/scholarChainEnv/lib/python3.11/site-packages")
+# sys.path.insert(0, "/Users/ryan/Developer/ScholarChain/backend/scholarChainEnv/lib/python3.11/site-packages")
 from dotenv import load_dotenv
 from mistralai import Mistral
 import fitz 

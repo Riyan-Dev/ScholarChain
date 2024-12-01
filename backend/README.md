@@ -51,17 +51,7 @@ After all the dependencies have been installed you can run FASTAPI server using 
 uvicorn main:app --reload
 ```
 
-# Step 5
 
-To run the flask server to activate LLM services
-
-First make sure you are in the `services` Folder 
-
-then run the follwing command 
-
-```bash 
-python LLM_services.py
-```
 
 
 

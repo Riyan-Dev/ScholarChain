@@ -104,9 +104,9 @@ async def process_documents(files: List[UploadFile] = File(...),  token: TokenDa
             if "documents" in parsed_response and isinstance(parsed_response["documents"], list):
                 new_documents.extend(parsed_response["documents"])
             else:
-                raise ValueError("Invalid response format from vision_model.")
+                raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
         except json.JSONDecodeError:
-            raise ValueError("Failed to parse response from vision_model.")
+            raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
 
     
     return await UserService.add_documents(token.username, new_documents)

@@ -11,10 +11,87 @@ from middleware.JWT_authentication import TokenData, get_current_user
 from utility import post_processing_response, validate_application_object
 from models.application import Application
 from models.risk_scores import RiskAssessment
+from models.plan import Plan
 
 application_router = APIRouter()
 
-@application_router.get('/risk_score/')
+@application_router.post('/accpet-plan/')
+async def accept_plan():
+    pass
+
+@application_router.put('/update-plan/')
+async def update_plan(updated_data:Plan, application_id:str, current_user: TokenData = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=401, detail="Only admin access allowed")
+    return await ApplicationService.update_plan(application_id, updated_data.dict())
+
+@application_router.put('/verify/')
+async def verify_application(current_user: TokenData = Depends(get_current_user)):
+
+    if current_user.role != "admin":
+        raise HTTPException(status_code=401, detail="Only admin access allowed")
+    
+    return await ApplicationService.verify_application(current_user.username)
+
+
+@application_router.get('/personalised-plan/')
+async def get_personalised_plan(current_user: TokenData = Depends(get_current_user)):
+    
+    
+    application_dict = await ApplicationService.get_application(current_user.username)
+    existing_plan = await ApplicationService.get_plan_db(str(application_dict["_id"]))
+
+    if existing_plan:
+        existing_plan["_id"] = str(existing_plan["_id"])
+        return existing_plan
+    
+    application = Application(**application_dict)
+
+# Proposed Repayment Period by user: {application.loan_details.proposed_repayment_period}
+                # preferred repayment frequency by user: {application.loan_details.preferred_repayment_frequency}
+    temp_dir = await LangChainService.create_vector_Store(current_user.username, False)
+    query = f"""
+                Given the following information by the loan applicant:
+                Loan Amount Request: {application.loan_details.loan_amount_requested}
+                Academic Details: {application.academic_info}
+
+                along with the data retrieved from the documents based on the transactions details (closing balance and salary estimate), savings each month, salary slips, loan amount request, expected graduation date and keeping in mind the preference of the user provide personalised repayment plan as a JSON Object
+
+                Calculations: determine the number of installments over repayment period and make sure total_loan_amount = installment_amount * number of installments
+
+                Note: You do not have to strictly follow the user's porposed plan and preferrred repayment instead based on financial analysis of user situation give a better suited plan which is managebale by the user.
+                Restrictions: 
+                1. Loan Amount must be in PKR
+                2. Do not add Comments in the JSON Object response
+
+                Example JSON OBject
+                {{
+                    "total_loan_amount": 2000000, (double)
+                    "Start_date": "month-year", # month and Year as date
+                    "end_date": "month-year", # month and Year as date
+                    "repayment_frequency": "", (only options are monthly, quarterly, bi-yearly, or annually)
+                    "installment_amount": 500000, (double) also make sure twice by calculating this value is correct or not
+                    "reasoning": "reasoning for calculations"
+                }}
+            """
+    response = LangChainService.rag_bot(query, temp_dir)
+    processed_response = post_processing_response(response["response"])
+    print(processed_response)
+    try:
+        
+        # converting the LLM response into json object 
+        json_object = json.loads(processed_response)
+        json_object["application_id"] = str(application_dict["_id"])
+        result = await ApplicationService.save_plan_db(json_object)
+        json_object["_id"] = str(json_object["_id"])
+        return json_object
+    except json.JSONDecodeError as e:
+        # Handle JSON decoding error if any
+        print(e)
+        raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
+
+
+@application_router.get('/risk-score/')
 async def get_risk_score(current_user: TokenData = Depends(get_current_user)):
     risk_scores = RiskAssessment(
         application_id="12345",
@@ -56,17 +133,25 @@ async def auto_fill_fields(current_user: TokenData = Depends(get_current_user)):
     
     query = f"""
         Given the information of the documents in the context above give the response in the following JSON format 
-        Note: the response should be exactly as example response (no extra or less fields in json response) incase LLM is unable to find any information for a feild return "" or 0 in case of integer or float and example date if date is required such as DOB (for example -> gender: "" because LLM couldnt figure out gender) 
 
         
         username: {current_user.username} (always return this username in the field called username in response)
+
+        Restrictions:
+        1. The key Values of Json Response must be exactly as Example JSON object (no extra or less fields in json response)
+        2. Do not return "Not Found" in JSON Object (Most Important)
+        3. Return an empty string "" for a string fields only if not found.  (Most Important)
+            example LLM could not locate nationality:
+            the response of the specific field in JSON Object should be ("nationality": "")
+        4. Do not add comment in JSON Object.
+           
 
         Example JSON Object Response:
         {{
         "username": "john_doe_123",
         "personal_info": {{
             "full_name": "John Doe",
-            "dob": "2000-05-15" (return the same date if not found),
+            "dob": "2000-05-15" (return todays date if not found),
             "gender": "Male",
             "nationality": "American",
             "marital_status": "Single",
@@ -120,10 +205,14 @@ async def auto_fill_fields(current_user: TokenData = Depends(get_current_user)):
         
         # converting the LLM response into json object 
         json_object = json.loads(processed_response)
-        validate_application_object(json_object)
-        
+        if json_object["personal_info"]["dob"] == "" or json_object["personal_info"]["dob"] == "Not Found":
+            json_object["personal_info"]["dob"] = "2002-12-30"
+        if json_object["application_date"] == "" or json_object["application_date"] == "Not Found":
+            json_object["application_date"] = "2002-12-30"
+        await validate_application_object(json_object)
         results = await ApplicationService.create_application(json_object)
         json_object["_id"] = str(results["application_id"])
+        
         return json_object
     except json.JSONDecodeError as e:
         # Handle JSON decoding error if any
@@ -184,5 +273,5 @@ async def auto_fill_fields(current_user: TokenData = Depends(get_current_user)):
 #   "application_date": "2024-11-30",
 #   "declaration": "I hereby declare that all the information provided is true.",
 #   "signature": "Riyan Ahmed",
-#   "username": "riyan.dev"
+#   "username": "r.dev1"
 # }

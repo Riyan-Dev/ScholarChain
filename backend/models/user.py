@@ -2,6 +2,12 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+from enum import Enum
+# Define the Enum
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    APPLICANT = "applicant"
+    DONATOR = "donator"
 
 class DocumentMetadata(BaseModel):
     source: str
@@ -19,4 +25,5 @@ class User(BaseModel):
     username: str
     email: str
     hashed_password: str
+    role: UserRole
     documents: Optional[List[Document]] = []

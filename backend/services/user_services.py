@@ -21,13 +21,14 @@ class UserService:
     # Function to create a new user
     @staticmethod
     async def create_user(user_data: User):
-        hashed_password = get_password_hash(user_data.password)
+        hashed_password = get_password_hash(user_data.hashed_password)
         
         new_user = {
             "username": user_data.username,
             "email": user_data.email,
             "hashed_password": hashed_password,
-            "documents": [doc.dict() for doc in user_data.documents]  # Convert the document list to dicts
+            "documents": [doc.dict() for doc in user_data.documents],  # Convert the document list to dicts
+            "role": user_data.role
         }
         
         result = await user_collection.insert_one(new_user)

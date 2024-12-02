@@ -12,7 +12,6 @@ from services.rag_services import pdf_to_images, vision_model
 from middleware.JWT_authentication import create_access_token, TokenData, get_current_user
 from services.user_services import UserService
 from models.user import User
-from db import user_collection
 
 user_router = APIRouter()
 
@@ -25,7 +24,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             detail="Invalid credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = create_access_token(data={"sub": user["username"]})
+    access_token = create_access_token(data={"sub": user["username"], "role": user["role"]})
     return {"access_token": access_token, "token_type": "bearer"}
 
 @user_router.post("/register")

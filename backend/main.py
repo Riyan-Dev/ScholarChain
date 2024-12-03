@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-import uvicorn 
+import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from controller.rag_controller import router as rag_router
 from controller.user_controller import user_router
@@ -16,7 +16,8 @@ app.include_router(user_router, prefix="/user", tags=["user"])
 app.include_router(application_router, prefix="/application", tags=["application"])
 
 origins = [
-    "http://localhost:5173",  # Add other origins as needed
+    "http://localhost:3000",
+    # "http://localhost:5173",  # Add other origins as needed
 ]
 
 # Add CORSMiddleware to the application instance

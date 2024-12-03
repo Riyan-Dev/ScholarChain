@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # Assuming the Application model is already defined
 from models.application import Application
 
-def validate_application_object(json_object) -> Application:
+async def validate_application_object(json_object) -> Application:
     try:
 
         # Try to validate and create an Application model
@@ -20,10 +20,10 @@ def validate_application_object(json_object) -> Application:
     except ValidationError as e:
         # Handle validation errors
         print("Validation error:", e.errors())
-        HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
+        raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
     except json.JSONDecodeError as e:
         print("JSON Decode error:", e)
-        HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
+        raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
 
 def transform_user_document(doc):
     if "_id" in doc:
@@ -75,7 +75,7 @@ def convert_date_fields(data: dict):
     return data
 
 
-def run_mistral(user_message, model="open-mistral-7b"):
+def run_mistral(user_message, model="mistral-small-latest"):
     load_dotenv()
     api_key = os.getenv("api_key")
     client = Mistral(api_key=api_key)

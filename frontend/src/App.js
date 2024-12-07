@@ -7,6 +7,7 @@ import ApplicantDashboard from "./components/ApplicantDashboard.jsx";
 import DonatorDashboard from "./components/DonatorDashboard.jsx";
 import FillForm from "./components/FillForm.jsx";
 import UploadDocuments from "./components/UploadDocuments.jsx";
+import ChatbotPage from "./components/ChatbotPage.jsx"; // Import ChatbotPage
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
@@ -25,6 +26,8 @@ function App() {
           {/* Other Routes */}
           <Route path="/fill-form" element={<FillForm />} />
           <Route path="/upload-documents" element={<UploadDocuments />} />
+          <Route path="/chat-app" element={<ChatbotPage />} />{" "}
+          {/* New route for Chatbot */}
         </Routes>
       </Router>
     </div>

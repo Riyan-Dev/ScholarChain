@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status, APIRouter, UploadFile, File
+from fastapi import Depends, HTTPException, status, APIRouter, UploadFile, File, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 
@@ -33,11 +33,11 @@ async def register(user: User):
     return JSONResponse(content={"message": "user sucessfully created", "user_id": user_id}, status_code = 201)
 
 @user_router.post("/upload-documents")
-async def process_documents(files: List[UploadFile] = File(...),  token: TokenData = Depends(get_current_user)):
+async def process_documents(files: List[UploadFile] = File(...), ids: List[str] = Form(...), token: TokenData = Depends(get_current_user)):
     new_documents = []
     for file in files:
         image_paths = await pdf_to_images(file)
-        
+
         # Prepare the message with multiple images
         image_contents = []
         for image_path in image_paths:
@@ -58,7 +58,7 @@ async def process_documents(files: List[UploadFile] = File(...),  token: TokenDa
                 )
 
                 os.remove(image_path)
-             
+
         # Define the messages, with multiple images
         messages = [
             {
@@ -70,7 +70,7 @@ async def process_documents(files: List[UploadFile] = File(...),  token: TokenDa
                                     and return a json_object of list of documents as shown in the response format below)
                                     Note: page content must contain the extracted text and tables for each image
                                     Note: The length of the returned list of documetns should equals the number of images in the input
-                                    
+
                                     response format:
                                     {
                                         "documents": [
@@ -80,7 +80,7 @@ async def process_documents(files: List[UploadFile] = File(...),  token: TokenDa
                                                     "source": "source of the data",
                                                     "author": "author if available",
                                                     "section": "what is the section",
-                                                    "document_type": "academic or financiall",
+                                                    "document_type": "academic or financial",
                                                     "date": "date of the document if available"
                                                 }
                                             }
@@ -92,8 +92,6 @@ async def process_documents(files: List[UploadFile] = File(...),  token: TokenDa
                 ]
             }
         ]
-
-
 
         response = vision_model(messages)
         print(response)
@@ -108,5 +106,9 @@ async def process_documents(files: List[UploadFile] = File(...),  token: TokenDa
         except json.JSONDecodeError:
             raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
 
-    
+    # Check if username is None, and raise an HTTPException if it is
+    if token.username is None:
+        raise HTTPException(status_code=400, detail="Username is missing in the token")
+
+    # Now safely call add_documents, assuming username is always a valid string
     return await UserService.add_documents(token.username, new_documents)

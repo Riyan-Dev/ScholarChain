@@ -27,6 +27,10 @@ const ApplicantDashboard = () => {
     navigate("/fill-form"); // Navigate to the form page
   };
 
+  const navigateToChatApp = () => {
+    navigate("/chat-app"); // This will navigate to the ChatbotPage (ChatApp page)
+  };
+
   const handleUploadDocuments = () => {
     navigate("/upload-documents"); // Navigate to Upload Documents page
   };
@@ -58,7 +62,6 @@ const ApplicantDashboard = () => {
       <Container className="mt-5">
         <h2>Welcome, {username ? username : "Loading..."}</h2>
         <p>Here you can manage your tasks, fill out forms, and more.</p>
-
         {/* Button to navigate to form */}
         <Button
           variant="primary"
@@ -67,9 +70,13 @@ const ApplicantDashboard = () => {
         >
           Upload Documents
         </Button>
-        <Button variant="primary" onClick={handleFillForm}>
+        <Button variant="primary" onClick={handleFillForm} className="me-3">
           Fill Form
         </Button>
+        <Button variant="primary" onClick={navigateToChatApp} className="me-3">
+          Go to ChatApp
+        </Button>{" "}
+        {/* New button to navigate to ChatbotPage */}
       </Container>
     </div>
   );

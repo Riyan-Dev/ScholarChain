@@ -5,7 +5,7 @@ import Register from "./components/Register.jsx";
 import AdminDashboard from "./components/AdminDashboard.jsx";
 import ApplicantDashboard from "./components/ApplicantDashboard.jsx";
 import DonatorDashboard from "./components/DonatorDashboard.jsx";
-import FillForm from "./components/FillForm.jsx";
+import FillForm from "./components/ApplicationPlan.jsx";
 import UploadDocuments from "./components/UploadDocuments.jsx";
 import ChatbotPage from "./components/ChatbotPage.jsx"; // Import ChatbotPage
 import ApplicationForm from "./components/ApplicationForm.jsx";
@@ -25,7 +25,7 @@ function App() {
           <Route path="/applicant-dashboard" element={<ApplicantDashboard />} />
           <Route path="/donator-dashboard" element={<DonatorDashboard />} />
           {/* Other Routes */}
-          <Route path="/fill-form" element={<FillForm />} />
+          <Route path="/application-plan" element={<FillForm />} />
           <Route path="/upload-documents" element={<UploadDocuments />} />
           <Route path="/application-form" element={<ApplicationForm />} />
           <Route path="/chat-app" element={<ChatbotPage />} />{" "}

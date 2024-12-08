@@ -9,8 +9,10 @@ import {
   Alert,
   Spinner,
 } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
 const ApplicationForm = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -96,6 +98,7 @@ const ApplicationForm = () => {
         },
       });
       alert("Application updated successfully!");
+      navigate("/application-plan");
     } catch (err) {
       alert(
         `Failed to submit form: ${err.response?.data?.detail || err.message}`,

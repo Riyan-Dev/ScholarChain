@@ -1,5 +1,5 @@
 import json
-import time 
+import time
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -30,21 +30,21 @@ async def verify_application(current_user: TokenData = Depends(get_current_user)
 
     if current_user.role != "admin":
         raise HTTPException(status_code=401, detail="Only admin access allowed")
-    
+
     return await ApplicationService.verify_application(current_user.username)
 
 
 @application_router.get('/personalised-plan/')
 async def get_personalised_plan(current_user: TokenData = Depends(get_current_user)):
-    
-    
+
+
     application_dict = await ApplicationService.get_application(current_user.username)
     existing_plan = await ApplicationService.get_plan_db(str(application_dict["_id"]))
 
     if existing_plan:
         existing_plan["_id"] = str(existing_plan["_id"])
         return existing_plan
-    
+
     application = Application(**application_dict)
 
 # Proposed Repayment Period by user: {application.loan_details.proposed_repayment_period}
@@ -60,7 +60,7 @@ async def get_personalised_plan(current_user: TokenData = Depends(get_current_us
                 Calculations: determine the number of installments over repayment period and make sure total_loan_amount = installment_amount * number of installments
 
                 Note: You do not have to strictly follow the user's porposed plan and preferrred repayment instead based on financial analysis of user situation give a better suited plan which is managebale by the user.
-                Restrictions: 
+                Restrictions:
                 1. Loan Amount must be in PKR
                 2. Do not add Comments in the JSON Object response
 
@@ -78,8 +78,8 @@ async def get_personalised_plan(current_user: TokenData = Depends(get_current_us
     processed_response = post_processing_response(response["response"])
     print(processed_response)
     try:
-        
-        # converting the LLM response into json object 
+
+        # converting the LLM response into json object
         json_object = json.loads(processed_response)
         json_object["application_id"] = str(application_dict["_id"])
         result = await ApplicationService.save_plan_db(json_object)
@@ -117,6 +117,9 @@ async def get_risk_score(current_user: TokenData = Depends(get_current_user)):
     await RiskScoreCalCulations.add_to_db(risk_scores)
     return score
 
+@application_router.get('/risk-assessment/')
+async def get_risk_assessment(application_id: str, current_user: TokenData = Depends(get_current_user)):
+    return await RiskScoreCalCulations.get_riskscore(application_id);
 
 @application_router.put('/update/')
 async def update_application(updated_data:Application, current_user: TokenData = Depends(get_current_user)):
@@ -124,17 +127,18 @@ async def update_application(updated_data:Application, current_user: TokenData =
 
 @application_router.get('/auto-fill-fields/', response_model=Application)
 async def auto_fill_fields(current_user: TokenData = Depends(get_current_user)):
-    
+
     application = await ApplicationService.get_application(current_user.username)
 
     if application:
         application["_id"] = str(application["_id"])
+        print(application)
         return application
-    
-    query = f"""
-        Given the information of the documents in the context above give the response in the following JSON format 
 
-        
+    query = f"""
+        Given the information of the documents in the context above give the response in the following JSON format
+
+
         username: {current_user.username} (always return this username in the field called username in response)
 
         Restrictions:
@@ -144,7 +148,7 @@ async def auto_fill_fields(current_user: TokenData = Depends(get_current_user)):
             example LLM could not locate nationality:
             the response of the specific field in JSON Object should be ("nationality": "")
         4. Do not add comment in JSON Object.
-           
+
 
         Example JSON Object Response:
         {{
@@ -196,14 +200,14 @@ async def auto_fill_fields(current_user: TokenData = Depends(get_current_user)):
     }}
 
     """
-    
+
     temp_dir = await LangChainService.create_vector_Store(current_user.username, False)
     response = LangChainService.rag_bot(query, temp_dir)
     processed_response = post_processing_response(response["response"])
     print(processed_response)
     try:
-        
-        # converting the LLM response into json object 
+
+        # converting the LLM response into json object
         json_object = json.loads(processed_response)
         if json_object["personal_info"]["dob"] == "" or json_object["personal_info"]["dob"] == "Not Found":
             json_object["personal_info"]["dob"] = "2002-12-30"
@@ -212,7 +216,7 @@ async def auto_fill_fields(current_user: TokenData = Depends(get_current_user)):
         await validate_application_object(json_object)
         results = await ApplicationService.create_application(json_object)
         json_object["_id"] = str(results["application_id"])
-        
+
         return json_object
     except json.JSONDecodeError as e:
         # Handle JSON decoding error if any

@@ -13,10 +13,13 @@ import axios from "axios";
 const ApplicationPlan = () => {
   const [planData, setPlanData] = useState(null);
   const [riskScore, setRiskScore] = useState(null);
+  const [riskAssessment, setRiskAssessment] = useState(null);
   const [isLoadingPlan, setIsLoadingPlan] = useState(false);
   const [isLoadingRisk, setIsLoadingRisk] = useState(false);
+  const [isLoadingAssessment, setIsLoadingAssessment] = useState(false);
   const [planError, setPlanError] = useState("");
   const [riskError, setRiskError] = useState("");
+  const [assessmentError, setAssessmentError] = useState("");
 
   const fetchPersonalizedPlan = async () => {
     setIsLoadingPlan(true);
@@ -46,11 +49,39 @@ const ApplicationPlan = () => {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      setRiskScore(response.data);
+      // Handle both cases: plain value or object with `risk_score`
+      const score =
+        typeof response.data === "number"
+          ? response.data
+          : response.data?.risk_score;
+      setRiskScore(score || "Not available");
     } catch (err) {
       setRiskError("Failed to fetch risk score.");
     } finally {
       setIsLoadingRisk(false);
+    }
+  };
+
+  const fetchRiskAssessment = async () => {
+    if (!planData?.application_id) {
+      setAssessmentError("Application ID is missing.");
+      return;
+    }
+
+    setIsLoadingAssessment(true);
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await axios.get(
+        `http://localhost:8000/application/risk-assessment/?application_id=${planData.application_id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      setRiskAssessment(response.data);
+    } catch (err) {
+      setAssessmentError("Failed to fetch risk assessment.");
+    } finally {
+      setIsLoadingAssessment(false);
     }
   };
 
@@ -80,6 +111,9 @@ const ApplicationPlan = () => {
                   <p>
                     <strong>Total Loan Amount:</strong> PKR{" "}
                     {planData.total_loan_amount}
+                  </p>
+                  <p>
+                    <strong>Application ID:</strong> {planData.application_id}
                   </p>
                   <p>
                     <strong>Start Date:</strong> {planData.Start_date}
@@ -122,20 +156,17 @@ const ApplicationPlan = () => {
         <Col sm={12} md={6} className="mb-4">
           <Card className="shadow-lg">
             <Card.Body>
-              <h3 className="text-warning mb-3">Risk Assessment</h3>
+              <h3 className="text-warning mb-3">Risk Score</h3>
               {isLoadingRisk ? (
                 <Spinner animation="border" variant="warning" />
               ) : riskError ? (
                 <Alert variant="danger">{riskError}</Alert>
-              ) : riskScore ? (
+              ) : riskScore !== null ? (
                 <div>
-                  <p>
-                    <strong>Total Risk Score:</strong> {riskScore}
-                  </p>
-                  <p>
-                    A lower score indicates better financial, academic, and
-                    personal risk assessment.
-                  </p>
+                  <strong>Risk Score:</strong>{" "}
+                  {typeof riskScore === "number"
+                    ? riskScore
+                    : riskScore?.risk_score}
                 </div>
               ) : (
                 <Alert variant="info">No risk score available.</Alert>
@@ -150,6 +181,83 @@ const ApplicationPlan = () => {
                   <Spinner animation="border" size="sm" />
                 ) : (
                   "Refresh Risk Score"
+                )}
+              </Button>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        {/* Risk Assessment Section */}
+        <Col sm={12} md={6} className="mb-4">
+          <Card className="shadow-lg">
+            <Card.Body>
+              <h3 className="text-danger mb-3">Risk Assessment Details</h3>
+              {isLoadingAssessment ? (
+                <Spinner animation="border" variant="danger" />
+              ) : assessmentError ? (
+                <Alert variant="danger">{assessmentError}</Alert>
+              ) : riskAssessment ? (
+                <div>
+                  {/* Display application ID */}
+                  <div className="mb-3">
+                    <p>
+                      <strong>Application ID:</strong>{" "}
+                      {riskAssessment.application_id || "Not provided"}
+                    </p>
+                  </div>
+
+                  {/* Display ID */}
+                  <div className="mb-3">
+                    <p>
+                      <strong>ID:</strong>{" "}
+                      {riskAssessment._id || "Not provided"}
+                    </p>
+                  </div>
+
+                  {/* Iterate over the risk categories */}
+                  {Object.entries(riskAssessment).map(([key, value]) => {
+                    if (["application_id", "_id", "created_at"].includes(key)) {
+                      return null; // Skip rendering these fields here
+                    }
+                    return (
+                      <div key={key} className="mb-3">
+                        <p>
+                          <strong>
+                            {key.replace(/_/g, " ").toUpperCase()}:
+                          </strong>{" "}
+                          {value?.risk_score || "Not provided"}
+                        </p>
+                        <p>
+                          <strong>Calculations:</strong>{" "}
+                          {value?.calculations || "Not provided"}
+                        </p>
+                      </div>
+                    );
+                  })}
+
+                  {/* Display Created At */}
+                  <div className="mb-3">
+                    <p>
+                      <strong>Created At:</strong>{" "}
+                      {riskAssessment.created_at
+                        ? new Date(riskAssessment.created_at).toLocaleString()
+                        : "Not provided"}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <Alert variant="info">No risk assessment available.</Alert>
+              )}
+              <Button
+                variant="danger"
+                className="mt-3 w-100"
+                onClick={fetchRiskAssessment}
+                disabled={isLoadingAssessment}
+              >
+                {isLoadingAssessment ? (
+                  <Spinner animation="border" size="sm" />
+                ) : (
+                  "Fetch Risk Assessment"
                 )}
               </Button>
             </Card.Body>

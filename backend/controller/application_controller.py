@@ -15,7 +15,7 @@ from models.plan import Plan
 
 application_router = APIRouter()
 
-@application_router.post('/accpet-plan/')
+@application_router.post('/accept-plan/')
 async def accept_plan():
     pass
 
@@ -109,6 +109,7 @@ async def get_risk_score(current_user: TokenData = Depends(get_current_user)):
         repayment_potential={"risk_score": 0, "calculations": "N/A"}
     )
     application_dict = await ApplicationService.get_application(current_user.username)
+    application_dict["_id"] = str(application_dict["_id"])
     application = Application(**application_dict)
     risk_scores.application_id = str(application_dict["_id"])
     score = 0

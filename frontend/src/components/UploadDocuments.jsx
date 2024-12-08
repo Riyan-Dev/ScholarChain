@@ -1,10 +1,15 @@
+// src/components/UploadDocuments.jsx
+
 import React, { useState } from "react";
-import { useDropzone } from "react-dropzone";
+import DropzoneField from "./DropzoneField"; // Ensure correct path
 import axios from "axios";
 import { Button, Alert, Spinner } from "react-bootstrap";
 import { v4 as uuidv4 } from "uuid"; // Import UUID for generating unique file IDs
+import { useNavigate } from "react-router-dom";
 
 const UploadDocuments = () => {
+  const navigate = useNavigate();
+  // Initialize state with all document types
   const [documents, setDocuments] = useState({
     cnic: [],
     guardianCnic: [],
@@ -22,144 +27,143 @@ const UploadDocuments = () => {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertVariant, setAlertVariant] = useState("");
 
-  // Helper function to update document list in state
-  const onDrop = (documentType) => (acceptedFiles) => {
+  // Configuration for each document type
+  const dropzoneConfigs = {
+    cnic: { label: "CNIC (Compulsory)", multiple: false },
+    guardianCnic: {
+      label: "Parent/Guardian's CNIC (Compulsory)",
+      multiple: false,
+    },
+    electricityBills: {
+      label: "Electricity Bills (Last 3 months) (Compulsory)",
+      multiple: true,
+    },
+    gasBills: {
+      label: "Gas Bills (Last 3 months) (Compulsory)",
+      multiple: true,
+    },
+    intermediateResults: {
+      label:
+        "Intermediate Results/A Levels Grades/A Levels IBCC Equivalence (Compulsory)",
+      multiple: false,
+    },
+    undergradTranscript: {
+      label: "Current Undergrad Transcript (Optional)",
+      multiple: false,
+    },
+    salarySlips: {
+      label: "Salary Slips (Last 3 months) (Compulsory)",
+      multiple: true,
+    },
+    bankStatements: {
+      label: "Bank Statements (Last 6 months) (Compulsory)",
+      multiple: true,
+    },
+    incomeTaxCertificate: {
+      label: "Income Tax Certificate (Optional)",
+      multiple: false,
+    },
+    referenceLetter: {
+      label: "Reference Letter (Academic or Personal) (Compulsory)",
+      multiple: false,
+    },
+  };
+
+  // Handler for when files are dropped
+  const handleFilesDropped = (documentType, acceptedFiles) => {
+    console.log(`Files dropped for ${documentType}:`, acceptedFiles);
     setDocuments((prevDocuments) => ({
       ...prevDocuments,
       [documentType]: acceptedFiles.map((file) => ({
-        ...file,
+        file, // Store the actual File object
         id: uuidv4(), // Generate a unique ID for each file
       })),
     }));
   };
 
-  // React Dropzone hooks for each document type
-  const { getRootProps: getCNICRootProps, getInputProps: getCNICInputProps } =
-    useDropzone({
-      onDrop: onDrop("cnic"),
-      accept: ".jpg,.jpeg,.png,.pdf",
-      multiple: false,
-    });
-
-  const {
-    getRootProps: getGuardianCNICRootProps,
-    getInputProps: getGuardianCNICInputProps,
-  } = useDropzone({
-    onDrop: onDrop("guardianCnic"),
-    accept: ".jpg,.jpeg,.png,.pdf",
-    multiple: false,
-  });
-
-  const {
-    getRootProps: getElectricityBillsRootProps,
-    getInputProps: getElectricityBillsInputProps,
-  } = useDropzone({
-    onDrop: onDrop("electricityBills"),
-    accept: ".jpg,.jpeg,.png,.pdf",
-    multiple: true,
-  });
-
-  const {
-    getRootProps: getGasBillsRootProps,
-    getInputProps: getGasBillsInputProps,
-  } = useDropzone({
-    onDrop: onDrop("gasBills"),
-    accept: ".jpg,.jpeg,.png,.pdf",
-    multiple: true,
-  });
-
-  const {
-    getRootProps: getIntermediateResultsRootProps,
-    getInputProps: getIntermediateResultsInputProps,
-  } = useDropzone({
-    onDrop: onDrop("intermediateResults"),
-    accept: ".jpg,.jpeg,.png,.pdf",
-    multiple: false,
-  });
-
-  const {
-    getRootProps: getUndergradTranscriptRootProps,
-    getInputProps: getUndergradTranscriptInputProps,
-  } = useDropzone({
-    onDrop: onDrop("undergradTranscript"),
-    accept: ".jpg,.jpeg,.png,.pdf",
-    multiple: false,
-  });
-
-  const {
-    getRootProps: getSalarySlipsRootProps,
-    getInputProps: getSalarySlipsInputProps,
-  } = useDropzone({
-    onDrop: onDrop("salarySlips"),
-    accept: ".jpg,.jpeg,.png,.pdf",
-    multiple: true,
-  });
-
-  const {
-    getRootProps: getBankStatementsRootProps,
-    getInputProps: getBankStatementsInputProps,
-  } = useDropzone({
-    onDrop: onDrop("bankStatements"),
-    accept: ".jpg,.jpeg,.png,.pdf",
-    multiple: true,
-  });
-
-  const {
-    getRootProps: getIncomeTaxCertificateRootProps,
-    getInputProps: getIncomeTaxCertificateInputProps,
-  } = useDropzone({
-    onDrop: onDrop("incomeTaxCertificate"),
-    accept: ".jpg,.jpeg,.png,.pdf",
-    multiple: false,
-  });
-
-  const {
-    getRootProps: getReferenceLetterRootProps,
-    getInputProps: getReferenceLetterInputProps,
-  } = useDropzone({
-    onDrop: onDrop("referenceLetter"),
-    accept: ".jpg,.jpeg,.png,.pdf",
-    multiple: false,
-  });
-
   // Handle document upload
-  // need to add functionality to make some documents compulsory
   const handleUpload = async () => {
-    const filesSelected = Object.values(documents).flat(); // Flatten the file arrays
+    const filesSelected = Object.values(documents).flat();
+
+    // Uncomment the following if you want to enforce compulsory documents
+    /*
+    const compulsoryDocuments = [
+      "cnic",
+      "guardianCnic",
+      "electricityBills",
+      "gasBills",
+      "intermediateResults",
+      "salarySlips",
+      "bankStatements",
+      "referenceLetter",
+    ];
+
+    const missingDocuments = compulsoryDocuments.filter(
+      (doc) => !documents[doc] || documents[doc].length === 0
+    );
+
+    if (missingDocuments.length > 0) {
+      setAlertMessage(
+        `Please upload the following compulsory documents: ${missingDocuments.join(
+          ", "
+        )}`
+      );
+      setAlertVariant("danger");
+      return;
+    }
+    */
+
+    if (filesSelected.length === 0) {
+      setAlertMessage("No files selected for upload.");
+      setAlertVariant("warning");
+      return;
+    }
+
     setIsLoading(true);
     const formData = new FormData();
 
-    // Check if files are being appended correctly
-    filesSelected.forEach((file) => {
-      console.log("Appending file:", file); // Debug log to confirm it's a File object
-      formData.append("files", file); // Append the file correctly
+    // Append files to formData
+    filesSelected.forEach((fileObj, index) => {
+      if (fileObj.file instanceof File) {
+        console.log(`Appending file ${index + 1}:`, fileObj.file);
+        formData.append("files", fileObj.file);
+      } else {
+        console.warn(`fileObj.file is not a File instance:`, fileObj);
+      }
     });
 
-    // Generate ids from files
-    const ids = filesSelected.map((file) => file.id);
+    // Append ids to formData
+    filesSelected.forEach((fileObj, index) => {
+      if (fileObj.id) {
+        console.log(`Appending id ${index + 1}:`, fileObj.id);
+        formData.append("ids", fileObj.id);
+      } else {
+        console.warn(`fileObj.id is missing:`, fileObj);
+      }
+    });
 
-    // If only one file, send ids as a simple value
-    const idsParam = ids.length === 1 ? ids[0] : ids;
-
-    console.log("Sending ids:", idsParam); // Debug log for ids
+    console.log("FormData entries:");
+    for (let pair of formData.entries()) {
+      console.log(`${pair[0]}: ${pair[1]}`);
+    }
 
     try {
+      // Send the POST request with files and ids in formData
       const response = await axios.post(
-        "http://localhost:8000/user/upload-documents",
-        formData,
+        "http://localhost:8000/user/upload-documents", // Ensure this URL is correct
+        formData, // FormData containing the files and ids
         {
           headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`, // Bearer token
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`, // Include the token
           },
-          params: { ids: idsParam }, // Pass ids as a query param
         },
       );
 
       if (response.status === 200) {
         setAlertMessage("Documents uploaded successfully!");
         setAlertVariant("success");
-        // Reset documents state
+        // Reset document state
         setDocuments({
           cnic: [],
           guardianCnic: [],
@@ -172,10 +176,21 @@ const UploadDocuments = () => {
           incomeTaxCertificate: [],
           referenceLetter: [],
         });
+
+        navigate("/application-form");
+      } else {
+        setAlertMessage("Unexpected response from the server.");
+        setAlertVariant("warning");
       }
     } catch (error) {
-      console.error("Error Response:", error.response); // Log the error response for debugging
-      setAlertMessage("Failed to upload documents. Please try again.");
+      console.error("Error Response:", error.response); // Log the error for debugging
+      if (error.response && error.response.data && error.response.data.detail) {
+        setAlertMessage(
+          `Failed to upload documents: ${error.response.data.detail}`,
+        );
+      } else {
+        setAlertMessage("Failed to upload documents. Please try again.");
+      }
       setAlertVariant("danger");
     }
 
@@ -190,113 +205,44 @@ const UploadDocuments = () => {
 
       <div className="row">
         {/* Document Upload Section */}
-        {[
-          { name: "cnic", label: "CNIC (Compulsory)" },
-          {
-            name: "guardianCnic",
-            label: "Parent/Guardian's CNIC (Compulsory)",
-          },
-          {
-            name: "electricityBills",
-            label: "Electricity Bills (Last 3 months) (Compulsory)",
-            multiple: true,
-          },
-          {
-            name: "gasBills",
-            label: "Gas Bills (Last 3 months) (Compulsory)",
-            multiple: true,
-          },
-          {
-            name: "intermediateResults",
-            label:
-              "Intermediate Results/A Levels Grades/A Levels IBCC Equivalence (Compulsory)",
-          },
-          {
-            name: "undergradTranscript",
-            label: "Current Undergrad Transcript (Optional)",
-          },
-          {
-            name: "salarySlips",
-            label: "Salary Slips (Last 3 months) (Compulsory)",
-            multiple: true,
-          },
-          {
-            name: "bankStatements",
-            label: "Bank Statements (Last 6 months) (Compulsory)",
-            multiple: true,
-          },
-          {
-            name: "incomeTaxCertificate",
-            label: "Income Tax Certificate (Optional)",
-          },
-          {
-            name: "referenceLetter",
-            label: "Reference Letter (Academic or Personal) (Compulsory)",
-          },
-        ].map((document, index) => (
-          <div className="col-md-6 mb-4" key={index}>
-            <h5>{document.label}</h5>
-            <div
-              {...(document.name === "cnic"
-                ? getCNICRootProps()
-                : document.name === "guardianCnic"
-                  ? getGuardianCNICRootProps()
-                  : document.name === "electricityBills"
-                    ? getElectricityBillsRootProps()
-                    : document.name === "gasBills"
-                      ? getGasBillsRootProps()
-                      : document.name === "intermediateResults"
-                        ? getIntermediateResultsRootProps()
-                        : document.name === "undergradTranscript"
-                          ? getUndergradTranscriptRootProps()
-                          : document.name === "salarySlips"
-                            ? getSalarySlipsRootProps()
-                            : document.name === "bankStatements"
-                              ? getBankStatementsRootProps()
-                              : document.name === "incomeTaxCertificate"
-                                ? getIncomeTaxCertificateRootProps()
-                                : getReferenceLetterRootProps())}
-              className="dropzone p-3 border text-center border-dashed rounded shadow-sm"
-            >
-              <input
-                {...(document.name === "cnic"
-                  ? getCNICInputProps()
-                  : document.name === "guardianCnic"
-                    ? getGuardianCNICInputProps()
-                    : document.name === "electricityBills"
-                      ? getElectricityBillsInputProps()
-                      : document.name === "gasBills"
-                        ? getGasBillsInputProps()
-                        : document.name === "intermediateResults"
-                          ? getIntermediateResultsInputProps()
-                          : document.name === "undergradTranscript"
-                            ? getUndergradTranscriptInputProps()
-                            : document.name === "salarySlips"
-                              ? getSalarySlipsInputProps()
-                              : document.name === "bankStatements"
-                                ? getBankStatementsInputProps()
-                                : document.name === "incomeTaxCertificate"
-                                  ? getIncomeTaxCertificateInputProps()
-                                  : getReferenceLetterInputProps())}
-              />
-              <p>Click or Drag to upload your {document.label} (Required)</p>
-            </div>
-            <ul>
-              {documents[document.name]?.map((file, idx) => (
-                <li key={idx}>
-                  {file.name} (ID: {file.id})
-                </li>
-              ))}
-            </ul>
-          </div>
+        {Object.keys(dropzoneConfigs).map((docType, index) => (
+          <DropzoneField
+            key={index}
+            documentType={docType}
+            label={dropzoneConfigs[docType].label}
+            multiple={dropzoneConfigs[docType].multiple}
+            onFilesDropped={handleFilesDropped}
+          />
         ))}
+      </div>
+
+      {/* List of uploaded files */}
+      <div className="row">
+        {Object.keys(documents).map(
+          (docType, index) =>
+            documents[docType].length > 0 && (
+              <div className="col-md-6 mb-4" key={index}>
+                <h6>{dropzoneConfigs[docType].label} Uploaded:</h6>
+                <ul>
+                  {documents[docType].map((fileObj, idx) => (
+                    <li key={idx}>
+                      {fileObj.file ? fileObj.file.name : "Unnamed File"} (ID:{" "}
+                      {fileObj.id})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ),
+        )}
       </div>
 
       {/* Upload Button */}
       <div className="mt-3">
         <Button variant="primary" onClick={handleUpload} disabled={isLoading}>
           {isLoading ? (
-            <Spinner animation="border" size="sm" />
+            <>
+              <Spinner animation="border" size="sm" /> Uploading...
+            </>
           ) : (
             "Upload Documents"
           )}

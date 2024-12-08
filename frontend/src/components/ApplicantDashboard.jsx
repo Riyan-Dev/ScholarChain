@@ -24,7 +24,7 @@ const ApplicantDashboard = () => {
   }, [navigate]);
 
   const handleFillForm = () => {
-    navigate("/fill-form"); // Navigate to the form page
+    navigate("/application-form"); // Navigate to the form page
   };
 
   const navigateToChatApp = () => {

@@ -1,4 +1,5 @@
 from bson import ObjectId
+from fastapi import HTTPException
 from models.application import PersonalInfo, AcademicInfo, FinancialInfo, LoanDetails, Reference, Application
 from models.risk_scores import RiskAssessment, RiskScoreReasoning
 from datetime import date
@@ -9,8 +10,12 @@ from utility import run_mistral
 class RiskScoreCalCulations:
     @staticmethod
     async def get_riskscore(application_id: str):
-        risk_assessment_score = await risk_assessment_collection.find_one({"application_id": ObjectId(application_id)})
-        risk_assessment_score["_id"] = str(risk_assessment_score["_id"]);
+        print(application_id)
+        risk_assessment_score = await risk_assessment_collection.find_one({"application_id": application_id})
+        if risk_assessment_score:
+            risk_assessment_score["_id"] = str(risk_assessment_score["_id"])
+        else:
+            raise HTTPException(status_code=404, detail="Risk Assessment not found")
         return risk_assessment_score
 
     async def add_to_db(risk_assesment: RiskAssessment):

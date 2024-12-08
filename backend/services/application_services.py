@@ -7,6 +7,13 @@ from utility import convert_date_fields
 class ApplicationService:
 
     @staticmethod
+    async def get_all_applications():
+        applications = list(application_collection.find())  # Convert cursor to list
+        for app in applications:
+            app["_id"] = str(app["_id"])  # Convert ObjectId to string
+        return applications
+
+    @staticmethod
     async def verify_application(username: str):
 
         update_data = {

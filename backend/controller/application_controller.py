@@ -19,6 +19,13 @@ application_router = APIRouter()
 async def accept_plan():
     pass
 
+@application_router.get('/get-all/')
+async def get_all_application(current_user: TokenData = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=401, detail="Only admin access allowed")
+
+    return await ApplicationService.get_all_applications()
+
 @application_router.put('/update-plan/')
 async def update_plan(updated_data:Plan, application_id:str, current_user: TokenData = Depends(get_current_user)):
     if current_user.role != "admin":
@@ -132,7 +139,6 @@ async def auto_fill_fields(current_user: TokenData = Depends(get_current_user)):
 
     if application:
         application["_id"] = str(application["_id"])
-        print(application)
         return application
 
     query = f"""

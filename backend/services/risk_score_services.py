@@ -36,7 +36,7 @@ class RiskScoreCalCulations:
         await asyncio.sleep(2)
         score += await RiskScoreCalCulations.repayment_potential_score(application.references, risk_scores)
         
-        exisiting_risk_score = await RiskScoreCalCulations.get_riskscore(risk_scores.application_id)
+        exisiting_risk_score = await RiskScoreCalCulations.get_risk_assessment_score(risk_scores.application_id)
 
         if exisiting_risk_score:
             await RiskScoreCalCulations.update_riskScores(risk_scores)

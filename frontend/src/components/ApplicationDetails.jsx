@@ -249,7 +249,49 @@ const ApplicationResponses = ({ applicationId }) => {
           </p>
         </Card.Body>
       </Card>
-      {/* Add sections for financial_info, academic_info, loan_details, and references */}
+      <Card className="mb-4 shadow-sm">
+        <Card.Body>
+          <h4 className="text-primary mb-3">Loan Details</h4>
+          <p>
+            <strong>Loan Amount Requested:</strong>{" "}
+            {responses.loan_details.loan_amount_requested}
+          </p>
+          <p>
+            <strong>Purpose of Loan:</strong>{" "}
+            {responses.loan_details.purpose_of_loan}
+          </p>
+          <p>
+            <strong>Proposed Repayment Period:</strong>{" "}
+            {responses.loan_details.proposed_repayment_period}
+          </p>
+          <p>
+            <strong>Preferred Repayment Frequency:</strong>{" "}
+            {responses.loan_details.preferred_repayment_frequency}
+          </p>
+        </Card.Body>
+      </Card>
+      <Card className="mb-4 shadow-sm">
+        <Card.Body>
+          <h4 className="text-primary mb-3">References</h4>
+          {responses.references.map((reference, index) => (
+            <div key={index} className="mb-3">
+              <p>
+                <strong>Name:</strong> {reference.name}
+              </p>
+              <p>
+                <strong>Designation:</strong> {reference.designation}
+              </p>
+              <p>
+                <strong>Contact Details:</strong> {reference.contact_details}
+              </p>
+              <p>
+                <strong>Comments:</strong> {reference.comments}
+              </p>
+              {index < responses.references.length - 1 && <hr />}
+            </div>
+          ))}
+        </Card.Body>
+      </Card>
     </Container>
   );
 };

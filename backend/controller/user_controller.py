@@ -112,3 +112,8 @@ async def process_documents(files: List[UploadFile] = File(...), ids: List[str] 
 
     # Now safely call add_documents, assuming username is always a valid string
     return await UserService.add_documents(token.username, new_documents)
+
+
+
+
+

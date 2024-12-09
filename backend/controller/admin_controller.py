@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 
 from services.application_services import ApplicationService
 from services.risk_score_services import RiskScoreCalCulations
+from services.user_services import UserService
+from services.transaction_services import TransactionServices
 from middleware.JWT_authentication import TokenData, get_current_user
 
 from models.application import Application
@@ -13,6 +15,15 @@ from models.plan import Plan
 
 
 admin_router = APIRouter()
+
+@admin_router.get('/get-all-donations/')
+async def get_all_application(current_user: TokenData = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=401, detail="Only admin access allowed")
+
+    donars = await UserService.get_all_donars_username()
+    print(donars)
+    return await TransactionServices.get_all_donations_list(donars)
 
 @admin_router.get('/get-all-applications/')
 async def get_all_application(current_user: TokenData = Depends(get_current_user)):

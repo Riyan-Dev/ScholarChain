@@ -74,7 +74,7 @@ class LangChainService:
 
 
     @staticmethod
-    def rag_bot(query: str, temp_dir: str):
+    async def rag_bot(query: str, temp_dir: str):
         # Specify model
         api_key = os.getenv("api_key")
         llm = ChatMistralAI(model="mistral-small-latest", api_key=api_key)

@@ -1,8 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import date
+from typing import Optional
+
 
 class Plan(BaseModel):
-    _id: str
+    id: Optional[str] = Field(None, alias="_id") 
     total_loan_amount: float
     start_date: date
     end_date: date

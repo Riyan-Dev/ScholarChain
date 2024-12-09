@@ -8,12 +8,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from controller.rag_controller import router as rag_router
 from controller.user_controller import user_router
 from controller.application_controller import application_router
+from controller.admin_controller import admin_router
 
 app = FastAPI()
 
 app.include_router(rag_router, prefix="/rag", tags=["rag"])
 app.include_router(user_router, prefix="/user", tags=["user"])
 app.include_router(application_router, prefix="/application", tags=["application"])
+app.include_router(admin_router, prefix="/admin", tags=["admin"])
 
 origins = [
     "http://localhost:3000",

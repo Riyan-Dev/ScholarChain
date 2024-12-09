@@ -1,28 +1,86 @@
+import time
+import asyncio
+
 from bson import ObjectId
 from fastapi import HTTPException
 from models.application import PersonalInfo, AcademicInfo, FinancialInfo, LoanDetails, Reference, Application
 from models.risk_scores import RiskAssessment, RiskScoreReasoning
 from datetime import date
 from db import risk_assessment_collection
+from services.application_services import ApplicationService
 
 from utility import run_mistral
 
 class RiskScoreCalCulations:
+
     @staticmethod
-    async def get_riskscore(application_id: str):
-        print(application_id)
+    async def generate_risk_scores(application_dict, current_user):
+        risk_scores = RiskAssessment(
+        application_id="12345",
+        financial_risk={"risk_score": 0, "calculations": "N/A"},
+        academic_risk={"risk_score": 0, "calculations": "N/A"},
+        personal_risk={"risk_score": 0, "calculations": "N/A"},
+        reference_risk={"risk_score": 0, "calculations": "N/A"},
+        repayment_potential={"risk_score": 0, "calculations": "N/A"}
+    )
+        application = Application(**application_dict)
+        risk_scores.application_id = str(application_dict["id"])
+        score = 0
+        score += await RiskScoreCalCulations.get_personal_information_score(application.personal_info, risk_scores)
+        await asyncio.sleep(2)
+        score += await RiskScoreCalCulations.get_academic_risk_score(application.academic_info, risk_scores)
+        await asyncio.sleep(2)
+        score += await RiskScoreCalCulations.get_financial_risk_score(application.financial_info, application.loan_details, risk_scores)
+        await asyncio.sleep(2)
+        score += await RiskScoreCalCulations.get_reference_risk_score(application.references, risk_scores)
+        await asyncio.sleep(2)
+        score += await RiskScoreCalCulations.repayment_potential_score(application.references, risk_scores)
+        
+        exisiting_risk_score = await RiskScoreCalCulations.get_riskscore(risk_scores.application_id)
+
+        if exisiting_risk_score:
+            await RiskScoreCalCulations.update_riskScores(risk_scores)
+        else:
+            await RiskScoreCalCulations.add_to_db(risk_scores)
+
+        if score > 70: 
+            await ApplicationService.generate_personalised_plan(application_dict, current_user)
+        return score
+
+    @staticmethod
+    async def get_risk_assessment_score(application_id: str):
         risk_assessment_score = await risk_assessment_collection.find_one({"application_id": application_id})
         if risk_assessment_score:
             risk_assessment_score["_id"] = str(risk_assessment_score["_id"])
-        else:
-            raise HTTPException(status_code=404, detail="Risk Assessment not found")
+        
         return risk_assessment_score
+    
+    @staticmethod
+    async def update_riskScores(risk_scores: RiskAssessment):
+
+        if not risk_scores:
+            raise HTTPException(status_code=400, detail="No data provided for update.")
+        
+        try:
+
+            result = await risk_assessment_collection.update_one(
+                {"application_id": risk_scores.application_id},
+                {"$set": risk_scores.dict()}
+            )
+        
+            if result.modified_count == 0:
+                raise HTTPException(status_code=404, detail="Risk Assessment not found or no fields to update.")
+            print(result)
+            return {"message": "Risk Assessment successfully updated."}
+        
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
     async def add_to_db(risk_assesment: RiskAssessment):
         result = await risk_assessment_collection.insert_one(risk_assesment.dict())
         return result
 
-    def get_personal_information_score(personal_info: PersonalInfo, risk_assesment: RiskAssessment) -> float :
+    async def get_personal_information_score(personal_info: PersonalInfo, risk_assesment: RiskAssessment) -> float :
         score = 0.0
         age = (date.today() - personal_info.dob).days / 365.25
         if age > 18 and age < 35:
@@ -59,14 +117,14 @@ class RiskScoreCalCulations:
                     }}
                 """
 
-        response = run_mistral(prompt)
+        response = await run_mistral(prompt)
         print(response)
         response["risk_score"] += score
         risk_assesment.personal_risk = RiskScoreReasoning(**response)
         return response["risk_score"]
 
 
-    def get_academic_risk_score(academic_info: AcademicInfo, risk_assesment: RiskAssessment):
+    async def get_academic_risk_score(academic_info: AcademicInfo, risk_assesment: RiskAssessment):
 
         prompt = f"""
 
@@ -88,13 +146,13 @@ class RiskScoreCalCulations:
                     }}
                 """
 
-        response = run_mistral(prompt)
+        response = await run_mistral(prompt)
         print(response)
         risk_assesment.academic_risk = RiskScoreReasoning(**response)
         score = response["risk_score"]
         return score
 
-    def get_financial_risk_score(financial_info: FinancialInfo, loan_details: LoanDetails, risk_assesment: RiskAssessment):
+    async def get_financial_risk_score(financial_info: FinancialInfo, loan_details: LoanDetails, risk_assesment: RiskAssessment):
         TFI = financial_info.total_family_income//12
         score = 0
         if TFI < 100000:
@@ -125,12 +183,12 @@ class RiskScoreCalCulations:
                     }}
                 """
 
-        response = run_mistral(prompt)
+        response = await run_mistral(prompt)
         print(response)
         response["risk_score"] += score
         risk_assesment.financial_risk = RiskScoreReasoning(**response)
         return response["risk_score"]
-    def get_reference_risk_score(references: list[Reference], risk_assesment: RiskAssessment):
+    async def get_reference_risk_score(references: list[Reference], risk_assesment: RiskAssessment):
         score = 0
         prompt = f"""
 
@@ -152,14 +210,14 @@ class RiskScoreCalCulations:
                     }}
                 """
 
-        response = run_mistral(prompt)
+        response = await run_mistral(prompt)
         print(response)
         risk_assesment.reference_risk = RiskScoreReasoning(**response)
         score += response["risk_score"]
         return score
 
 
-    def repayment_potential_score(application: Application, risk_assesment: RiskAssessment):
+    async def repayment_potential_score(application: Application, risk_assesment: RiskAssessment):
         score = 0
         prompt = f"""
 
@@ -181,8 +239,18 @@ class RiskScoreCalCulations:
                     }}
                 """
 
-        response = run_mistral(prompt)
+        response = await run_mistral(prompt)
         print(response)
         risk_assesment.repayment_potential = RiskScoreReasoning(**response)
         score += response["risk_score"]
         return score
+    
+    async def calculate_total_score(risk_assessment):
+        total_score = 0
+        total_score += risk_assessment["financial_risk"]["risk_score"]
+        total_score += risk_assessment["academic_risk"]["risk_score"]
+        total_score += risk_assessment["personal_risk"]["risk_score"]
+        total_score += risk_assessment["repayment_potential"]["risk_score"]
+        total_score += risk_assessment["reference_risk"]["risk_score"]
+
+        return total_score

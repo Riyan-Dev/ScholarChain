@@ -1,84 +1,53 @@
 import React, { useEffect, useState } from "react";
-import { Navbar, Nav, Container, Button } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode"; // Corrected import
+import Layout from "./Layout";
 
 const ApplicantDashboard = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
 
   useEffect(() => {
-    // Retrieve the token from localStorage
     const token = localStorage.getItem("access_token");
     if (token) {
       try {
-        // Decode the token to extract the username
         const decodedToken = jwtDecode(token);
         setUsername(decodedToken.sub); // Assuming the token has a 'sub' field for username
       } catch (error) {
         console.error("Error decoding token:", error);
       }
     } else {
-      navigate("/login"); // Redirect to login if there's no token
+      navigate("/login");
     }
   }, [navigate]);
 
-  const handleFillForm = () => {
-    navigate("/application-form"); // Navigate to the form page
-  };
-
-  const navigateToChatApp = () => {
-    navigate("/chat-app"); // This will navigate to the ChatbotPage (ChatApp page)
-  };
-
-  const handleUploadDocuments = () => {
-    navigate("/upload-documents"); // Navigate to Upload Documents page
-  };
-
-  // Logout function
-  const handleLogout = () => {
-    // Remove the token from localStorage
-    localStorage.removeItem("access_token");
-
-    // Redirect to the login page
-    navigate("/login");
-  };
-
   return (
-    <div>
-      {/* Top Navigation Bar */}
-      <Navbar bg="dark" variant="dark">
-        <Container>
-          <Navbar.Brand href="#home">Applicant Dashboard</Navbar.Brand>
-          <Nav className="ml-auto">
-            {/* Logout Button */}
-            <Nav.Link onClick={handleLogout} style={{ cursor: "pointer" }}>
-              Logout
-            </Nav.Link>
-          </Nav>
-        </Container>
-      </Navbar>
-
-      <Container className="mt-5">
-        <h2>Welcome, {username ? username : "Loading..."}</h2>
-        <p>Here you can manage your tasks, fill out forms, and more.</p>
-        {/* Button to navigate to form */}
-        <Button
-          variant="primary"
-          onClick={handleUploadDocuments}
-          className="me-3"
-        >
-          Upload Documents
-        </Button>
-        <Button variant="primary" onClick={handleFillForm} className="me-3">
-          Fill Form
-        </Button>
-        <Button variant="primary" onClick={navigateToChatApp} className="me-3">
-          Go to ChatApp
-        </Button>{" "}
-        {/* New button to navigate to ChatbotPage */}
-      </Container>
-    </div>
+    <Layout>
+      <h2>Welcome, {username ? username : "Loading..."}</h2>
+      <p>Here you can manage your tasks, fill out forms, and more.</p>
+      <Button
+        variant="primary"
+        onClick={() => navigate("/upload-documents")}
+        className="me-3"
+      >
+        Upload Documents
+      </Button>
+      <Button
+        variant="primary"
+        onClick={() => navigate("/application-form")}
+        className="me-3"
+      >
+        Fill Form
+      </Button>
+      <Button
+        variant="primary"
+        onClick={() => navigate("/chat-app")}
+        className="me-3"
+      >
+        Go to ChatApp
+      </Button>
+    </Layout>
   );
 };
 

@@ -9,6 +9,7 @@ import FillForm from "./components/ApplicationPlan.jsx";
 import UploadDocuments from "./components/UploadDocuments.jsx";
 import ChatbotPage from "./components/ChatbotPage.jsx"; // Import ChatbotPage
 import ApplicationForm from "./components/ApplicationForm.jsx";
+import ApplicationDetails from "./components/ApplicationDetails.jsx";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
@@ -29,6 +30,10 @@ function App() {
           <Route path="/upload-documents" element={<UploadDocuments />} />
           <Route path="/application-form" element={<ApplicationForm />} />
           <Route path="/chat-app" element={<ChatbotPage />} />{" "}
+          <Route
+            path="/application-details/:id"
+            element={<ApplicationDetails />}
+          />
           {/* New route for Chatbot */}
         </Routes>
       </Router>

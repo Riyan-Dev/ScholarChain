@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional
 from datetime import date
+from bson import ObjectId
 
 class PersonalInfo(BaseModel):
     full_name: str
@@ -51,4 +52,10 @@ class Application(BaseModel):
     declaration: str
     signature: str
     username: str
-    _id: str
+    id: Optional[str] = Field(None, alias="_id") 
+
+    class Config:
+        allow_population_by_field_name = True
+        json_encoders = {
+            ObjectId: str
+        }

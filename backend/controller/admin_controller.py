@@ -22,7 +22,7 @@ async def get_all_application(current_user: TokenData = Depends(get_current_user
         raise HTTPException(status_code=401, detail="Only admin access allowed")
 
     donars = await UserService.get_all_donars_username()
-    print(donars)
+    
     return await TransactionServices.get_all_donations_list(donars)
 
 @admin_router.get('/get-all-applications/')

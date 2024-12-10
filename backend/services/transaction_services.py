@@ -1,7 +1,11 @@
 
 from fastapi import HTTPException
 from db import wallet_collection
+from services.encrption_services import EncrptionServices
+
 import base64
+
+
 
 from models.wallet import TokenTransaction
 
@@ -73,14 +77,22 @@ class TransactionServices:
     @staticmethod
     async def get_all_donations_list(donars: list):
         wallets = await wallet_collection.find({"username": {"$in": donars}}).to_list(None) 
-        print(wallets)
+        
         tranasctions = []
 
         for wallet in wallets:
             for t in wallet["transactions"]:
+                # raw_key = "".join(line for line in wallet["public_key"].splitlines() if "BEGIN" not in line and "END" not in line)
+
+                # # Step 2: Decode Base64 content into bytes
+                # key_bytes = base64.b64decode(raw_key)
+
+                # # Step 3: Re-encode as a plain Base64 string (optional)
+                # base64_encoded_key = base64.b64encode(key_bytes).decode('utf-8')
                 if t["action"] == "debit":
+                    
                     tranasctions.append({
-                        "account_id": wallet["public_key"],
+                        "account_id":  str(wallet["_id"]),
                         "donation_amount": t["amount"]
                     })
         

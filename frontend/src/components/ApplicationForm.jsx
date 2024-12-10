@@ -46,19 +46,16 @@ const ApplicationForm = () => {
 
     const keys = name.split(".");
     setFormData((prevData) => {
-      const updatedData = { ...prevData };
+      // Create a deep copy of the previous data
+      const updatedData = JSON.parse(JSON.stringify(prevData));
       let temp = updatedData;
 
       // Traverse to the correct nesting
       for (let i = 0; i < keys.length - 1; i++) {
-        if (Array.isArray(temp[keys[i]])) {
-          temp = temp[keys[i]];
-        } else {
-          temp = temp[keys[i]];
-        }
+        temp = temp[keys[i]];
       }
 
-      // Update the final key or array index
+      // Update the final key
       const keyOrIndex = keys[keys.length - 1];
       if (Array.isArray(temp)) {
         temp[parseInt(keyOrIndex)] = value; // Update specific index in the array

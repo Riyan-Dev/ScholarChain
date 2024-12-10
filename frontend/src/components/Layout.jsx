@@ -32,7 +32,7 @@ const Layout = ({ children }) => {
           {/* Sidebar */}
           <Col md={2} className="bg-light vh-100 p-3">
             <Nav className="flex-column">
-              <Nav.Link onClick={() => navigate("/dashboard")}>
+              <Nav.Link onClick={() => navigate("/applicant-dashboard")}>
                 Dashboard
               </Nav.Link>
               <Nav.Link onClick={() => navigate("/upload-documents")}>
@@ -43,6 +43,9 @@ const Layout = ({ children }) => {
               </Nav.Link>
               <Nav.Link onClick={() => navigate("/chat-app")}>
                 Chat App
+              </Nav.Link>
+              <Nav.Link onClick={() => navigate("/application-plan")}>
+                View Application Plan
               </Nav.Link>
             </Nav>
           </Col>

@@ -10,6 +10,7 @@ import UploadDocuments from "./components/UploadDocuments.jsx";
 import ChatbotPage from "./components/ChatbotPage.jsx"; // Import ChatbotPage
 import ApplicationForm from "./components/ApplicationForm.jsx";
 import ApplicationDetails from "./components/ApplicationDetails.jsx";
+import DonationDetails from "./components/DonationDetails.jsx";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
             path="/application-details/:id"
             element={<ApplicationDetails />}
           />
+          <Route path="/donation-details/" element={<DonationDetails />} />
           {/* New route for Chatbot */}
         </Routes>
       </Router>

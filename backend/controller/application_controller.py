@@ -12,7 +12,7 @@ application_router = APIRouter()
 
 @application_router.post('/accept-plan/')
 async def accept_plan():
-    pass    
+    pass
 
 
 # @application_router.get('/risk-score/')
@@ -37,7 +37,7 @@ async def update_application(updated_data:Application, background_tasks: Backgro
     result = await ApplicationService.update_application(current_user.username, updated_data.dict())
     if result:
         background_tasks.add_task(RiskScoreCalCulations.generate_risk_scores, updated_data.dict(), current_user)
-    
+
     return {'message': 'Application Added Successfully, Risk Assessment and personalised Plan Under Construction'}
 
 @application_router.get('/auto-fill-fields/')

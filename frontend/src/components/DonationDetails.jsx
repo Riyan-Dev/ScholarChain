@@ -1,23 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { Navbar, Nav, Container, Row, Col, Table } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
 
-const AdminDashboard = () => {
+const DonationDetails = () => {
   const navigate = useNavigate();
+  const [donations, setDonations] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("");
-  const [applications, setApplications] = useState([]);
 
   useEffect(() => {
-    // Check token and decode username
     const token = localStorage.getItem("access_token");
+
     if (token) {
       try {
-        const decodedToken = jwtDecode(token);
+        // Mock decoding token (replace with jwtDecode if needed)
+        const decodedToken = JSON.parse(atob(token.split(".")[1]));
         setUsername(decodedToken.sub);
-
-        // Fetch applications data
-        fetchApplications(token);
+        fetchDonations(token);
       } catch (error) {
         console.error("Error decoding token:", error);
       }
@@ -26,10 +25,10 @@ const AdminDashboard = () => {
     }
   }, [navigate]);
 
-  const fetchApplications = async (token) => {
+  const fetchDonations = async (token) => {
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/admin/get-all-applications/",
+        "http://127.0.0.1:8000/admin/get-all-donations/",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -37,14 +36,17 @@ const AdminDashboard = () => {
           },
         },
       );
+
       if (response.ok) {
         const data = await response.json();
-        setApplications(data);
+        setDonations(data);
       } else {
-        console.error("Failed to fetch applications");
+        console.error("Failed to fetch donations.");
       }
     } catch (error) {
-      console.error("Error fetching applications:", error);
+      console.error("Error fetching donations:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,7 +77,7 @@ const AdminDashboard = () => {
           {/* Sidebar */}
           <Col md={2} className="bg-light vh-100 p-3">
             <Nav className="flex-column">
-              <Nav.Link onClick={() => navigate("/dashboard")}>
+              <Nav.Link onClick={() => navigate("/admin-dashboard")}>
                 Dashboard
               </Nav.Link>
               <Nav.Link onClick={() => navigate("/donation-details")}>
@@ -86,47 +88,41 @@ const AdminDashboard = () => {
 
           {/* Main Content */}
           <Col md={10} className="p-3">
-            <h2>Welcome, {username ? username : "Loading..."}</h2>
+            <h2>Welcome, {username || "Loading..."}</h2>
 
-            {/* Applications Table */}
+            {/* Donations Table */}
             <div className="mt-4">
-              <h4>Applications</h4>
-              <Table striped bordered hover responsive className="mt-3">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Username</th>
-                    <th>Status</th>
-                    <th>Application Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {applications.length > 0 ? (
-                    applications.map((app, index) => (
-                      <tr
-                        key={app.id}
-                        style={{ cursor: "pointer" }}
-                        onClick={() =>
-                          navigate(`/application-details/${app.id}`)
-                        }
-                      >
-                        <td>{index + 1}</td>
-                        <td>{app.username}</td>
-                        <td>{app.status || "N/A"}</td>
-                        <td>
-                          {new Date(app.application_date).toLocaleDateString()}
+              <h4>Donations</h4>
+              {loading ? (
+                <p>Loading...</p>
+              ) : (
+                <Table striped bordered hover responsive className="mt-3">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Account ID</th>
+                      <th>Donation Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {donations.length > 0 ? (
+                      donations.map((donation, index) => (
+                        <tr key={index}>
+                          <td>{index + 1}</td>
+                          <td>{donation.account_id}</td>
+                          <td>{donation.donation_amount}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="3" className="text-center">
+                          No donations found
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="4" className="text-center">
-                        No applications found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </Table>
+                    )}
+                  </tbody>
+                </Table>
+              )}
             </div>
           </Col>
         </Row>
@@ -135,4 +131,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default DonationDetails;

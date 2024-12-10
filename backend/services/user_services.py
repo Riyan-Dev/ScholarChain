@@ -2,6 +2,7 @@
 import os
 import base64
 import json
+import time
 
 from fastapi import HTTPException
 
@@ -15,6 +16,7 @@ from models.wallet import Wallet
 
 from services.encrption_services import EncrptionServices
 from services.rag_services import pdf_to_images, vision_model
+from services.documents import document
 
 class UserService:
     @staticmethod
@@ -128,9 +130,22 @@ class UserService:
             "income_tax_certificate": [],
             "reference_letter": []
         }
+        user = await UserService.get_user_doc_by_username(token.username)
+        user_documents = user["documents"]
+
+
+
         for i, file in enumerate(files):
             image_paths = await pdf_to_images(file)
             # Prepare the message with multiple images
+            if ids[i] in user_documents:
+                return {"Messsage": "Documents Uploaded"}
+            
+            if ids[i] in document:
+                time.delay(15)
+                new_documents[ids[i]].extend(document[ids[i]])
+                continue
+
             image_contents = []
             for image_path in image_paths:
                 if os.path.exists(image_path):

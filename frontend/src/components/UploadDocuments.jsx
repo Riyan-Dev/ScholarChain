@@ -108,9 +108,13 @@ const UploadDocuments = () => {
   };
 
   const handleUpload = async () => {
-    navigate("/applicant-dashboard");
+    // Navigate to dashboard
+    // navigate("/applicant-dashboard");
+
+    // Flatten the document files into a single array
     const filesSelected = Object.values(documents).flat();
 
+    // Identify any compulsory documents that are missing
     const missingDocuments = compulsoryDocs.filter(
       (docType) => !documents[docType] || documents[docType].length === 0,
     );
@@ -134,12 +138,17 @@ const UploadDocuments = () => {
     setIsLoading(true);
 
     const formData = new FormData();
+
+    // Loop through selected files and append to formData
     filesSelected.forEach(({ file, id }) => {
-      formData.append("files", file);
-      formData.append("ids", id);
+      if (file && id) {
+        formData.append("files", file); // Append the file
+        formData.append("ids", id); // Append the document type (id)
+      }
     });
 
     try {
+      // Send the request to the server
       const response = await axios.post(
         "http://localhost:8000/user/upload-documents",
         formData,
@@ -151,9 +160,12 @@ const UploadDocuments = () => {
         },
       );
 
+      // Handle successful upload
       if (response.status === 200) {
         setAlertMessage("Documents uploaded successfully!");
         setAlertVariant("success");
+
+        // Reset the documents state after successful upload
         setDocuments({
           cnic: [],
           guardianCnic: [],
@@ -166,12 +178,14 @@ const UploadDocuments = () => {
           incomeTaxCertificate: [],
           referenceLetter: [],
         });
-        // navigate("/application-form");
+        // Optionally navigate to another page after upload
+        navigate("/application-form");
       } else {
         setAlertMessage("Unexpected response from the server.");
         setAlertVariant("warning");
       }
     } catch (error) {
+      // Error handling, ensure we check both error response and network errors
       const errorMessage =
         error.response?.data?.detail || "Failed to upload documents.";
       setAlertMessage(errorMessage);

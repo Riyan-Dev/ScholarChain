@@ -261,7 +261,7 @@ class ApplicationService:
             }},
             "references": [
                 {{
-                    "name": "Jane Smith",
+                    "name": "source for this information is reference letter as mention in some metadata for documents",
                     "designation": "Professor",
                     "contact_details": "+987654321",
                     "comments": "John is a diligent student."

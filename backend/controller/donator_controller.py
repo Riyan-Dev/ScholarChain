@@ -21,3 +21,7 @@ async def buy_tokens(amount: float, current_user: TokenData = Depends(get_curren
 @donator_router.post("/donate/")
 async def donate(amount: float,  current_user: TokenData = Depends(get_current_user)):
     return await TransactionServices.transfer_token(amount, current_user.username, "scholarchain")
+
+@donator_router.get("/get-wallet/")
+async def get_wallet( current_user: TokenData = Depends(get_current_user)):
+    return await TransactionServices.get_wallet(current_user.username)

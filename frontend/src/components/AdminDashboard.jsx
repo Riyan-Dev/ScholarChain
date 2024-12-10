@@ -75,7 +75,7 @@ const AdminDashboard = () => {
           {/* Sidebar */}
           <Col md={2} className="bg-light vh-100 p-3">
             <Nav className="flex-column">
-              <Nav.Link onClick={() => navigate("/dashboard")}>
+              <Nav.Link onClick={() => navigate("/admin-dashboard")}>
                 Dashboard
               </Nav.Link>
               <Nav.Link onClick={() => navigate("/donation-details")}>

@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Container, Tabs, Tab, Spinner, Card, Table } from "react-bootstrap";
+import {
+  Container,
+  Tabs,
+  Tab,
+  Spinner,
+  Card,
+  Table,
+  Alert,
+  Button,
+} from "react-bootstrap";
 
 const ApplicationDetails = ({ applicationId }) => {
   const [details, setDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -26,17 +36,26 @@ const ApplicationDetails = ({ applicationId }) => {
         }
       } catch (error) {
         console.error("Error fetching application details:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchDetails();
   }, [applicationId]);
 
-  if (!details)
+  if (loading)
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
         <Spinner animation="border" variant="primary" />
         <span className="ms-2">Loading application details...</span>
+      </div>
+    );
+
+  if (!details)
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <p>No application details available.</p>
       </div>
     );
 
@@ -47,11 +66,13 @@ const ApplicationDetails = ({ applicationId }) => {
           <h4 className="text-primary mb-3">Summary</h4>
           <p>
             <strong>Status:</strong>{" "}
-            <span className="text-success">{details.Status}</span>
+            <span className="text-success">{details.Status || "N/A"}</span>
           </p>
           <p>
             <strong>Total Risk Score:</strong>{" "}
-            <span className="fw-bold text-warning">{details.total_score}</span>
+            <span className="fw-bold text-warning">
+              {details.total_score || 0}
+            </span>
           </p>
         </Card.Body>
       </Card>
@@ -68,15 +89,21 @@ const ApplicationDetails = ({ applicationId }) => {
               </tr>
             </thead>
             <tbody>
-              {Object.entries(details.risk_assessment).map(([key, value]) =>
-                typeof value === "object" ? (
-                  <tr key={key}>
-                    <td className="text-capitalize">{key.replace("_", " ")}</td>
-                    <td className="fw-bold text-center">{value.risk_score}</td>
-                    <td>{value.calculations}</td>
-                  </tr>
-                ) : null,
-              )}
+              {details.risk_assessment
+                ? Object.entries(details.risk_assessment).map(([key, value]) =>
+                    value && typeof value === "object" ? (
+                      <tr key={key}>
+                        <td className="text-capitalize">
+                          {key.replace("_", " ")}
+                        </td>
+                        <td className="fw-bold text-center">
+                          {value.risk_score}
+                        </td>
+                        <td>{value.calculations}</td>
+                      </tr>
+                    ) : null,
+                  )
+                : null}
             </tbody>
           </Table>
         </Card.Body>
@@ -87,30 +114,38 @@ const ApplicationDetails = ({ applicationId }) => {
           <h4 className="text-primary mb-3">Repayment Plan</h4>
           <Table bordered hover>
             <tbody>
-              <tr>
-                <th>Total Loan Amount</th>
-                <td>{details.plan.total_loan_amount}</td>
-              </tr>
-              <tr>
-                <th>Start Date</th>
-                <td>{details.plan.Start_date}</td>
-              </tr>
-              <tr>
-                <th>End Date</th>
-                <td>{details.plan.end_date}</td>
-              </tr>
-              <tr>
-                <th>Repayment Frequency</th>
-                <td>{details.plan.repayment_frequency}</td>
-              </tr>
-              <tr>
-                <th>Installment Amount</th>
-                <td>{details.plan.installment_amount}</td>
-              </tr>
-              <tr>
-                <th>Reasoning</th>
-                <td>{details.plan.reasoning}</td>
-              </tr>
+              {details.plan ? (
+                <>
+                  <tr>
+                    <th>Total Loan Amount</th>
+                    <td>{details.plan.total_loan_amount || "N/A"}</td>
+                  </tr>
+                  <tr>
+                    <th>Start Date</th>
+                    <td>{details.plan.Start_date || "N/A"}</td>
+                  </tr>
+                  <tr>
+                    <th>End Date</th>
+                    <td>{details.plan.end_date || "N/A"}</td>
+                  </tr>
+                  <tr>
+                    <th>Repayment Frequency</th>
+                    <td>{details.plan.repayment_frequency || "N/A"}</td>
+                  </tr>
+                  <tr>
+                    <th>Installment Amount</th>
+                    <td>{details.plan.installment_amount || "N/A"}</td>
+                  </tr>
+                  <tr>
+                    <th>Reasoning</th>
+                    <td>{details.plan.reasoning || "N/A"}</td>
+                  </tr>
+                </>
+              ) : (
+                <tr>
+                  <td colSpan="2">No repayment plan details available.</td>
+                </tr>
+              )}
             </tbody>
           </Table>
         </Card.Body>
@@ -121,6 +156,7 @@ const ApplicationDetails = ({ applicationId }) => {
 
 const ApplicationResponses = ({ applicationId }) => {
   const [responses, setResponses] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchResponses = async () => {
@@ -143,11 +179,21 @@ const ApplicationResponses = ({ applicationId }) => {
         }
       } catch (error) {
         console.error("Error fetching application responses:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchResponses();
   }, [applicationId]);
+
+  if (loading)
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <Spinner animation="border" variant="primary" />
+        <span className="ms-2">Loading application responses...</span>
+      </div>
+    );
 
   if (!responses)
     return (
@@ -163,37 +209,39 @@ const ApplicationResponses = ({ applicationId }) => {
         <Card.Body>
           <h4 className="text-primary mb-3">Personal Information</h4>
           <p>
-            <strong>Full Name:</strong> {responses.personal_info.full_name}
+            <strong>Full Name:</strong>{" "}
+            {responses.personal_info.full_name || "N/A"}
           </p>
           <p>
             <strong>Email Address:</strong>{" "}
-            {responses.personal_info.email_address}
+            {responses.personal_info.email_address || "N/A"}
           </p>
           <p>
-            <strong>Gender:</strong> {responses.personal_info.gender}
+            <strong>Gender:</strong> {responses.personal_info.gender || "N/A"}
           </p>
           <p>
-            <strong>Nationality:</strong> {responses.personal_info.nationality}
+            <strong>Nationality:</strong>{" "}
+            {responses.personal_info.nationality || "N/A"}
           </p>
           <p>
             <strong>Marital Status:</strong>{" "}
-            {responses.personal_info.marital_status}
+            {responses.personal_info.marital_status || "N/A"}
           </p>
           <p>
             <strong>Phone Number:</strong>{" "}
-            {responses.personal_info.phone_number}
+            {responses.personal_info.phone_number || "N/A"}
           </p>
           <p>
             <strong>Email Address:</strong>{" "}
-            {responses.personal_info.email_address}
+            {responses.personal_info.email_address || "N/A"}
           </p>
           <p>
             <strong>Residential Address:</strong>{" "}
-            {responses.personal_info.residential_address}
+            {responses.personal_info.residential_address || "N/A"}
           </p>
           <p>
             <strong>Permanent Address:</strong>{" "}
-            {responses.personal_info.permanent_address}
+            {responses.personal_info.permanent_address || "N/A"}
           </p>
         </Card.Body>
       </Card>
@@ -202,15 +250,15 @@ const ApplicationResponses = ({ applicationId }) => {
           <h4 className="text-primary mb-3">Financial Information</h4>
           <p>
             <strong>Total Family Income:</strong>{" "}
-            {responses.financial_info.total_family_income}
+            {responses.financial_info.total_family_income || "N/A"}
           </p>
           <p>
             <strong>Other Income Sources:</strong>{" "}
-            {responses.financial_info.other_income_sources}
+            {responses.financial_info.other_income_sources || "N/A"}
           </p>
           <p>
             <strong>Outstanding Loans or Debts:</strong>{" "}
-            {responses.financial_info.outstanding_loans_or_debts}
+            {responses.financial_info.outstanding_loans_or_debts || "N/A"}
           </p>
         </Card.Body>
       </Card>
@@ -219,33 +267,34 @@ const ApplicationResponses = ({ applicationId }) => {
           <h4 className="text-primary mb-3">Academic Information</h4>
           <p>
             <strong>Current Education Level:</strong>{" "}
-            {responses.academic_info.current_or_university}
+            {responses.academic_info.current_or_university || "N/A"}
           </p>
           <p>
             <strong>College or University:</strong>{" "}
-            {responses.academic_info.college_or_university}
+            {responses.academic_info.college_or_university || "N/A"}
           </p>
           <p>
-            <strong>Student ID:</strong> {responses.academic_info.student_id}
+            <strong>Student ID:</strong>{" "}
+            {responses.academic_info.student_id || "N/A"}
           </p>
           <p>
             <strong>Program Name / Degree:</strong>{" "}
-            {responses.academic_info.program_name_degree}
+            {responses.academic_info.program_name_degree || "N/A"}
           </p>
           <p>
             <strong>Duration of Course:</strong>{" "}
-            {responses.academic_info.duration_of_course}
+            {responses.academic_info.duration_of_course || "N/A"}
           </p>
           <p>
             <strong>Year / Semester:</strong>{" "}
-            {responses.academic_info.year_or_semester}
+            {responses.academic_info.year_or_semester || "N/A"}
           </p>
           <p>
-            <strong>GPA:</strong> {responses.academic_info.gpa}
+            <strong>GPA:</strong> {responses.academic_info.gpa || "N/A"}
           </p>
           <p>
             <strong>Achievements & Awards:</strong>{" "}
-            {responses.academic_info.achievements_or_awards}
+            {responses.academic_info.achievements_or_awards || "N/A"}
           </p>
         </Card.Body>
       </Card>
@@ -254,19 +303,19 @@ const ApplicationResponses = ({ applicationId }) => {
           <h4 className="text-primary mb-3">Loan Details</h4>
           <p>
             <strong>Loan Amount Requested:</strong>{" "}
-            {responses.loan_details.loan_amount_requested}
+            {responses.loan_details.loan_amount_requested || "N/A"}
           </p>
           <p>
             <strong>Purpose of Loan:</strong>{" "}
-            {responses.loan_details.purpose_of_loan}
+            {responses.loan_details.purpose_of_loan || "N/A"}
           </p>
           <p>
             <strong>Proposed Repayment Period:</strong>{" "}
-            {responses.loan_details.proposed_repayment_period}
+            {responses.loan_details.proposed_repayment_period || "N/A"}
           </p>
           <p>
             <strong>Preferred Repayment Frequency:</strong>{" "}
-            {responses.loan_details.preferred_repayment_frequency}
+            {responses.loan_details.preferred_repayment_frequency || "N/A"}
           </p>
         </Card.Body>
       </Card>
@@ -297,8 +346,50 @@ const ApplicationResponses = ({ applicationId }) => {
 };
 
 const ApplicationPage = () => {
-  const { id } = useParams();
+  const { id: applicationId } = useParams();
   const [activeTab, setActiveTab] = useState("details");
+  const [verificationMessage, setVerificationMessage] = useState(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  const handleVerify = async () => {
+    setIsVerifying(true);
+    setVerificationMessage(null);
+
+    try {
+      const token = localStorage.getItem("access_token");
+      const response = await fetch(
+        `http://127.0.0.1:8000/admin/verify/?application_id=${applicationId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        },
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setVerificationMessage({
+          type: "success",
+          text: data.message || "Application successfully verified.",
+        });
+      } else {
+        setVerificationMessage({
+          type: "danger",
+          text: "Failed to verify application. Please try again.",
+        });
+      }
+    } catch (error) {
+      console.error("Error verifying application:", error);
+      setVerificationMessage({
+        type: "danger",
+        text: "An error occurred while verifying the application.",
+      });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   return (
     <Container className="py-4">
@@ -310,12 +401,24 @@ const ApplicationPage = () => {
         className="mb-3"
       >
         <Tab eventKey="details" title="Application Details">
-          <ApplicationDetails applicationId={id} />
+          <ApplicationDetails applicationId={applicationId} />
         </Tab>
         <Tab eventKey="responses" title="Application Responses">
-          <ApplicationResponses applicationId={id} />
+          <ApplicationResponses applicationId={applicationId} />
         </Tab>
       </Tabs>
+
+      {verificationMessage && (
+        <Alert variant={verificationMessage.type} className="mt-3">
+          {verificationMessage.text}
+        </Alert>
+      )}
+
+      <div className="text-center mt-4">
+        <Button variant="primary" onClick={handleVerify} disabled={isVerifying}>
+          {isVerifying ? "Verifying..." : "Verify Application"}
+        </Button>
+      </div>
     </Container>
   );
 };

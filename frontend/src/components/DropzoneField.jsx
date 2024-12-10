@@ -12,7 +12,7 @@ const DropzoneField = ({ documentType, label, multiple, onFilesDropped }) => {
   });
 
   return (
-    <div className="col-md-6 mb-4">
+    <div className="col-md-15 mb-10">
       <h5>{label}</h5>
       <div
         {...getRootProps()}

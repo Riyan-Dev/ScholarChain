@@ -30,7 +30,18 @@ const Register = () => {
           email,
           hashed_password: password, // Send plain password; it will be hashed on the backend
           role, // Send the selected role (should be "admin", "applicant", or "donator")
-          documents: [], // Empty array for documents (or you can send documents if needed)
+          documents: {
+            CNIC: [],
+            gaurdian_CNIC: [],
+            electricity_bills: [],
+            gas_bills: [],
+            intermediate_result: [],
+            undergrad_transacript: [],
+            salary_slips: [],
+            bank_statements: [],
+            income_tax_certificate: [],
+            reference_letter: [],
+          }, // Empty array for documents (or you can send documents if needed)
         },
         {
           headers: { "Content-Type": "application/json" },
@@ -102,7 +113,6 @@ const Register = () => {
                   >
                     <option value="applicant">Applicant</option>
                     <option value="donator">Donator</option>
-                    <option value="admin">Admin</option>
                   </Form.Control>
                 </Form.Group>
 

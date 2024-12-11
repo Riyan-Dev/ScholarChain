@@ -16,6 +16,7 @@ const DonatorDashboard = () => {
   const [username, setUsername] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [wallet, setWallet] = useState(null);
 
   useEffect(() => {
     // Check token and decode username
@@ -27,10 +28,34 @@ const DonatorDashboard = () => {
       } catch (error) {
         console.error("Error decoding token:", error);
       }
+      fetchWalletInfo(token);
     } else {
       navigate("/login");
     }
   }, [navigate]);
+
+  const fetchWalletInfo = async (token) => {
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/donator/get-wallet/",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        },
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setWallet(data);
+      } else {
+        setError(data.message || "Failed to fetch wallet info.");
+      }
+    } catch (error) {
+      setError("Error fetching wallet info.");
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
@@ -116,15 +141,33 @@ const DonatorDashboard = () => {
               <Nav.Link onClick={() => navigate("/donor-dashboard")}>
                 Dashboard
               </Nav.Link>
-              <Nav.Link onClick={() => navigate("/donation-history")}>
-                Donation History
-              </Nav.Link>
             </Nav>
           </Col>
 
           {/* Main Content */}
           <Col md={10} className="p-3">
             <h2>Welcome, {username ? username : "Loading..."}</h2>
+
+            {/* Wallet Info */}
+            {wallet ? (
+              <div className="mt-4">
+                <h4>Wallet Balance: {wallet.balance} Tokens</h4>
+                <h5>Recent Transactions</h5>
+                <ul>
+                  {wallet.transactions.map((transaction, index) => (
+                    <li key={index}>
+                      <strong>{transaction.action.toUpperCase()}</strong>:{" "}
+                      {transaction.amount} Tokens
+                      {transaction.username &&
+                        ` to ${transaction.username}`} on{" "}
+                      {transaction.timestamp}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p>Loading wallet info...</p>
+            )}
 
             {/* Actions */}
             <div className="mt-4">

@@ -38,9 +38,9 @@ const Layout = ({ children }) => {
               <Nav.Link onClick={() => navigate("/upload-documents")}>
                 Upload Documents
               </Nav.Link>
-              <Nav.Link onClick={() => navigate("/application-form")}>
+              {/* <Nav.Link onClick={() => navigate("/application-form")}>
                 Fill Form
-              </Nav.Link>
+              </Nav.Link> */}
               <Nav.Link onClick={() => navigate("/chat-app")}>
                 Chat App
               </Nav.Link>

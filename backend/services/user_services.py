@@ -42,7 +42,7 @@ class UserService:
 
         private_key, public_key = EncrptionServices.generate_key_pair()
         hashed_password = get_password_hash(user_data.hashed_password)
-        
+
         new_user = {
             "username": user_data.username,
             "email": user_data.email,
@@ -65,19 +65,19 @@ class UserService:
             balance=0,
             transactions=[]
         )
-        
+
         result = await user_collection.insert_one(new_user)
         await wallet_collection.insert_one(new_wallet.dict())
-        
-        return str(result.inserted_id) 
-    
+
+        return str(result.inserted_id)
+
     @staticmethod
     async def authenticate_user(username: str, password: str):
         user = await user_collection.find_one({"username": username})
         if not user or not verify_password(password, user["hashed_password"]):
             return None
         return user
-    
+
     @staticmethod
     async def add_documents(username: str, new_documents: list):
         # Update MongoDB - Append new documents to the user's `documents` array
@@ -86,7 +86,7 @@ class UserService:
                 {"username": username},  # Match user by ID from the token
                 {"$set": {"documents": new_documents}}  # Append each document
             )
-            
+
             return {
                 "status": "success",
                 "modified_count": result.modified_count,
@@ -94,22 +94,22 @@ class UserService:
             }
 
         return {"status": "error", "message": "No documents were added."}
-    
-    @staticmethod 
+
+    @staticmethod
     async def get_user_by_username(username: str):
         user_doc = await user_collection.find_one({"username": username})
         transformed_user = transform_user_document(user_doc)
         user = User(**transformed_user)
         return user
-    
-    @staticmethod 
+
+    @staticmethod
     async def get_user_doc_by_username(username: str):
         user_doc = await user_collection.find_one({"username": username})
-       
-        return user_doc
-    
 
-    @staticmethod 
+        return user_doc
+
+
+    @staticmethod
     async def get_all_donars_username():
         users = await user_collection.find().to_list(None)
         donators = [user["username"] for user in users if user["role"] == "donator"]
@@ -117,14 +117,14 @@ class UserService:
 
 
     @staticmethod
-    async def upload_documents(files, ids, token): 
+    async def upload_documents(token):
         new_documents = {
             "CNIC": [],
-            "gaurdian_CNIC": [],
+            "guardian_CNIC": [],
             "electricity_bills": [],
             "gas_bills": [],
             "intermediate_result": [],
-            "undergrad_transacript": [],
+            "undergrad_transcript": [],
             "salary_slips": [],
             "bank_statements": [],
             "income_tax_certificate": [],
@@ -138,11 +138,11 @@ class UserService:
         for i, file in enumerate(files):
             image_paths = await pdf_to_images(file)
             # Prepare the message with multiple images
-            if ids[i] in user_documents:
-                return {"Messsage": "Documents Uploaded"}
-            
+            # if ids[i] in user_documents:
+            #     return {"Messsage": "Documents Uploaded"}
+
             if ids[i] in document:
-                time.delay(15)
+                time.sleep(15)
                 new_documents[ids[i]].extend(document[ids[i]])
                 continue
 
@@ -201,7 +201,7 @@ class UserService:
             ]
 
             response = vision_model(messages)
-            
+
             # Parse and validate the response
             try:
                 parsed_response = json.loads(response) if isinstance(response, str) else response
@@ -209,7 +209,7 @@ class UserService:
                 if "documents" in parsed_response and isinstance(parsed_response["documents"], list):
                     for doc in parsed_response["documents"]:
                         doc["page_content"] = json.dumps(doc["page_content"], indent=None)
-                    
+
                     print(parsed_response)
                     new_documents[ids[i]].extend(parsed_response["documents"])
                 else:

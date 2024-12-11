@@ -29,14 +29,9 @@ async def register(user: User):
     return JSONResponse(content={"message": "user sucessfully created", "user_id": user_id}, status_code = 201)
 
 @user_router.post("/upload-documents")
-async def process_documents(files: List[UploadFile] = File(...), ids: str = Form(...), token: TokenData = Depends(get_current_user)):
-    ids_list = ids.split(",")
-    print(f"Received ids: {ids_list}")  # Debugging
+async def process_documents(token: TokenData = Depends(get_current_user)):
+    # ids_list = ids.split(",")
+    # print(f"Received ids: {ids_list}")  # Debugging
 
-    await UserService.upload_documents(files, ids_list, token)
-    return {"MEssage": f"Following Documents Uploaded {ids}"}
-
-
-
-
-
+    # await UserService.upload_documents(files, ids_list, token)
+    return {"MEssage": f"Following Documents Uploaded"}

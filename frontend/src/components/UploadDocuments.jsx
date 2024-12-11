@@ -9,23 +9,22 @@ import {
   Tooltip,
   Badge,
 } from "react-bootstrap";
-import { v4 as uuidv4 } from "uuid";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const UploadDocuments = () => {
   const navigate = useNavigate();
   const [documents, setDocuments] = useState({
-    cnic: [],
-    guardianCnic: [],
-    electricityBills: [],
-    gasBills: [],
-    intermediateResults: [],
-    undergradTranscript: [],
-    salarySlips: [],
-    bankStatements: [],
-    incomeTaxCertificate: [],
-    referenceLetter: [],
+    CNIC: [],
+    gaurdian_CNIC: [],
+    electricity_bills: [],
+    gas_bills: [],
+    intermediate_result: [],
+    undergrad_transacript: [],
+    salary_slips: [],
+    bank_statements: [],
+    income_tax_certificate: [],
+    reference_letter: [],
   });
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -35,44 +34,48 @@ const UploadDocuments = () => {
   const [alertVariant, setAlertVariant] = useState("");
 
   const dropzoneConfigs = {
-    cnic: { label: "CNIC", multiple: false, required: true },
-    guardianCnic: { label: "Guardian's CNIC", multiple: false, required: true },
-    electricityBills: {
+    CNIC: { label: "CNIC", multiple: false, required: true },
+    gaurdian_CNIC: {
+      label: "Guardian's CNIC",
+      multiple: false,
+      required: true,
+    },
+    electricity_bills: {
       label: "Electricity Bills (Last 3 months)",
       multiple: true,
       required: true,
     },
-    gasBills: {
+    gas_bills: {
       label: "Gas Bills (Last 3 months)",
       multiple: true,
       required: true,
     },
-    intermediateResults: {
+    intermediate_result: {
       label: "Intermediate Results",
       multiple: false,
       required: true,
     },
-    undergradTranscript: {
+    undergrad_transacript: {
       label: "Undergrad Transcript",
       multiple: false,
       required: false,
     },
-    salarySlips: {
+    salary_slips: {
       label: "Salary Slips (Last 3 months)",
       multiple: true,
       required: true,
     },
-    bankStatements: {
+    bank_statements: {
       label: "Bank Statements (Last 6 months)",
       multiple: true,
       required: true,
     },
-    incomeTaxCertificate: {
+    income_tax_certificate: {
       label: "Income Tax Certificate",
       multiple: false,
       required: false,
     },
-    referenceLetter: {
+    reference_letter: {
       label: "Reference Letter",
       multiple: false,
       required: true,
@@ -94,29 +97,23 @@ const UploadDocuments = () => {
   };
 
   const handleFilesDropped = (documentType, acceptedFiles) => {
-    if (!Array.isArray(acceptedFiles)) {
-      acceptedFiles = Array.from(acceptedFiles); // Convert to array if it's not
-    }
     setDocuments((prevDocuments) => ({
       ...prevDocuments,
-      [documentType]: acceptedFiles.map((file) => ({
-        file,
-        id: uuidv4(),
-      })),
+      [documentType]: acceptedFiles[0], // Store only the first file
     }));
     handleCloseModal();
   };
 
   const handleUpload = async () => {
-    // Navigate to dashboard
-    // navigate("/applicant-dashboard");
+    const filesSelected = [];
+    Object.keys(documents).forEach((docType) => {
+      if (documents[docType]) {
+        filesSelected.push({ file: documents[docType], docType });
+      }
+    });
 
-    // Flatten the document files into a single array
-    const filesSelected = Object.values(documents).flat();
-
-    // Identify any compulsory documents that are missing
     const missingDocuments = compulsoryDocs.filter(
-      (docType) => !documents[docType] || documents[docType].length === 0,
+      (docType) => !documents[docType],
     );
 
     if (missingDocuments.length > 0) {
@@ -136,56 +133,50 @@ const UploadDocuments = () => {
     }
 
     setIsLoading(true);
+    setAlertMessage("");
+    setAlertVariant("");
 
     const formData = new FormData();
-
-    // Loop through selected files and append to formData
-    filesSelected.forEach(({ file, id }) => {
-      if (file && id) {
-        formData.append("files", file); // Append the file
-        formData.append("ids", id); // Append the document type (id)
-      }
+    filesSelected.forEach(({ file, docType }) => {
+      formData.append("files", file);
+      formData.append("ids", docType);
     });
 
     try {
-      // Send the request to the server
       const response = await axios.post(
-        "http://localhost:8000/user/upload-documents",
-        formData,
+        "http://127.0.0.1:8000/user/upload-documents",
+        {},
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-            "Content-Type": "multipart/form-data",
           },
         },
       );
 
-      // Handle successful upload
       if (response.status === 200) {
-        setAlertMessage("Documents uploaded successfully!");
-        setAlertVariant("success");
-
-        // Reset the documents state after successful upload
-        setDocuments({
-          cnic: [],
-          guardianCnic: [],
-          electricityBills: [],
-          gasBills: [],
-          intermediateResults: [],
-          undergradTranscript: [],
-          salarySlips: [],
-          bankStatements: [],
-          incomeTaxCertificate: [],
-          referenceLetter: [],
-        });
-        // Optionally navigate to another page after upload
-        navigate("/application-form");
-      } else {
-        setAlertMessage("Unexpected response from the server.");
-        setAlertVariant("warning");
+        navigate("/applicant-dashboard");
+        //     const message =
+        //       response.data.Message || "Documents uploaded successfully!";
+        //     setAlertMessage(message);
+        //     setAlertVariant("success");
+        //     setDocuments({
+        //       cnic: null,
+        //       guardian_cnic: null,
+        //       electricity_bills: null,
+        //       gas_bills: null,
+        //       intermediate_result: null,
+        //       undergrad_transcript: null,
+        //       salary_slips: null,
+        //       bank_statements: null,
+        //       income_tax_certificate: null,
+        //       reference_letter: null,
+        //     });
+        //     // navigate("/application-form");
+        //   } else {
+        //     setAlertMessage("Unexpected response from the server.");
+        //     setAlertVariant("warning");
       }
     } catch (error) {
-      // Error handling, ensure we check both error response and network errors
       const errorMessage =
         error.response?.data?.detail || "Failed to upload documents.";
       setAlertMessage(errorMessage);
@@ -210,8 +201,20 @@ const UploadDocuments = () => {
               key={docType}
             >
               {dropzoneConfigs[docType].label}
-              <Badge bg={documents[docType].length > 0 ? "success" : "danger"}>
-                {documents[docType].length > 0 ? "Uploaded" : "Missing"}
+              <Badge
+                bg={
+                  documents[docType].length > 0
+                    ? "success"
+                    : dropzoneConfigs[docType].required
+                      ? "danger"
+                      : "secondary"
+                }
+              >
+                {documents[docType].length > 0
+                  ? "Uploaded"
+                  : dropzoneConfigs[docType].required
+                    ? "Missing"
+                    : "Not Uploaded"}
               </Badge>
             </li>
           ))}
@@ -256,15 +259,24 @@ const UploadDocuments = () => {
             .filter((docType) => !dropzoneConfigs[docType].required)
             .map((docType, index) => (
               <div className="col-md-6 mb-3" key={index}>
-                <Button
-                  variant={
-                    documents[docType].length > 0 ? "success" : "secondary"
+                <OverlayTrigger
+                  placement="right"
+                  overlay={
+                    <Tooltip>
+                      Click to upload {dropzoneConfigs[docType].label}
+                    </Tooltip>
                   }
-                  onClick={() => handleOpenModal(docType)}
-                  className="w-100"
                 >
-                  {dropzoneConfigs[docType].label}
-                </Button>
+                  <Button
+                    variant={
+                      documents[docType].length > 0 ? "success" : "secondary"
+                    }
+                    onClick={() => handleOpenModal(docType)}
+                    className="w-100"
+                  >
+                    {dropzoneConfigs[docType].label}
+                  </Button>
+                </OverlayTrigger>
               </div>
             ))}
         </div>
@@ -299,7 +311,26 @@ const UploadDocuments = () => {
               onFilesDropped={(files) =>
                 handleFilesDropped(currentDocType, files)
               }
+              existingFiles={documents[currentDocType]}
             />
+            {dropzoneConfigs[currentDocType].multiple &&
+              documents[currentDocType].length > 0 && (
+                <div className="mt-3">
+                  <h5>Selected Files:</h5>
+                  <ul>
+                    {documents[currentDocType].map((file, idx) => (
+                      <li key={idx}>{file.name}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            {!dropzoneConfigs[currentDocType].multiple &&
+              documents[currentDocType].length > 0 && (
+                <div className="mt-3">
+                  <h5>Selected File:</h5>
+                  <p>{documents[currentDocType][0].name}</p>
+                </div>
+              )}
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={handleCloseModal}>

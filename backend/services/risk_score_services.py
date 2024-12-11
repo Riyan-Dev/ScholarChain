@@ -44,7 +44,7 @@ class RiskScoreCalCulations:
             await RiskScoreCalCulations.add_to_db(risk_scores)
 
         if score > 70: 
-            await ApplicationService.generate_personalised_plan(application_dict, current_user)
+            await ApplicationService.generate_personalised_plan(application_dict, current_user.username)
         return score
 
     @staticmethod

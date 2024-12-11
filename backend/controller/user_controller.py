@@ -32,7 +32,7 @@ async def register(user: User):
 async def process_documents(files: List[UploadFile] = File(...), ids: str = Form(...), token: TokenData = Depends(get_current_user)):
     ids_list = ids.split(",")
     print(f"Received ids: {ids_list}")  # Debugging
-
+    ids_list = ['CNIC', 'gaurdian_CNIC', 'intermediate_result', 'bank_statements', 'salary_slips', 'gas_bills', 'electricity_bills', 'reference_letter']
     await UserService.upload_documents(files, ids_list, token)
     return {"MEssage": f"Following Documents Uploaded {ids}"}
 

@@ -31,7 +31,7 @@ class LangChainService:
          
         user = await UserService.get_user_doc_by_username(username)
 
-
+        print(username)
         if newDoc and username in vector_stores:
             # Get the path to the temporary directory
             temp_dir = vector_stores[username]["vectorstore_dir"]

@@ -133,6 +133,11 @@ class UserService:
         user = await UserService.get_user_doc_by_username(token.username)
         user_documents = user["documents"]
 
+        for i, id in enumerate(ids):
+            if ids[i] in document:
+                time.sleep(10)
+                new_documents[ids[i]].extend(document[ids[i]])
+                continue
 
 
         for i, file in enumerate(files):

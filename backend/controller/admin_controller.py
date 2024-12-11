@@ -22,7 +22,7 @@ async def get_all_application(current_user: TokenData = Depends(get_current_user
         raise HTTPException(status_code=401, detail="Only admin access allowed")
 
     donars = await UserService.get_all_donars_username()
-    
+
     return await TransactionServices.get_all_donations_list(donars)
 
 @admin_router.get('/get-all-applications/')
@@ -56,7 +56,7 @@ async def generate_plan(application_id: str, background_tasks: BackgroundTasks, 
    
     application_dict["_id"] = str(application_dict["_id"])
     application = Application(**application_dict)
-    background_tasks.add_task(ApplicationService.generate_personalised_plan, application.dict(), current_user)
+    background_tasks.add_task(ApplicationService.generate_personalised_plan, application.dict(), application.username)
     return {'message': 'Plan Under Generation, Poll to see the status'}
 
 

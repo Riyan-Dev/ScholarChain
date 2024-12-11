@@ -7,6 +7,7 @@ from db import application_collection, plan_collection
 from utility import convert_date_fields
 
 from models.application import Application
+from services.documents import app
 from services.langchain_services import LangChainService
 from utility import post_processing_response, validate_application_object
 
@@ -157,7 +158,7 @@ class ApplicationService:
 
     # Proposed Repayment Period by user: {application.loan_details.proposed_repayment_period}
                     # preferred repayment frequency by user: {application.loan_details.preferred_repayment_frequency}
-        temp_dir = await LangChainService.create_vector_Store(current_user.username, False)
+        temp_dir = await LangChainService.create_vector_Store(current_user, False)
         query = f"""
                     Given the following information by the loan applicant:
                     Loan Amount Request: {application.loan_details.loan_amount_requested}
@@ -182,8 +183,8 @@ class ApplicationService:
                         "reasoning": "reasoning for calculations"
                     }}
                 """
-        response = LangChainService.rag_bot(query, temp_dir)
-        processed_response = post_processing_response(response["response"])
+        response = await LangChainService.rag_bot(query, temp_dir)
+        processed_response = await post_processing_response(response["response"])
         print(processed_response)
         try:
 
@@ -209,6 +210,13 @@ class ApplicationService:
             application["_id"] = str(application["_id"])
             return application
 
+        application = app
+        application["username"] = current_user.username
+        results = await ApplicationService.create_application(application)
+        application["_id"] = str(results["application_id"])
+
+        return application
+        
         query = f"""
             Given the information of the documents in the context above give the response in the following JSON format
 

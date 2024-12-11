@@ -47,7 +47,7 @@ class UserService:
             "username": user_data.username,
             "email": user_data.email,
             "hashed_password": hashed_password,
-            "documents": [doc.dict() for doc in user_data.documents],  # Convert the document list to dicts
+            "documents": user_data.documents.dict(),  # Convert the document list to dicts
             "role": user_data.role
         }
         print(private_key)
@@ -140,9 +140,9 @@ class UserService:
             # Prepare the message with multiple images
             # if ids[i] in user_documents:
             #     return {"Messsage": "Documents Uploaded"}
-
+            
             if ids[i] in document:
-                time.sleep(15)
+                time.sleep(10)
                 new_documents[ids[i]].extend(document[ids[i]])
                 continue
 

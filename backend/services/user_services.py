@@ -5,6 +5,7 @@ import json
 import time
 
 from fastapi import HTTPException
+from web3 import Web3
 
 from middleware.JWT_authentication import get_password_hash, verify_password
 from db import user_collection, wallet_collection
@@ -17,6 +18,8 @@ from models.wallet import Wallet
 from services.encrption_services import EncrptionServices
 from services.rag_services import pdf_to_images, vision_model
 from services.documents import document
+
+
 
 class UserService:
     @staticmethod
@@ -34,13 +37,11 @@ class UserService:
     # Function to create a new user
     @staticmethod
     async def create_user(user_data: User):
-        base64_key = os.getenv("ENCRYPTION_KEY")
-        encryption_key = base64.b64decode(base64_key)
 
         if len(encryption_key) not in (16, 24, 32):
             raise ValueError("Key length is invalid for AES. Use 16, 24, or 32 bytes.")
 
-        private_key, public_key = EncrptionServices.generate_key_pair()
+        private_key, address = EncrptionServices.generate_key_pair()
         hashed_password = get_password_hash(user_data.hashed_password)
         
         new_user = {
@@ -51,16 +52,19 @@ class UserService:
             "role": user_data.role
         }
         print(private_key)
-        # Convert private key to bytes
-        private_key_bytes = EncrptionServices.get_private_key_bytes(private_key)
-
+        print(address)
+       
+       
+        
         # Encrypt the private key
-        encrypted_private_key = EncrptionServices.encrypt_private_key(private_key_bytes, encryption_key)
-        print(EncrptionServices.decrypt_private_key(encrypted_private_key, encryption_key))
+        encrypted_private_key = EncrptionServices.encrypt_private_key(private_key)
         # Save the wallet with an empty transaction list
+        # Send the signed transaction
+       
+
         new_wallet = Wallet(
             username=user_data.username,
-            public_key=EncrptionServices.serialize_public_key(public_key),
+            public_key=address,
             encrypted_private_key=encrypted_private_key,
             balance=0,
             transactions=[]
@@ -130,6 +134,55 @@ class UserService:
             "income_tax_certificate": [],
             "reference_letter": []
         }
+
+        extract_fields = {
+            "CNIC": f"""
+                    {{
+                    "full_name": " name of the applicant",
+                    "dob": "date of the birthd in the format of YYYY-MM-DD",
+                    "gender": "Male or Female",
+                    "nationality": "American etc etc"
+                    }}
+                    """,
+            "gaurdian_CNIC": "",
+            "electricity_bills": f"""
+                    {{
+                    "address": "Address of the Electricity Bill house",
+                    }}
+                    """,
+            "gas_bills": f"""
+                    {{
+                    "address": "Address of the Gas Bill house",
+                    }},
+                    """,
+            "intermediate_result": [],
+            "undergrad_transacript":  f"""
+                    {{
+                    "gpa": "CGPA of the student",
+                    "year_or_semester": "Year  or semester",
+                    "program_name_degree": "Bachelors of computer science etc",
+                    "student_id": "student id as provided in the transcript",
+                    "college_or_university": "XYZ University",
+                    "current_education_level": "Undergraduate / Postgraduate"
+                    }},
+                    """,
+            "salary_slips":  f"""
+                    {{
+                    "total_family_income": "based on the salary slips give me annualy salary of the applicant (return an integer)",
+                    }},
+                    """,
+            "bank_statements": [],
+            "income_tax_certificate": [],
+            "reference_letter": f"""
+                    {{
+                    "name": "source for this information is reference letter as mention in some metadata for documents",
+                    "designation": "Professor",
+                    "contact_details": "+987654321",
+                    "comments": "John is a diligent student."
+                    }},
+                    """
+        }
+
         user = await UserService.get_user_doc_by_username(token.username)
         user_documents = user["documents"]
 
@@ -138,6 +191,7 @@ class UserService:
                 time.sleep(10)
                 new_documents[ids[i]].extend(document[ids[i]])
                 continue
+ 
 
 
         for i, file in enumerate(files):
@@ -146,10 +200,10 @@ class UserService:
             # if ids[i] in user_documents:
             #     return {"Messsage": "Documents Uploaded"}
             
-            if ids[i] in document:
-                time.sleep(10)
-                new_documents[ids[i]].extend(document[ids[i]])
-                continue
+            # if ids[i] in document:
+            #     time.sleep(10)
+            #     new_documents[ids[i]].extend(document[ids[i]])
+            #     continue
 
             image_contents = []
             for image_path in image_paths:
@@ -196,7 +250,8 @@ class UserService:
                                                         "date": "date of the document if available"
                                                     }}
                                                 }}
-                                            ]
+                                            ],
+                                            "extracted_fields": {extract_fields[ids[i]]}
                                         }}
                                     """
                         },
@@ -216,6 +271,7 @@ class UserService:
                         doc["page_content"] = json.dumps(doc["page_content"], indent=None)
                     
                     print(parsed_response)
+                    extract_fields[ids[i]] = parsed_response["extracted_fields"]
                     new_documents[ids[i]].extend(parsed_response["documents"])
                 else:
                     raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")

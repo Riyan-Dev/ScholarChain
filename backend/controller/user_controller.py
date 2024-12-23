@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status, APIRouter, UploadFile, File, Form
+from fastapi import Depends, HTTPException, status, APIRouter, UploadFile, File, Form, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 
@@ -29,12 +29,12 @@ async def register(user: User):
     return JSONResponse(content={"message": "user sucessfully created", "user_id": user_id}, status_code = 201)
 
 @user_router.post("/upload-documents")
-async def process_documents(files: List[UploadFile] = File(...), ids: str = Form(...), token: TokenData = Depends(get_current_user)):
+async def process_documents( background_tasks: BackgroundTasks, files: List[UploadFile] = File(...), ids: str = Form(...), token: TokenData = Depends(get_current_user)):
     ids_list = ids.split(",")
     print(f"Received ids: {ids_list}")  # Debugging
     ids_list = ['CNIC', 'gaurdian_CNIC', 'intermediate_result', 'bank_statements', 'salary_slips', 'gas_bills', 'electricity_bills', 'reference_letter']
-    await UserService.upload_documents(files, ids_list, token)
-    return {"MEssage": f"Following Documents Uploaded {ids}"}
+    background_tasks.add_task(UserService.upload_documents, [], ids_list, token)
+    return {"Message": f"Docuemnt Uploading in process"}
 
 
 

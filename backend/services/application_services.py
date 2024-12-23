@@ -9,7 +9,11 @@ from utility import convert_date_fields
 from models.application import Application
 from services.documents import app
 from services.langchain_services import LangChainService
+from services.blockchain_service import BlockchainService
+from services.loan_services import LoanService
 from utility import post_processing_response, validate_application_object
+
+from models.plan import Plan
 
 class ApplicationService:
 
@@ -19,7 +23,7 @@ class ApplicationService:
         applications = await application_collection.find().to_list(None)  # Convert cursor to list
         filtered_data = []
         for app in applications:
-            print(app)
+            # print(app)
             filtered_data.append({
                 "id": str(app["_id"]),
                 "username": app["username"],
@@ -28,6 +32,25 @@ class ApplicationService:
 
                 })  # Convert ObjectId to string
         return filtered_data
+
+    @staticmethod
+    async def accept_application(username: str, application_id: str):
+        update_data = {
+            "updated_at": datetime.now(),
+            "status": "accepted"
+        }
+        await ApplicationService.update_application(username, update_data)
+        plan_data = await ApplicationService.get_plan_db(application_id)
+    
+    # Pass the result to Plan
+        plan = Plan(**plan_data)
+        deploy_result = await BlockchainService.deploy_loan_contract(username, plan.total_loan_amount)
+        print(deploy_result)
+        return await LoanService.create_loan(username, plan.total_loan_amount, plan.calculate_number_of_installments(), deploy_result["contract_address"])
+
+
+
+
 
     @staticmethod
     async def verify_application(username: str):

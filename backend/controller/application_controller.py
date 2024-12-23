@@ -11,8 +11,8 @@ from models.plan import Plan
 application_router = APIRouter()
 
 @application_router.post('/accept-plan/')
-async def accept_plan():
-    pass    
+async def accept_plan(application_id: str, current_user: TokenData = Depends(get_current_user)):
+    return await ApplicationService.accept_application(current_user.username, application_id)
 
 
 # @application_router.get('/risk-score/')

@@ -3,6 +3,7 @@ from mistralai import Mistral
 from fastapi import HTTPException
 from datetime import datetime, date
 from pydantic import ValidationError
+import asyncio
 
 import json
 import os
@@ -10,7 +11,8 @@ from dotenv import load_dotenv
 # Assuming the Application model is already defined
 from models.application import Application
 
-def validate_application_object(json_object) -> Application:
+
+async def validate_application_object(json_object) -> Application:
     try:
 
         # Try to validate and create an Application model
@@ -20,10 +22,10 @@ def validate_application_object(json_object) -> Application:
     except ValidationError as e:
         # Handle validation errors
         print("Validation error:", e.errors())
-        HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
+        raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
     except json.JSONDecodeError as e:
         print("JSON Decode error:", e)
-        HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
+        raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
 
 def transform_user_document(doc):
     if "_id" in doc:
@@ -40,7 +42,7 @@ def transform_user_document(doc):
                     raise ValueError(f"Invalid date format: {document['metadata']['date']}")
     return doc
 
-def post_processing_response(response: str):
+async def post_processing_response(response: str):
     """
         this function ensures that the json response is extracted from the LLM response and other text is discarded so no error 
         is faced while converting the string to JSON obj 
@@ -75,7 +77,10 @@ def convert_date_fields(data: dict):
     return data
 
 
-def run_mistral(user_message, model="open-mistral-7b"):
+
+
+
+async def run_mistral(user_message, model="mistral-small-latest"):
     load_dotenv()
     api_key = os.getenv("api_key")
     client = Mistral(api_key=api_key)
@@ -85,16 +90,21 @@ def run_mistral(user_message, model="open-mistral-7b"):
             "role": "user", "content": user_message
         }
     ]
-    chat_response = client.chat.complete(
-        model=model,
-        messages=messages,
-        response_format = {"type": "json_object", }
-    )
-    response = (chat_response.choices[0].message.content)
+    def blocking_mistral_call():
+        # Blocking call to the Mistral client
+        chat_response = client.chat.complete(
+            model=model,
+            messages=messages,
+            response_format={"type": "json_object"},
+        )
+        return chat_response.choices[0].message.content
+
+    # Run the blocking function in a separate thread
+    response = await asyncio.to_thread(blocking_mistral_call)
 
     try:
         json_obj = json.loads(response)
         return json_obj
     except json.JSONDecodeError as e:
         print(e)
-        raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
+        raise HTTPException(status_code=500, detail="Unable to fetch response, Try Again")

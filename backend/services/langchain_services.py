@@ -23,7 +23,7 @@ vector_stores = {}
 class LangChainService:
 
     @staticmethod
-    async def create_vector_Store(username: str, newDoc: bool):
+    async def create_vector_Store(username: str, newDoc: bool, keys =  ['CNIC', 'gaurdian_CNIC', 'intermediate_result', 'bank_statements', 'salary_slips', 'gas_bills', 'electricity_bills', 'reference_letter']):
         global vector_stores
 
         if username in vector_stores:
@@ -31,7 +31,7 @@ class LangChainService:
          
         user = await UserService.get_user_doc_by_username(username)
 
-
+        print(username)
         if newDoc and username in vector_stores:
             # Get the path to the temporary directory
             temp_dir = vector_stores[username]["vectorstore_dir"]
@@ -42,15 +42,18 @@ class LangChainService:
             # Remove from session store
             del vector_stores[username]
 
-       
         user_documents = user["documents"]
-
+        document_list = []
+        for key in keys:
+            if key in user_documents:
+                for doc in user_documents[key]:
+                    document_list.append(doc)
         if not user_documents:
             raise HTTPException(status_code=400, detail=f"No documents found for user {username}.")
 
         # Convert documents into Document objects
         docs_as_documents = [
-            Document(page_content=doc["page_content"], metadata=doc["metadata"]) for doc in user_documents
+            Document(page_content=doc["page_content"], metadata=doc["metadata"]) for doc in document_list
         ]
         
         # Create temporary directory for this session
@@ -74,10 +77,10 @@ class LangChainService:
 
 
     @staticmethod
-    def rag_bot(query: str, temp_dir: str):
+    async def rag_bot(query: str, temp_dir: str):
         # Specify model
         api_key = os.getenv("api_key")
-        llm = ChatMistralAI(model="open-mistral-7b", api_key=api_key)
+        llm = ChatMistralAI(model="mistral-small-latest", api_key=api_key)
 
         # global vector_stores
 

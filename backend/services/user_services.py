@@ -38,8 +38,7 @@ class UserService:
     @staticmethod
     async def create_user(user_data: User):
 
-        if len(encryption_key) not in (16, 24, 32):
-            raise ValueError("Key length is invalid for AES. Use 16, 24, or 32 bytes.")
+        
 
         private_key, address = EncrptionServices.generate_key_pair()
         hashed_password = get_password_hash(user_data.hashed_password)

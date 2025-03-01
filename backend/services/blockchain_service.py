@@ -3,12 +3,16 @@ from fastapi import HTTPException
 import json
 import os
 
+from dotenv import load_dotenv
+
 from config import web3
 from web3._utils.events import get_event_data
 
 from services.transaction_services import TransactionServices
 from services.encrption_services import EncrptionServices
 from models.wallet import Wallet
+
+
 
 
 class BlockchainService:
@@ -34,10 +38,11 @@ class BlockchainService:
 
     @staticmethod
     async def deploy_loan_contract(username: str, loan_amount: int):
+        load_dotenv()
 
         random_salt = os.urandom(32)
         salt = int.from_bytes(random_salt, byteorder='big')
-        factory_address = "0x5B56fa1AeCAfBA685f23670D28F466a9Ce242CB8"
+        factory_address = os.getenv("factory_address")
         factory_contract_abi = await BlockchainService.get_abi("./contracts/Create2Factory.json")
 
         loan_factory_contract = web3.eth.contract(address=factory_address, abi=factory_contract_abi)
@@ -79,6 +84,68 @@ class BlockchainService:
         return {"transaction_hash": tx_hash.hex(), "contract_address": new_contract_address}
     
     @staticmethod
-    async def repay_loan()
+    async def repay_loan(username: str, contract_address: str, amount: int):
+
+        loan_contract_abi = await BlockchainService.get_abi("./contracts/LoanRepayment.json") 
+        loan_contract = web3.eth.contract(address=contract_address, abi=loan_contract_abi)
+
+        wallet_data = await TransactionServices.get_wallet(username)
+        wallet = Wallet(**wallet_data)
 
 
+         # Build the transaction for deploying the loan
+        transaction = loan_contract.functions.repay(
+            int(amount),
+        ).build_transaction({
+            'gas': 2000000,
+            'gasPrice': web3.to_wei('20', 'gwei'),
+            'nonce': web3.eth.get_transaction_count(wallet.public_key),
+            'chainId': 1337  # Update for the correct chain ID
+        })
+
+        # Sign the transaction
+        signed_transaction = web3.eth.account.sign_transaction(transaction, EncrptionServices.decrypt_private_key(wallet.encrypted_private_key))
+        # Send the transaction
+        tx_hash = web3.eth.send_raw_transaction(signed_transaction.raw_transaction)
+        # Wait for transaction receipt
+        tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
+
+        if tx_receipt["status"] != 1:
+            raise HTTPException(status_code=500, detail="Transaction Incomplete, try again")
+        
+        return {"transaction_hash": tx_hash.hex(), "status": "success"} 
+    
+    @staticmethod
+    async def make_donation(username, amount):
+        load_dotenv()
+        
+        donation_contract_address = os.getenv("donation_contract_address")
+        donation_contract_abi = await BlockchainService.get_abi("./contracts/DonationTracker.json") 
+
+        donation_contract = web3.eth.contract(address = donation_contract_address, abi=donation_contract_abi)
+
+        wallet_data = await TransactionServices.get_wallet(username)
+        wallet = Wallet(**wallet_data)
+
+
+         # Build the transaction for deploying the loan
+        transaction = donation_contract.functions.donate(
+            int(amount),
+        ).build_transaction({
+            'gas': 2000000,
+            'gasPrice': web3.to_wei('20', 'gwei'),
+            'nonce': web3.eth.get_transaction_count(wallet.public_key),
+            'chainId': 1337  # Update for the correct chain ID
+        })
+
+        # Sign the transaction
+        signed_transaction = web3.eth.account.sign_transaction(transaction, EncrptionServices.decrypt_private_key(wallet.encrypted_private_key))
+        # Send the transaction
+        tx_hash = web3.eth.send_raw_transaction(signed_transaction.raw_transaction)
+        # Wait for transaction receipt
+        tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
+
+        if tx_receipt["status"] != 1:
+            raise HTTPException(status_code=500, detail="Transaction Incomplete, try again")
+        
+        return {"transaction_hash": tx_hash.hex(), "status": "success"} 

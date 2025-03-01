@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 
 from services.application_services import ApplicationService
 from services.risk_score_services import RiskScoreCalCulations
+from services.loan_services import LoanService
+
 from middleware.JWT_authentication import TokenData, get_current_user
 
 from models.application import Application
@@ -15,11 +17,9 @@ async def accept_plan(application_id: str, current_user: TokenData = Depends(get
     return await ApplicationService.accept_application(current_user.username, application_id)
 
 
-# @application_router.get('/risk-score/')
-# async def get_risk_score(background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
-#     background_tasks.add_task(RiskScoreCalCulations.generate_risk_scores, current_user)
-#     return {"message": "Risk score calculation started. Check back later for results."}
-
+@application_router.get('/repay/')
+async def repay_loan(current_user: TokenData = Depends(get_current_user)):
+    return await LoanService.repay_loan(current_user.username)
 
 # @application_router.get('/risk-assessment/')
 # async def get_risk_assessment(application_id: str, current_user: TokenData = Depends(get_current_user)):

@@ -39,6 +39,11 @@ async def update_plan(updated_data:Plan, application_id:str, current_user: Token
     return await ApplicationService.update_plan(application_id, updated_data.dict())
 
 
+
+""" Add all sorts of validation in this process that includes
+ that the loan amount is less than scholarchain account balance
+ also other validation checks need to be make
+"""
 @admin_router.put('/verify/')
 async def verify_application(current_user: TokenData = Depends(get_current_user)):
 

@@ -96,8 +96,9 @@ class LangChainService:
 
         # Retrieve relevant documents
         retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
-        retrieved_docs = retriever.invoke(query)
-
+        # retrieved_docs = retriever.invoke(query)
+        # print(retrieved_docs)
+        # print(docs)
         prompt = hub.pull("rlm/rag-prompt")
 
         def format_docs(docs):

@@ -1,8 +1,8 @@
 import { BarChart3, CreditCard, Download, Home, Settings, Users } from "lucide-react"
 import Link from "next/link"
 
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Button } from "@/src/components/ui/button"
+import { ScrollArea } from "@/src/components/ui/scroll-area"
 
 export function Sidebar() {
   return (

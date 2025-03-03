@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 # Assuming the Application model is already defined
 from models.application import Application
 
+
 async def validate_application_object(json_object) -> Application:
     try:
 
@@ -75,6 +76,7 @@ def convert_date_fields(data: dict):
                 if isinstance(item, dict):
                     convert_date_fields(item)
     return data
+
 
 
 

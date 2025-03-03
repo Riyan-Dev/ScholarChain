@@ -20,10 +20,22 @@ class Document(BaseModel):
     page_content: str
     metadata: DocumentMetadata
 
+class DocumentsList(BaseModel):
+    CNIC: List[Document] = []
+    gaurdian_CNIC: List[Document] = []
+    electricity_bills: List[Document] = []
+    gas_bills: List[Document] = []
+    intermediate_result: List[Document] = []
+    undergrad_transacript: List[Document] = []
+    salary_slips: List[Document] = []
+    bank_statements: List[Document] = []
+    income_tax_certificate: List[Document] = []
+    reference_letter: List[Document] = []
+
 class User(BaseModel):
     _id: str
     username: str
     email: str
     hashed_password: str
     role: UserRole
-    documents: Optional[List[Document]] = []
+    documents: DocumentsList

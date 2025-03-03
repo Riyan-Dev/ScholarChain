@@ -30,7 +30,7 @@ class ApplicationService:
         return filtered_data
 
     @staticmethod
-    async def verify_application(username: str):
+    async def verify_application(application_id: str):
 
         update_data = {
             "updated_at": datetime.now(),
@@ -38,19 +38,19 @@ class ApplicationService:
         }
 
         try:
-            
+
             update_data['updated_at'] = datetime.utcnow()
 
             # Perform the update
             result = await application_collection.update_one(
-                {"username": username},
+                {"_id": ObjectId(application_id)},
                 {"$set": update_data}
             )
             if result.modified_count == 0:
                 raise HTTPException(status_code=404, detail="Application not found or no fields to update.")
-            
+
             return {"message": "Application successfully Verified."}
-        
+
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
@@ -61,7 +61,7 @@ class ApplicationService:
 
         update_data = convert_date_fields(update_data)
         try:
-            
+
             update_data['updated_at'] = datetime.utcnow()
 
             # Perform the update
@@ -71,15 +71,15 @@ class ApplicationService:
             )
             if result.modified_count == 0:
                 raise HTTPException(status_code=404, detail="Plan not found or no fields to update.")
-            
+
             return {"message": "Plan successfully updated."}
-        
+
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
     @staticmethod
     async def get_plan_db(application_id: str):
-        
+
         plan = await plan_collection.find_one({"application_id": application_id})
         if plan:
             plan["_id"] = str(plan["_id"])
@@ -87,7 +87,7 @@ class ApplicationService:
 
     @staticmethod
     async def save_plan_db(plan_data: dict):
-        
+
         plan_data['created_at'] = datetime.utcnow()
         plan_data['updated_at'] = datetime.utcnow()
         result = await plan_collection.insert_one(plan_data)
@@ -110,7 +110,7 @@ class ApplicationService:
             }
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-    
+
     @staticmethod
     async def update_application(username: str, update_data: dict):
         if not update_data:
@@ -118,7 +118,7 @@ class ApplicationService:
 
         update_data = convert_date_fields(update_data)
         try:
-            
+
             update_data['updated_at'] = datetime.utcnow()
 
             # Perform the update
@@ -128,23 +128,23 @@ class ApplicationService:
             )
             if result.modified_count == 0:
                 raise HTTPException(status_code=404, detail="Application not found or no fields to update.")
-            
+
             return {"message": "Application successfully updated."}
-        
+
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-    
+
     @staticmethod
     async def get_application(username: str):
         application = await application_collection.find_one({"username": username})
         return application
-    
+
     @staticmethod
     async def get_application_by_id(application_id: str):
         application = await application_collection.find_one({"_id": ObjectId(application_id)})
         print(application)
         return application
-    
+
 
     @staticmethod
     async def generate_personalised_plan(application_dict, current_user):
@@ -198,10 +198,10 @@ class ApplicationService:
             # Handle JSON decoding error if any
             print(e)
             raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
-        
-    
-    
-        
+
+
+
+
     async def auto_fill_fields(current_user):
 
         application = await ApplicationService.get_application(current_user.username)
@@ -262,7 +262,7 @@ class ApplicationService:
             }},
             "references": [
                 {{
-                    "name": "Jane Smith",
+                    "name": "source for this information is reference letter as mention in some metadata for documents",
                     "designation": "Professor",
                     "contact_details": "+987654321",
                     "comments": "John is a diligent student."
@@ -297,6 +297,7 @@ class ApplicationService:
             # Handle JSON decoding error if any
             print(e)
             raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
+<<<<<<< HEAD
 =======
 from fastapi import HTTPException # type: ignore
 from datetime import datetime
@@ -423,3 +424,5 @@ class ApplicationService:
     
 >>>>>>> Stashed changes
     
+=======
+>>>>>>> c7a6312bb464bb44bd815201ad5e4f1b140e37ef

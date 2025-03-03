@@ -12,7 +12,7 @@ async def chat(query: str, current_user: TokenData = Depends(get_current_user)):
 
     temp_dir = await LangChainService.create_vector_Store(current_user.username, False)
     
-    return LangChainService.rag_bot(query, temp_dir)
+    return await LangChainService.rag_bot(query, temp_dir)
 
 
 

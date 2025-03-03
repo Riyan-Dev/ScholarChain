@@ -143,101 +143,13 @@ async def auto_fill_fields(current_user: TokenData = Depends(get_current_user)):
         application["_id"] = str(application["_id"])
         return application
 
-    query = f"""
-        Given the information of the documents in the context above give the response in the following JSON format
+@application_router.put('/submit/')
+async def update_application(updated_data:Application, background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
+    result = await ApplicationService.update_application(current_user.username, updated_data.dict())
+    if result:
+        background_tasks.add_task(RiskScoreCalCulations.generate_risk_scores, updated_data.dict(), current_user)
 
-
-        username: {current_user.username} (always return this username in the field called username in response)
-
-        Restrictions:
-        1. The key Values of Json Response must be exactly as Example JSON object (no extra or less fields in json response)
-        2. Do not return "Not Found" in JSON Object (Most Important)
-        3. Return an empty string "" for a string fields only if not found.  (Most Important)
-            example LLM could not locate nationality:
-            the response of the specific field in JSON Object should be ("nationality": "")
-        4. Do not add comment in JSON Object.
-
-
-        Example JSON Object Response:
-        {{
-        "username": "john_doe_123",
-        "personal_info": {{
-            "full_name": "John Doe",
-            "dob": "2000-05-15" (return todays date if not found),
-            "gender": "Male",
-            "nationality": "American",
-            "marital_status": "Single",
-            "phone_number": "+123456789",
-            "email_address": "john.doe@example.com",
-            "residential_address": "123 Main St, City, Country",
-            "permanent_address": "456 Another St, City, Country"
-        }},
-        "financial_info": {{
-            "total_family_income": 50000 (return an integer),
-            "other_income_sources": ["Part-time job: 10000", "Freelance: 5000"],
-            "outstanding_loans_or_debts": ["Car loan: 10000", "Credit Card: 5000"]
-        }},
-        "academic_info": {{
-            "current_education_level": "Undergraduate",
-            "college_or_university": "XYZ University",
-            "student_id": "U1234567",
-            "program_name_degree": "Computer Science",
-            "duration_of_course": "4 years",
-            "year_or_semester": "Year 2, Semester 1",
-            "gpa": 3.8 (return a float),
-            "achievements_or_awards": ["Dean's List", "Hackathon Winner"]
-        }},
-        "loan_details": {{
-            "loan_amount_requested": 20000 (return an integer),
-            "purpose_of_loan": "Tuition fees",
-            "proposed_repayment_period": "24 months",
-            "preferred_repayment_frequency": "Monthly"
-        }},
-        "references": [
-            {{
-                "name": "Jane Smith",
-                "designation": "Professor",
-                "contact_details": "+987654321",
-                "comments": "John is a diligent student."
-            }}
-        ],
-        "status": "Pending",
-        "application_date": "2024-11-30" (return todays date),
-        "declaration": "I hereby declare that all the information provided is true.",
-        "signature": "John Doe"
-    }}
-
-    """
-
-    temp_dir = await LangChainService.create_vector_Store(current_user.username, False)
-    response = LangChainService.rag_bot(query, temp_dir)
-    processed_response = post_processing_response(response["response"])
-    print(processed_response)
-    try:
-
-        # converting the LLM response into json object
-        json_object = json.loads(processed_response)
-        if json_object["personal_info"]["dob"] == "" or json_object["personal_info"]["dob"] == "Not Found":
-            json_object["personal_info"]["dob"] = "2002-12-30"
-        if json_object["application_date"] == "" or json_object["application_date"] == "Not Found":
-            json_object["application_date"] = "2002-12-30"
-        await validate_application_object(json_object)
-        results = await ApplicationService.create_application(json_object)
-        json_object["_id"] = str(results["application_id"])
-
-        return json_object
-    except json.JSONDecodeError as e:
-        # Handle JSON decoding error if any
-        print(e)
-        raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
-
-
-    @application_router.get("/get-loan-details")
-    async def get_loan_details():
-        return BlockChainServices.get_loan_details()
-
-
-
+    return {'message': 'Application Added Successfully, Risk Assessment and personalised Plan Under Construction'}
 
 
 

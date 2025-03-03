@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Sidebar from "../components/sidebar";
 import type React from "react"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
 // import { cookies } from "next/headers";
 // import { redirect } from "next/navigation";
 // import { headers } from "next/headers"; // ✅ Get current path on the server
@@ -44,6 +45,7 @@ export default async function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <Sidebar />
           <main className="flex-1 ml-16 md:ml-64 p-5">{children}</main>
+          <Toaster />
         </ThemeProvider>        
       </body>
     </html>

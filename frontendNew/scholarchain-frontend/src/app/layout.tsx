@@ -4,10 +4,6 @@ import Sidebar from "@/components/kokonutui//sidebar";
 import type React from "react"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
-// import { cookies } from "next/headers";
-// import { redirect } from "next/navigation";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import { headers } from "next/headers"; // ✅ Get current path on the server
 import "./globals.css";
 import TopNav from "@/components/kokonutui/top-nav";

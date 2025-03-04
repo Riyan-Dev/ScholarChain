@@ -1,6 +1,7 @@
 import { LogOut, MoveUpRight, Settings, CreditCard, FileText } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { AuthService } from "@/services/auth.service"
 
 interface MenuItem {
   label: string
@@ -51,6 +52,10 @@ export default function Profile01({
     },
   ]
 
+  const handleLogout = () => {
+    AuthService.removeToken();
+  };
+
   return (
     <div className="w-full max-w-sm mx-auto">
       <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
@@ -94,17 +99,16 @@ export default function Profile01({
               </Link>
             ))}
 
-            <button
-              type="button"
-              className="w-full flex items-center justify-between p-2 
-                                hover:bg-zinc-50 dark:hover:bg-zinc-800/50 
-                                rounded-lg transition-colors duration-200"
-            >
-              <div className="flex items-center gap-2">
-                <LogOut className="w-4 h-4" />
-                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Logout</span>
-              </div>
-            </button>
+<a
+      href="/auth"
+      onClick={handleLogout}
+      className="w-full flex items-center justify-between p-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg transition-colors duration-200"
+    >
+      <div className="flex items-center gap-2">
+        <LogOut className="w-4 h-4" />
+        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Logout</span>
+      </div>
+    </a>
           </div>
         </div>
       </div>

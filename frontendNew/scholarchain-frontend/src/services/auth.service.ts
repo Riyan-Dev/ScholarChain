@@ -1,8 +1,11 @@
 // lib/auth.service.ts
-import { cookies } from 'next/headers';
+import Cookies from 'js-cookie';
 import { jwtDecode, JwtPayload } from "jwt-decode";
+// import { UserCredential, UserData } from '@/types';
+import config from '@/config/config';
 
-const TOKEN_KEY = 'auth_token';
+const TOKEN_KEY = config.jwtSecret;
+const API_BASE_URL = config.fastApi.baseUrl; 
 
 interface DecodedToken extends JwtPayload {
     username: string;
@@ -10,33 +13,47 @@ interface DecodedToken extends JwtPayload {
 }
 
 export const AuthService = {
-    // --- Login (assuming you have an API endpoint) ---
-    login: async (credentials: any) => { // Replace any
-        try {
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(credentials),
-            });
+    login: async (credentials: { username: string; password: string }) => {
+    if (!credentials.username || !credentials.password) {
+        throw new Error("Username and password are required");
+    }
 
-            if (!response.ok) {
-				const errorData = await response.json();
-                throw new Error(errorData.message || 'Login failed'); // Provide specific error messages
-            }
+    const formBody = new URLSearchParams();
+    formBody.append("username", credentials.username);
+    formBody.append("password", credentials.password);
+    formBody.append("grant_type", "password");  // Required by OAuth2PasswordRequestForm
+    formBody.append("scope", ""); // Required but can be empty
+    formBody.append("client_id", ""); // Optional
+    formBody.append("client_secret", ""); // Optional
 
-            const data = await response.json();
-            AuthService.setToken(data.token); // Store the token
-			return data
-        } catch (error: any) {
-            console.error("Login Error:", error.message);
-			throw new Error(error.message || "Login failed");
+    try {
+        const response = await fetch("http://localhost:8000/user/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: formBody.toString(),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Login failed");
         }
-    },
 
-    // --- Signup (assuming you have an API endpoint) ---
-    signup: async (userData: any) => { // Replace 'any' with a proper type
-        try{
-            const response = await fetch('/api/auth/signup', {
+        const data = await response.json();
+        console.log("Login Successful:", data);
+        return data;
+    } catch (error: any) {
+        console.error("Login Error:", error.message);
+        throw new Error(error.message || "Login failed");
+    }
+},
+
+
+    signup: async (userData: any) => {
+        // ... (rest of signup function remains the same)
+         try{
+            const response = await fetch(`${API_BASE_URL}/user/register`, { // FULL URL
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData),
@@ -48,33 +65,31 @@ export const AuthService = {
             }
 
             const data = await response.json();
-            return data;
+            return data; // Return any data from the signup (e.g., success message)
         } catch (error: any) {
 			console.error("Signup Error:", error); // More detailed error
 			throw new Error(error.message || "Signup failed"); // Ensure error is re-thrown
 		}
-
     },
 
-    // --- Store Token in Cookie ---
+    // --- Store Token in Cookie (using js-cookie) ---
     setToken: (token: string) => {
-        cookies().set(TOKEN_KEY, token, {
-            httpOnly: true,   // Important for security
+        Cookies.set(TOKEN_KEY, token, {
+            expires: 1, // Expires in 1 day (adjust as needed)
             secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
             sameSite: 'strict', // CSRF protection
-            path: '/',         // Available on all paths
-            maxAge: 60 * 60 * 24,       // Expires in 1 day (adjust as needed), in seconds
+            path: '/',       // Available on all paths
         });
     },
 
-    // --- Get Token from Cookie ---
+    // --- Get Token from Cookie (using js-cookie) ---
     getToken: (): string | undefined => {
-        return cookies().get(TOKEN_KEY)?.value;
+        return Cookies.get(TOKEN_KEY);
     },
 
-    // --- Remove Token (Logout) ---
+    // --- Remove Token (Logout - using js-cookie) ---
     removeToken: () => {
-        cookies().delete(TOKEN_KEY);
+        Cookies.remove(TOKEN_KEY, { path: '/' }); // Important:  Specify path for consistent removal
     },
 
     // --- Check if User is Authenticated ---

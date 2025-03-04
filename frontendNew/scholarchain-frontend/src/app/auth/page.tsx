@@ -1,11 +1,34 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes"; // Import useTheme
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AuthService } from "@/services/auth.service"; 
+import { redirect } from "next/navigation";
 
 const LoginPage = () => {
   const [isActive, setIsActive] = useState(false);
   const { theme } = useTheme(); // Get the current theme
+  const router = useRouter(); // ✅ Used for navigation
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  // ✅ Handle login
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError("");
+
+    const credentials: any = { username: email, password: password }; // Assuming username is email
+
+    try {
+        await AuthService.login(credentials);
+        window.location.href = "/dashboard";
+    } catch (error: any) {
+        console.log(error.message);
+        setError(error.message || "Login failed");
+    }
+};
 
   return (
     <div>
@@ -93,11 +116,12 @@ const LoginPage = () => {
         >
           <form
             className="h-full flex flex-col items-center justify-center px-10 bg-white dark:bg-gray-900"
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={handleLogin}
           >
             <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">
               Sign In
             </h1>
+            {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
             <div className="flex gap-3 my-5">
               <a
                 href="#"
@@ -129,13 +153,17 @@ const LoginPage = () => {
               or use your email password
             </span>
             <input
-              type="email"
-              placeholder="Email"
+              type="string"
+              placeholder="Username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-lg py-2 px-4 text-sm mb-2 outline-none text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700"
             />
             <input
               type="password"
               placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-lg py-2 px-4 text-sm mb-2 outline-none text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700"
             />
             <a href="#" className="text-sm text-gray-700 dark:text-gray-400 my-4">
@@ -207,3 +235,13 @@ const LoginPage = () => {
 
 
 export default LoginPage;
+
+
+
+
+
+
+
+  
+
+  

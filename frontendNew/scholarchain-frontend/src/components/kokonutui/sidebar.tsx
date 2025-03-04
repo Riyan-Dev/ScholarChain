@@ -74,21 +74,14 @@ export default function Sidebar() {
           >
             <div className="flex items-center gap-3">
               <Image
-                src="https://kokonutui.com/logo.svg"
+                src="/logo.png"
                 alt="Acme"
-                width={32}
-                height={32}
-                className="flex-shrink-0 hidden dark:block"
-              />
-              <Image
-                src="https://kokonutui.com/logo-black.svg"
-                alt="Acme"
-                width={32}
-                height={32}
-                className="flex-shrink-0 block dark:hidden"
+                width={64}
+                height={64}
+                className="flex-shrink-0 block"
               />
               <span className="text-lg font-semibold hover:cursor-pointer text-gray-900 dark:text-white">
-                KokonutUI
+                ScholarChain
               </span>
             </div>
           </Link>

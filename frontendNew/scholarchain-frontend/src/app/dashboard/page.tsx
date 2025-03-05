@@ -1,10 +1,10 @@
-import Link from 'next/link';
-import Dashboard from "@/components/kokonutui/dashboard"
+import Link from "next/link";
+import Dashboard from "@/components/kokonutui/dashboard";
 
 export default function DashboardPage() {
   return (
-  <Link href="/dashboard">
-    <Dashboard />
-  </Link>
-    );
+    <Link href="/dashboard">
+      <Dashboard />
+    </Link>
+  );
 }

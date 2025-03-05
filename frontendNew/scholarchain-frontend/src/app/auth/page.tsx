@@ -1,209 +1,236 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes"; // Import useTheme
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AuthService } from "@/services/auth.service";
+import { redirect } from "next/navigation";
 
 const LoginPage = () => {
   const [isActive, setIsActive] = useState(false);
   const { theme } = useTheme(); // Get the current theme
+  const router = useRouter(); // ✅ Used for navigation
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  // ✅ Handle login
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError("");
+
+    const credentials: any = { username: email, password: password }; // Assuming username is email
+
+    try {
+      await AuthService.login(credentials);
+      window.location.href = "/dashboard";
+    } catch (error: any) {
+      console.log(error.message);
+      setError(error.message || "Login failed");
+    }
+  };
 
   return (
     <div>
-    <div className="min-h-screen flex items-center justify-center bg-gray-200 dark:bg-gray-800">
-      <div
-        className={`relative overflow-hidden w-[768px] max-w-full min-h-[480px] rounded-3xl shadow-lg bg-white dark:bg-gray-900 ${
-          isActive ? "active" : ""
-        }`}
-      >
-        {/* Sign Up Form */}
+      <div className="flex min-h-screen items-center justify-center bg-gray-200 dark:bg-gray-800">
         <div
-          className={`absolute top-0 h-full transition-all duration-500 ease-in-out left-0 w-1/2 ${
-            isActive
-              ? "translate-x-full opacity-100 z-20 pointer-events-auto"
-              : "opacity-0 z-10 pointer-events-none"
+          className={`relative min-h-[480px] w-[768px] max-w-full overflow-hidden rounded-3xl bg-white shadow-lg dark:bg-gray-900 ${
+            isActive ? "active" : ""
           }`}
         >
-          <form
-            className="h-full flex flex-col items-center justify-center px-10 bg-white dark:bg-gray-900"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">
-              Create Account
-            </h1>
-            <div className="flex gap-3 my-5">
-              <a
-                href="#"
-                className="border border-gray-300 dark:border-gray-600 rounded-[20%] w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-400"
-              >
-                <i className="fa-brands fa-google-plus-g"></i>
-              </a>
-              {/* ... other social icons (similarly themed) */}
-              <a
-                href="#"
-                className="border border-gray-300 dark:border-gray-600 rounded-[20%] w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-400"
-              >
-                <i className="fa-brands fa-facebook-f"></i>
-              </a>
-              <a
-                href="#"
-                className="border border-gray-300 dark:border-gray-600 rounded-[20%] w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-400"
-              >
-                <i className="fa-brands fa-github"></i>
-              </a>
-              <a
-                href="#"
-                className="border border-gray-300 dark:border-gray-600 rounded-[20%] w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-400"
-              >
-                <i className="fa-brands fa-linkedin-in"></i>
-              </a>
-            </div>
-            <span className="text-sm mb-4 text-gray-600 dark:text-gray-400">
-              or use your email for registration
-            </span>
-            <input
-              type="text"
-              placeholder="Name"
-              className="w-full rounded-lg py-2 px-4 text-sm mb-2 outline-none text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700"
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full rounded-lg py-2 px-4 text-sm mb-2 outline-none text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full rounded-lg py-2 px-4 text-sm mb-2 outline-none text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700"
-            />
-            <button
-              className="text-white text-xs px-11 py-3 rounded-lg font-semibold uppercase tracking-wider mt-3 cursor-pointer transition-colors bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
-            >
-              Sign Up
-            </button>
-          </form>
-        </div>
-
-        {/* Sign In Form */}
-        <div
-          className={`absolute top-0 h-full transition-all duration-500 ease-in-out left-0 w-1/2 z-20 ${
-            isActive
-              ? "translate-x-full opacity-0 z-10 pointer-events-none"
-              : "translate-x-0 opacity-100 z-20 pointer-events-auto"
-          }`}
-        >
-          <form
-            className="h-full flex flex-col items-center justify-center px-10 bg-white dark:bg-gray-900"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">
-              Sign In
-            </h1>
-            <div className="flex gap-3 my-5">
-              <a
-                href="#"
-                className="border border-gray-300 dark:border-gray-600 rounded-[20%] w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-400"
-              >
-                <i className="fa-brands fa-google-plus-g"></i>
-              </a>
-                {/* ... other social icons (similarly themed) */}
-              <a
-                href="#"
-                className="border border-gray-300 dark:border-gray-600 rounded-[20%] w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-400"
-              >
-                <i className="fa-brands fa-facebook-f"></i>
-              </a>
-              <a
-                href="#"
-                className="border border-gray-300 dark:border-gray-600 rounded-[20%] w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-400"
-              >
-                <i className="fa-brands fa-github"></i>
-              </a>
-              <a
-                href="#"
-                className="border border-gray-300 dark:border-gray-600 rounded-[20%] w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-400"
-              >
-                <i className="fa-brands fa-linkedin-in"></i>
-              </a>
-            </div>
-            <span className="text-sm mb-4 text-gray-600 dark:text-gray-400">
-              or use your email password
-            </span>
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full rounded-lg py-2 px-4 text-sm mb-2 outline-none text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full rounded-lg py-2 px-4 text-sm mb-2 outline-none text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-gray-700"
-            />
-            <a href="#" className="text-sm text-gray-700 dark:text-gray-400 my-4">
-              Forget Your Password?
-            </a>
-            <button
-              className="text-white text-xs px-11 py-3 rounded-lg font-semibold uppercase tracking-wider mt-3 cursor-pointer transition-colors bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
-            >
-              Sign In
-            </button>
-          </form>
-        </div>
-
-        {/* Toggle Container */}
-        <div
-          className={`absolute top-0 left-1/2 w-1/2 h-full overflow-hidden transition-all duration-500 ease-in-out rounded-l-[150px] z-50 ${
-            isActive ? "-translate-x-full rounded-l-none rounded-r-[150px]" : ""
-          }`}
-        >
+          {/* Sign Up Form */}
           <div
-            className={`relative h-full -left-full w-[200%] transition-transform duration-500 ease-in-out  ${
-              isActive ? "translate-x-1/2" : "translate-x-0"
-            } bg-gradient-to-r from-indigo-500 to-indigo-700 dark:from-indigo-400 dark:to-indigo-600 text-white`}
+            className={`absolute top-0 left-0 h-full w-1/2 transition-all duration-500 ease-in-out ${
+              isActive
+                ? "pointer-events-auto z-20 translate-x-full opacity-100"
+                : "pointer-events-none z-10 opacity-0"
+            }`}
           >
-            <div
-              className={`absolute w-1/2 h-full flex flex-col items-center justify-center px-8 text-center transition-transform duration-500 ease-in-out ${
-                isActive ? "translate-x-0" : "-translate-x-[200%]"
-              }`}
+            <form
+              className="flex h-full flex-col items-center justify-center bg-white px-10 dark:bg-gray-900"
+              onSubmit={(e) => e.preventDefault()}
             >
-              <h1 className="text-2xl font-bold mb-4">Welcome Back!</h1>
-              <p className="text-sm leading-5 tracking-wide my-5">
-                Enter your personal details to use all of site features
-              </p>
-              <button
-                onClick={() => setIsActive(false)}
-                className="bg-transparent border border-white text-white text-xs px-11 py-3 rounded-lg font-semibold uppercase tracking-wider mt-3 cursor-pointer hover:bg-white/10 transition-colors"
-              >
-                Sign In
-              </button>
-            </div>
-            <div
-              className={`absolute right-0 w-1/2 h-full flex flex-col items-center justify-center px-8 text-center transition-transform duration-500 ease-in-out ${
-                isActive ? "translate-x-[200%]" : "translate-x-0"
-              }`}
-            >
-              <h1 className="text-2xl font-bold mb-4">Hello, Friend!</h1>
-              <p className="text-sm leading-5 tracking-wide my-5">
-                Register with your personal details to use all of site features
-              </p>
-              <button
-                onClick={() => setIsActive(true)}
-                className="bg-transparent border border-white text-white text-xs px-11 py-3 rounded-lg font-semibold uppercase tracking-wider mt-3 cursor-pointer hover:bg-white/10 transition-colors"
-              >
+              <h1 className="mb-4 text-2xl font-bold text-gray-800 dark:text-gray-200">
+                Create Account
+              </h1>
+              <div className="my-5 flex gap-3">
+                <a
+                  href="#"
+                  className="flex h-10 w-10 items-center justify-center rounded-[20%] border border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400"
+                >
+                  <i className="fa-brands fa-google-plus-g"></i>
+                </a>
+                {/* ... other social icons (similarly themed) */}
+                <a
+                  href="#"
+                  className="flex h-10 w-10 items-center justify-center rounded-[20%] border border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400"
+                >
+                  <i className="fa-brands fa-facebook-f"></i>
+                </a>
+                <a
+                  href="#"
+                  className="flex h-10 w-10 items-center justify-center rounded-[20%] border border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400"
+                >
+                  <i className="fa-brands fa-github"></i>
+                </a>
+                <a
+                  href="#"
+                  className="flex h-10 w-10 items-center justify-center rounded-[20%] border border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400"
+                >
+                  <i className="fa-brands fa-linkedin-in"></i>
+                </a>
+              </div>
+              <span className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                or use your email for registration
+              </span>
+              <input
+                type="text"
+                placeholder="Name"
+                className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200"
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200"
+              />
+              <button className="mt-3 cursor-pointer rounded-lg bg-indigo-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600">
                 Sign Up
               </button>
+            </form>
+          </div>
+
+          {/* Sign In Form */}
+          <div
+            className={`absolute top-0 left-0 z-20 h-full w-1/2 transition-all duration-500 ease-in-out ${
+              isActive
+                ? "pointer-events-none z-10 translate-x-full opacity-0"
+                : "pointer-events-auto z-20 translate-x-0 opacity-100"
+            }`}
+          >
+            <form
+              className="flex h-full flex-col items-center justify-center bg-white px-10 dark:bg-gray-900"
+              onSubmit={handleLogin}
+            >
+              <h1 className="mb-4 text-2xl font-bold text-gray-800 dark:text-gray-200">
+                Sign In
+              </h1>
+              {error && <p className="mb-3 text-sm text-red-500">{error}</p>}
+              <div className="my-5 flex gap-3">
+                <a
+                  href="#"
+                  className="flex h-10 w-10 items-center justify-center rounded-[20%] border border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400"
+                >
+                  <i className="fa-brands fa-google-plus-g"></i>
+                </a>
+                {/* ... other social icons (similarly themed) */}
+                <a
+                  href="#"
+                  className="flex h-10 w-10 items-center justify-center rounded-[20%] border border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400"
+                >
+                  <i className="fa-brands fa-facebook-f"></i>
+                </a>
+                <a
+                  href="#"
+                  className="flex h-10 w-10 items-center justify-center rounded-[20%] border border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400"
+                >
+                  <i className="fa-brands fa-github"></i>
+                </a>
+                <a
+                  href="#"
+                  className="flex h-10 w-10 items-center justify-center rounded-[20%] border border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400"
+                >
+                  <i className="fa-brands fa-linkedin-in"></i>
+                </a>
+              </div>
+              <span className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                or use your email password
+              </span>
+              <input
+                type="string"
+                placeholder="Username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200"
+              />
+              <a
+                href="#"
+                className="my-4 text-sm text-gray-700 dark:text-gray-400"
+              >
+                Forget Your Password?
+              </a>
+              <button className="mt-3 cursor-pointer rounded-lg bg-indigo-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600">
+                Sign In
+              </button>
+            </form>
+          </div>
+
+          {/* Toggle Container */}
+          <div
+            className={`absolute top-0 left-1/2 z-50 h-full w-1/2 overflow-hidden rounded-l-[150px] transition-all duration-500 ease-in-out ${
+              isActive
+                ? "-translate-x-full rounded-l-none rounded-r-[150px]"
+                : ""
+            }`}
+          >
+            <div
+              className={`relative -left-full h-full w-[200%] transition-transform duration-500 ease-in-out ${
+                isActive ? "translate-x-1/2" : "translate-x-0"
+              } bg-gradient-to-r from-indigo-500 to-indigo-700 text-white dark:from-indigo-400 dark:to-indigo-600`}
+            >
+              <div
+                className={`absolute flex h-full w-1/2 flex-col items-center justify-center px-8 text-center transition-transform duration-500 ease-in-out ${
+                  isActive ? "translate-x-0" : "-translate-x-[200%]"
+                }`}
+              >
+                <h1 className="mb-4 text-2xl font-bold">Welcome Back!</h1>
+                <p className="my-5 text-sm leading-5 tracking-wide">
+                  Enter your personal details to use all of site features
+                </p>
+                <button
+                  onClick={() => setIsActive(false)}
+                  className="mt-3 cursor-pointer rounded-lg border border-white bg-transparent px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-white/10"
+                >
+                  Sign In
+                </button>
+              </div>
+              <div
+                className={`absolute right-0 flex h-full w-1/2 flex-col items-center justify-center px-8 text-center transition-transform duration-500 ease-in-out ${
+                  isActive ? "translate-x-[200%]" : "translate-x-0"
+                }`}
+              >
+                <h1 className="mb-4 text-2xl font-bold">Hello, Friend!</h1>
+                <p className="my-5 text-sm leading-5 tracking-wide">
+                  Register with your personal details to use all of site
+                  features
+                </p>
+                <button
+                  onClick={() => setIsActive(true)}
+                  className="mt-3 cursor-pointer rounded-lg border border-white bg-transparent px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-white/10"
+                >
+                  Sign Up
+                </button>
+              </div>
             </div>
           </div>
         </div>
-       
       </div>
-      
-    </div>
-    <div className="absolute bottom-4 right-4 z-50">
-          <ThemeToggle />
-        </div>
+      <div className="absolute right-4 bottom-4 z-50">
+        <ThemeToggle />
+      </div>
     </div>
   );
 };
-
 
 export default LoginPage;

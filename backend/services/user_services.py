@@ -1,9 +1,25 @@
 # services/user_service.py
-from models.user import User
+import os
+import base64
+import json
+import time
+
+from fastapi import HTTPException
+from web3 import Web3
+
 from middleware.JWT_authentication import get_password_hash, verify_password
-from db import user_collection
+from db import user_collection, wallet_collection
 from utility import transform_user_document
-# from utils import hash_password, user_exists, create_user
+
+from models.user import User, DocumentsList
+from models.wallet import Wallet
+
+
+from services.encrption_services import EncrptionServices
+from services.rag_services import pdf_to_images, vision_model
+from services.documents import document
+
+
 
 class UserService:
     @staticmethod
@@ -21,16 +37,41 @@ class UserService:
     # Function to create a new user
     @staticmethod
     async def create_user(user_data: User):
-        hashed_password = get_password_hash(user_data.password)
+
+        
+
+        private_key, address = EncrptionServices.generate_key_pair()
+        hashed_password = get_password_hash(user_data.hashed_password)
         
         new_user = {
             "username": user_data.username,
             "email": user_data.email,
             "hashed_password": hashed_password,
-            "documents": [doc.dict() for doc in user_data.documents]  # Convert the document list to dicts
+            "documents": user_data.documents.dict(),  # Convert the document list to dicts
+            "role": user_data.role
         }
+        print(private_key)
+        print(address)
+       
+       
+        
+        # Encrypt the private key
+        encrypted_private_key = EncrptionServices.encrypt_private_key(private_key)
+        # Save the wallet with an empty transaction list
+        # Send the signed transaction
+       
+
+        new_wallet = Wallet(
+            username=user_data.username,
+            public_key=address,
+            encrypted_private_key=encrypted_private_key,
+            balance=0,
+            transactions=[]
+        )
         
         result = await user_collection.insert_one(new_user)
+        await wallet_collection.insert_one(new_wallet.dict())
+        
         return str(result.inserted_id) 
     
     @staticmethod
@@ -46,7 +87,7 @@ class UserService:
         if new_documents:
             result = await user_collection.update_one(
                 {"username": username},  # Match user by ID from the token
-                {"$push": {"documents": {"$each": new_documents}}}  # Append each document
+                {"$set": {"documents": new_documents}}  # Append each document
             )
             
             return {
@@ -64,8 +105,181 @@ class UserService:
         user = User(**transformed_user)
         return user
     
-    staticmethod 
+    @staticmethod 
     async def get_user_doc_by_username(username: str):
         user_doc = await user_collection.find_one({"username": username})
        
         return user_doc
+    
+
+    @staticmethod 
+    async def get_all_donars_username():
+        users = await user_collection.find().to_list(None)
+        donators = [user["username"] for user in users if user["role"] == "donator"]
+        return donators
+
+
+    @staticmethod
+    async def upload_documents(files, ids, token): 
+        new_documents = {
+            "CNIC": [],
+            "gaurdian_CNIC": [],
+            "electricity_bills": [],
+            "gas_bills": [],
+            "intermediate_result": [],
+            "undergrad_transacript": [],
+            "salary_slips": [],
+            "bank_statements": [],
+            "income_tax_certificate": [],
+            "reference_letter": []
+        }
+
+        extract_fields = {
+            "CNIC": f"""
+                    {{
+                    "full_name": " name of the applicant",
+                    "dob": "date of the birthd in the format of YYYY-MM-DD",
+                    "gender": "Male or Female",
+                    "nationality": "American etc etc"
+                    }}
+                    """,
+            "gaurdian_CNIC": "",
+            "electricity_bills": f"""
+                    {{
+                    "address": "Address of the Electricity Bill house",
+                    }}
+                    """,
+            "gas_bills": f"""
+                    {{
+                    "address": "Address of the Gas Bill house",
+                    }},
+                    """,
+            "intermediate_result": [],
+            "undergrad_transacript":  f"""
+                    {{
+                    "gpa": "CGPA of the student",
+                    "year_or_semester": "Year  or semester",
+                    "program_name_degree": "Bachelors of computer science etc",
+                    "student_id": "student id as provided in the transcript",
+                    "college_or_university": "XYZ University",
+                    "current_education_level": "Undergraduate / Postgraduate"
+                    }},
+                    """,
+            "salary_slips":  f"""
+                    {{
+                    "total_family_income": "based on the salary slips give me annualy salary of the applicant (return an integer)",
+                    }},
+                    """,
+            "bank_statements": [],
+            "income_tax_certificate": [],
+            "reference_letter": f"""
+                    {{
+                    "name": "source for this information is reference letter as mention in some metadata for documents",
+                    "designation": "Professor",
+                    "contact_details": "+987654321",
+                    "comments": "John is a diligent student."
+                    }},
+                    """
+        }
+
+        user = await UserService.get_user_doc_by_username(token.username)
+        user_documents = user["documents"]
+
+        for i, id in enumerate(ids):
+            if ids[i] in document:
+                time.sleep(10)
+                new_documents[ids[i]].extend(document[ids[i]])
+                continue
+ 
+
+
+        for i, file in enumerate(files):
+            image_paths = await pdf_to_images(file)
+            # Prepare the message with multiple images
+            # if ids[i] in user_documents:
+            #     return {"Messsage": "Documents Uploaded"}
+            
+            # if ids[i] in document:
+            #     time.sleep(10)
+            #     new_documents[ids[i]].extend(document[ids[i]])
+            #     continue
+
+            image_contents = []
+            for image_path in image_paths:
+                if os.path.exists(image_path):
+                    # Load and encode the local image
+                    with open(image_path, "rb") as image_file:
+                        image_bytes = image_file.read()
+
+                    # Convert image bytes to base64
+                    image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+
+                    # Append the base64 image content to the list
+                    image_contents.append(
+                        {
+                            "type": "image_url",
+                            "image_url": f"data:image/jpeg;base64,{image_base64}"
+                        }
+                    )
+
+                    os.remove(image_path)
+
+            # Define the messages, with multiple images
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"""Give me exact detail of these images in the response of following format (create json object for each page
+                                        and return a json_object of list of documents as shown in the response format below)
+                                        Note: page content must contain the extracted text and tables for each image
+                                        Note: The length of the returned list of documetns should equals the number of images in the input
+                                        Final_note: I have already provided the source of Data use it as given in the response format
+                                        response format:
+                                        {{
+                                            "documents": [
+                                                {{
+                                                    "page_content": "all the text and table related data extracted from each image should be returned in this field",
+                                                    "metadata": {{
+                                                        "source": {ids[i]},
+                                                        "author": "author of the source if any such as bank name or electricity company or Nadra etc,
+                                                        "section": "what is the section",
+                                                        "document_type": "academic or financial",
+                                                        "date": "date of the document if available"
+                                                    }}
+                                                }}
+                                            ],
+                                            "extracted_fields": {extract_fields[ids[i]]}
+                                        }}
+                                    """
+                        },
+                        *image_contents  # Add the list of images to the message content
+                    ]
+                }
+            ]
+
+            response = vision_model(messages)
+            
+            # Parse and validate the response
+            try:
+                parsed_response = json.loads(response) if isinstance(response, str) else response
+
+                if "documents" in parsed_response and isinstance(parsed_response["documents"], list):
+                    for doc in parsed_response["documents"]:
+                        doc["page_content"] = json.dumps(doc["page_content"], indent=None)
+                    
+                    print(parsed_response)
+                    extract_fields[ids[i]] = parsed_response["extracted_fields"]
+                    new_documents[ids[i]].extend(parsed_response["documents"])
+                else:
+                    raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
+
+        # Check if username is None, and raise an HTTPException if it is
+        if token.username is None:
+            raise HTTPException(status_code=400, detail="Username is missing in the token")
+
+        # Now safely call add_documents, assuming username is always a valid string
+        return await UserService.add_documents(token.username, new_documents)

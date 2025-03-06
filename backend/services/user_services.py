@@ -196,13 +196,13 @@ class UserService:
         for i, file in enumerate(files):
             image_paths = await pdf_to_images(file)
             # Prepare the message with multiple images
-            # if ids[i] in user_documents:
-            #     return {"Messsage": "Documents Uploaded"}
+            if ids[i] in user_documents:
+                return {"Messsage": "Documents Uploaded"}
             
-            # if ids[i] in document:
-            #     time.sleep(10)
-            #     new_documents[ids[i]].extend(document[ids[i]])
-            #     continue
+            if ids[i] in document:
+                time.sleep(10)
+                new_documents[ids[i]].extend(document[ids[i]])
+                continue
 
             image_contents = []
             for image_path in image_paths:

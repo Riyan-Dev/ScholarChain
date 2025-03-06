@@ -1,6 +1,7 @@
 import os
 import sys
 # sys.path.insert(0, "/Users/ryan/Developer/ScholarChain/backend/scholarChainEnv/lib/python3.11/site-packages")
+from config import Config
 from dotenv import load_dotenv
 from mistralai import Mistral
 import fitz 
@@ -45,12 +46,10 @@ async def pdf_to_images(file):
 def vision_model(messages):
 
     # Specify model
-    api_key = os.getenv("api_key")
-
     model = "pixtral-12b-2409"
 
     # Initialize the Mistral client
-    client = Mistral(api_key=api_key)
+    client = Mistral(api_key=Config.mistral_api_key)
 
     # Get the chat response
     chat_response = client.chat.complete(

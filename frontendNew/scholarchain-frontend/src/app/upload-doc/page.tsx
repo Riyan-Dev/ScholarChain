@@ -12,6 +12,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { uploadDocuments } from "@/services/user.service";
+import { useRouter } from "next/navigation";
 
 // List of required documents
 const REQUIRED_DOCUMENTS = [
@@ -54,6 +56,8 @@ const REQUIRED_DOCUMENTS = [
 ];
 
 export default function DocumentUploadPage() {
+  const router = useRouter();
+
   // State to track uploaded documents
   const [uploadedDocuments, setUploadedDocuments] = useState<
     Record<string, File>
@@ -91,8 +95,8 @@ export default function DocumentUploadPage() {
     onDrop,
     accept: {
       "application/pdf": [".pdf"],
-      "image/jpeg": [".jpg", ".jpeg"],
-      "image/png": [".png"],
+      // "image/jpeg": [".jpg", ".jpeg"],
+      // "image/png": [".png"],
     },
     maxFiles: 1,
   });
@@ -104,6 +108,18 @@ export default function DocumentUploadPage() {
       delete newDocs[documentId];
       return newDocs;
     });
+  };
+
+  const handleSubmitDocuments = async () => {
+    try {
+      const data = await uploadDocuments(uploadedDocuments);
+      console.log("Upload successful:", data);
+      router.push("/dashboard");
+      // Optionally, update UI or notify the user of success
+    } catch (error) {
+      console.error("Error uploading documents:", error);
+      // Optionally, display an error message to the user
+    }
   };
 
   return (
@@ -150,7 +166,7 @@ export default function DocumentUploadPage() {
                 Drag & drop your file here, or click to select
               </p>
               <p className="text-muted-foreground text-xs">
-                Supported formats: PDF, JPG, PNG (Max size: 10MB)
+                Supported formats: PDF (Max size: 10MB)
               </p>
               <Button
                 variant="outline"
@@ -238,7 +254,11 @@ export default function DocumentUploadPage() {
       </div>
 
       <div className="mt-8 flex justify-end">
-        <Button disabled={uploadedCount < totalCount} className="px-8">
+        <Button
+          disabled={uploadedCount < totalCount}
+          className="px-8"
+          onClick={handleSubmitDocuments}
+        >
           Submit Documents
         </Button>
       </div>

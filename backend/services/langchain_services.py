@@ -1,3 +1,4 @@
+from config import Config
 from langchain import hub
 from langchain_community.vectorstores.chroma import Chroma
 from langchain_core.output_parsers import StrOutputParser
@@ -79,8 +80,8 @@ class LangChainService:
     @staticmethod
     async def rag_bot(query: str, temp_dir: str):
         # Specify model
-        api_key = os.getenv("api_key")
-        llm = ChatMistralAI(model="mistral-small-latest", api_key=api_key)
+        
+        llm = ChatMistralAI(model="mistral-small-latest", api_key=Config.mistral_api_key)
 
         # global vector_stores
 

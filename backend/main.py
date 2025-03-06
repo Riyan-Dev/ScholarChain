@@ -50,28 +50,3 @@ async def health_check():
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8000)
 
-
-
-# app.mount("/static", StaticFiles(directory="static"), name="static")
-# templates = Jinja2Templates(directory="templates")
-
-
-# @app.get("/", response_class=HTMLResponse)
-# async def index(request: Request):
-#     return templates.TemplateResponse("index.html", {"request": request})
-
-# @app.get("/personal-info", response_class=HTMLResponse)
-# async def personal_info(request: Request):
-#     return templates.TemplateResponse("personal_info.html", {"request": request})
-
-# @app.get("/financial-info", response_class=HTMLResponse)
-# async def financial_info(request: Request):
-#     return templates.TemplateResponse("financial_info.html", {"request": request})
-
-# @app.get("/academic-info", response_class=HTMLResponse)
-# async def academic_info(request: Request):
-#     return templates.TemplateResponse("academic_info.html", {"request": request})
-
-# @app.get("/document-upload", response_class=HTMLResponse)
-# async def document_upload(request: Request):
-#     return templates.TemplateResponse("document_upload.html", {"request": request})

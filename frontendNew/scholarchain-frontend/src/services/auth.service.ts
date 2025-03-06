@@ -27,7 +27,7 @@ export const AuthService = {
     formBody.append("client_secret", ""); // Optional
 
     try {
-      const response = await fetch("http://localhost:8000/user/login", {
+      const response = await fetch(`${API_BASE_URL}/user/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -41,7 +41,7 @@ export const AuthService = {
       }
 
       const data = await response.json();
-      console.log("Login Successful:", data);
+      AuthService.setToken(data.access_token);
       return data;
     } catch (error: any) {
       console.error("Login Error:", error.message);

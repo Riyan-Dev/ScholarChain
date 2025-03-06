@@ -144,27 +144,27 @@ export default function ApplicationFormComponent({
       // personal_info.marital_status !== "" &&
       personal_info.phone_number !== "" &&
       personal_info.email_address !== "" &&
-      personal_info.residential_address !== "" &&  // Added back residential_address
-      personal_info.permanent_address !== "";  // Added back permanent_address
+      personal_info.residential_address !== "" && // Added back residential_address
+      personal_info.permanent_address !== ""; // Added back permanent_address
 
     const isFinancialInfoValid =
-      financial_info.total_family_income !== "" &&  // Added back total_family_income
-      financial_info.other_income_sources !== "" &&  // Added back other_income_sources
+      financial_info.total_family_income !== "" && // Added back total_family_income
+      financial_info.other_income_sources !== "" && // Added back other_income_sources
       financial_info.outstanding_loans_or_debts !== "";
 
     const isAcademicInfoValid =
-      academic_info.current_education_level !== "" &&  // Added back current_education_level
-      academic_info.college_or_university !== "" &&   // Added back college_or_university
-      academic_info.student_id !== "" &&              // Added back student_id
-      academic_info.program_name_degree !== "" &&     // Added back program_name_degree
-      academic_info.duration_of_course !== "" &&      // Added back duration_of_course
-      academic_info.year_or_semester !== "" &&        // Added back year_or_semester
+      academic_info.current_education_level !== "" && // Added back current_education_level
+      academic_info.college_or_university !== "" && // Added back college_or_university
+      academic_info.student_id !== "" && // Added back student_id
+      academic_info.program_name_degree !== "" && // Added back program_name_degree
+      academic_info.duration_of_course !== "" && // Added back duration_of_course
+      academic_info.year_or_semester !== "" && // Added back year_or_semester
       academic_info.gpa !== "";
     // academic_info.achievements_or_awards !== ""; // Optional
 
     const isLoanDetailsValid =
-      loan_details.loan_amount_requested !== "" &&    // Added back loan_amount_requested
-      loan_details.purpose_of_loan !== "" &&          // Added back purpose_of_loan
+      loan_details.loan_amount_requested !== "" && // Added back loan_amount_requested
+      loan_details.purpose_of_loan !== "" && // Added back purpose_of_loan
       loan_details.proposed_repayment_period !== "" && // Added back proposed_repayment_period
       loan_details.preferred_repayment_frequency !== "";
 
@@ -500,9 +500,7 @@ export default function ApplicationFormComponent({
             <AccordionContent>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="totalFamilyIncome">
-                    Total Family Income
-                  </Label>
+                  <Label htmlFor="totalFamilyIncome">Total Family Income</Label>
                   <Input
                     id="totalFamilyIncome"
                     name="financial_info.total_family_income"
@@ -562,7 +560,9 @@ export default function ApplicationFormComponent({
                         "academic_info.current_education_level"
                       )
                     }
-                    defaultValue={formData.academic_info.current_education_level}
+                    defaultValue={
+                      formData.academic_info.current_education_level
+                    }
                   >
                     <SelectTrigger id="currentEducationLevel">
                       <SelectValue placeholder="Select education level" />
@@ -570,10 +570,10 @@ export default function ApplicationFormComponent({
                     <SelectContent>
                       <SelectItem value="high_school">High School</SelectItem>
                       <SelectItem value="bachelors">
-                        Bachelor's Degree
+                        Bachelor&apos;s Degree
                       </SelectItem>
                       <SelectItem value="masters">
-                        Master's Degree
+                        Master&apos;s Degree
                       </SelectItem>
                       <SelectItem value="phd">PhD</SelectItem>
                       <SelectItem value="other">Other</SelectItem>

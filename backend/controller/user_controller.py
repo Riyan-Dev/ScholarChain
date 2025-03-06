@@ -36,6 +36,11 @@ async def process_documents( background_tasks: BackgroundTasks, files: List[Uplo
     background_tasks.add_task(UserService.upload_documents, [], ids_list, token)
     return {"Message": f"Docuemnt Uploading in process"}
 
+@user_router.post("/documents-status")
+async def get_documents_status(token: TokenData = Depends(get_current_user)):
+    status = await UserService.get_documents_status(token)
+    return {"status": status}
+
 
 
 

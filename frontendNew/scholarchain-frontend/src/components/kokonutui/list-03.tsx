@@ -1,3 +1,4 @@
+"use client";
 import { cn } from "@/lib/utils";
 import {
   Calendar,
@@ -10,7 +11,8 @@ import {
   TrendingUp,
   CreditCard,
 } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
+import AnimatedCard from "../animated-card";
 
 interface ListItem {
   id: string;
@@ -91,6 +93,8 @@ const ITEMS: ListItem[] = [
 ];
 
 export default function List03({ items = ITEMS, className }: List03Props) {
+  const [isActive, setIsActive] = useState(true);
+
   return (
     <div className={cn("scrollbar-none w-full overflow-x-auto", className)}>
       <div className="flex min-w-full gap-3 p-1">
@@ -195,6 +199,27 @@ export default function List03({ items = ITEMS, className }: List03Props) {
             </div>
           </div>
         ))}
+      </div>
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <AnimatedCard
+          title={isActive ? "Active State" : "Inactive State"}
+          condition={isActive}
+          onToggle={() => setIsActive(!isActive)}
+        >
+          <p className="mb-4 text-center">
+            {isActive
+              ? "This card is currently active with a pink-purple gradient animation."
+              : "This card is currently inactive with a solid green background."}
+          </p>
+          <div className="flex items-center justify-center">
+            <div
+              className={`mr-2 h-3 w-3 rounded-full ${isActive ? "bg-white" : "bg-white"}`}
+            ></div>
+            <span className="font-medium">
+              Status: {isActive ? "Active" : "Inactive"}
+            </span>
+          </div>
+        </AnimatedCard>
       </div>
     </div>
   );

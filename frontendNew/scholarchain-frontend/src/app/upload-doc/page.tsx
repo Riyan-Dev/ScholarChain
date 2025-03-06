@@ -8,11 +8,13 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
+  CardFooter,
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { uploadDocuments } from "@/services/user.service";
+import { useRouter } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 // List of required documents
@@ -56,9 +58,12 @@ const REQUIRED_DOCUMENTS = [
 ];
 
 export default function DocumentUploadPage() {
-  const [uploadedDocuments, setUploadedDocuments] = useState<Record<string, File>>(
-    {}
-  );
+  const router = useRouter();
+
+  // State to track uploaded documents
+  const [uploadedDocuments, setUploadedDocuments] = useState<
+    Record<string, File>
+  >({});
   const [currentDocumentType, setCurrentDocumentType] = useState<string | null>(
     null
   );
@@ -92,8 +97,8 @@ export default function DocumentUploadPage() {
     onDrop,
     accept: {
       "application/pdf": [".pdf"],
-      "image/jpeg": [".jpg", ".jpeg"],
-      "image/png": [".png"],
+      // "image/jpeg": [".jpg", ".jpeg"],
+      // "image/png": [".png"],
     },
     maxFiles: 1,
   });
@@ -105,6 +110,18 @@ export default function DocumentUploadPage() {
       delete newDocs[documentId];
       return newDocs;
     });
+  };
+
+  const handleSubmitDocuments = async () => {
+    try {
+      const data = await uploadDocuments(uploadedDocuments);
+      console.log("Upload successful:", data);
+      router.push("/dashboard");
+      // Optionally, update UI or notify the user of success
+    } catch (error) {
+      console.error("Error uploading documents:", error);
+      // Optionally, display an error message to the user
+    }
   };
 
   return (
@@ -252,7 +269,7 @@ export default function DocumentUploadPage() {
           </div>
             <CardFooter className="justify-center">
               <div className="mt-8 flex justify-center">
-                <Button disabled={uploadedCount < totalCount} className="px-8">
+                <Button disabled={uploadedCount < totalCount} onClick={handleSubmitDocuments} className="px-8">
                   Submit Documents
                 </Button>
               </div>

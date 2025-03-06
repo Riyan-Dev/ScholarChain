@@ -125,7 +125,7 @@ export default function DocumentUploadPage() {
   };
 
   return (
-    <div className="container mx-auto h- max-w-7xl px-4">
+    <div className="h- container mx-auto max-w-7xl px-4">
       <div className="flex h-[calc(50vh-5rem)] gap-6">
         {/* Left side - Scrollable document cards */}
         <div className="w-2/3">
@@ -133,7 +133,8 @@ export default function DocumentUploadPage() {
             <CardHeader>
               <CardTitle className="text-2xl">Document Upload</CardTitle>
               <CardDescription>
-                Please upload all required documents to complete your application
+                Please upload all required documents to complete your
+                application
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -158,8 +159,9 @@ export default function DocumentUploadPage() {
                 return (
                   <Card
                     key={document.id}
-                    className={`transition-colors ${isUploaded ? "bg-primary/5 border-primary/20" : ""
-                      }`}
+                    className={`transition-colors ${
+                      isUploaded ? "bg-primary/5 border-primary/20" : ""
+                    }`}
                   >
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
@@ -221,10 +223,11 @@ export default function DocumentUploadPage() {
                 {currentDocumentType ? (
                   <div
                     {...getRootProps()}
-                    className={`flex h-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-10 text-center transition-colors ${isDragActive
-                      ? "border-primary bg-primary/5"
-                      : "border-muted-foreground/25 hover:border-primary/50"
-                      }`}
+                    className={`flex h-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-10 text-center transition-colors ${
+                      isDragActive
+                        ? "border-primary bg-primary/5"
+                        : "border-muted-foreground/25 hover:border-primary/50"
+                    }`}
                   >
                     <input {...getInputProps()} />
                     <Upload className="text-muted-foreground mx-auto mb-4 h-10 w-10" />
@@ -254,7 +257,7 @@ export default function DocumentUploadPage() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex h-full flex-col items-center justify-center rounded-lg bg-muted/50 p-6 text-center">
+                  <div className="bg-muted/50 flex h-full flex-col items-center justify-center rounded-lg p-6 text-center">
                     <FileText className="text-muted-foreground mx-auto mb-4 h-10 w-10" />
                     <h3 className="mb-1 text-lg font-medium">
                       Select a document to upload
@@ -267,13 +270,17 @@ export default function DocumentUploadPage() {
               </CardContent>
             </Card>
           </div>
-            <CardFooter className="justify-center">
-              <div className="mt-8 flex justify-center">
-                <Button disabled={uploadedCount < totalCount} onClick={handleSubmitDocuments} className="px-8">
-                  Submit Documents
-                </Button>
-              </div>
-            </CardFooter>
+          <CardFooter className="justify-center">
+            <div className="mt-8 flex justify-center">
+              <Button
+                disabled={uploadedCount < totalCount}
+                onClick={handleSubmitDocuments}
+                className="px-8"
+              >
+                Submit Documents
+              </Button>
+            </div>
+          </CardFooter>
         </div>
       </div>
     </div>

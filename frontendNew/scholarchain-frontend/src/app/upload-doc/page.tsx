@@ -8,10 +8,12 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // List of required documents
 const REQUIRED_DOCUMENTS = [
@@ -54,10 +56,9 @@ const REQUIRED_DOCUMENTS = [
 ];
 
 export default function DocumentUploadPage() {
-  // State to track uploaded documents
-  const [uploadedDocuments, setUploadedDocuments] = useState<
-    Record<string, File>
-  >({});
+  const [uploadedDocuments, setUploadedDocuments] = useState<Record<string, File>>(
+    {}
+  );
   const [currentDocumentType, setCurrentDocumentType] = useState<string | null>(
     null
   );
@@ -107,140 +108,156 @@ export default function DocumentUploadPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-10">
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="text-2xl">Document Upload</CardTitle>
-          <CardDescription>
-            Please upload all required documents to complete your application
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-6">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-medium">Upload Progress</span>
-              <span className="text-sm font-medium">
-                {uploadedCount}/{totalCount} Documents
-              </span>
-            </div>
-            <Progress value={progressPercentage} className="h-2" />
-          </div>
-
-          {/* Drag & Drop Area */}
-          {currentDocumentType ? (
-            <div
-              {...getRootProps()}
-              className={`cursor-pointer rounded-lg border-2 border-dashed p-10 text-center transition-colors ${
-                isDragActive
-                  ? "border-primary bg-primary/5"
-                  : "border-muted-foreground/25 hover:border-primary/50"
-              }`}
-            >
-              <input {...getInputProps()} />
-              <Upload className="text-muted-foreground mx-auto mb-4 h-10 w-10" />
-              <h3 className="mb-1 text-lg font-medium">
-                Upload{" "}
-                {
-                  REQUIRED_DOCUMENTS.find(
-                    (doc) => doc.id === currentDocumentType
-                  )?.label
-                }
-              </h3>
-              <p className="text-muted-foreground mb-2 text-sm">
-                Drag & drop your file here, or click to select
-              </p>
-              <p className="text-muted-foreground text-xs">
-                Supported formats: PDF, JPG, PNG (Max size: 10MB)
-              </p>
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCurrentDocumentType(null);
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          ) : (
-            <div className="bg-muted/50 rounded-lg p-6 text-center">
-              <FileText className="text-muted-foreground mx-auto mb-4 h-10 w-10" />
-              <h3 className="mb-1 text-lg font-medium">
-                Select a document to upload
-              </h3>
-              <p className="text-muted-foreground text-sm">
-                Choose from the document list below
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        {REQUIRED_DOCUMENTS.map((document) => {
-          const isUploaded = document.id in uploadedDocuments;
-          const uploadedFile = uploadedDocuments[document.id];
-
-          return (
-            <Card
-              key={document.id}
-              className={`transition-colors ${isUploaded ? "bg-primary/5 border-primary/20" : ""}`}
-            >
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-base">
-                      {document.label}
-                    </CardTitle>
-                    <CardDescription className="mt-1 text-xs">
-                      {document.description}
-                    </CardDescription>
-                  </div>
-                  {isUploaded ? (
-                    <CheckCircle className="text-primary h-5 w-5" />
-                  ) : (
-                    <AlertCircle className="text-muted-foreground h-5 w-5" />
-                  )}
+    <div className="container mx-auto h- max-w-7xl px-4">
+      <div className="flex h-[calc(50vh-5rem)] gap-6">
+        {/* Left side - Scrollable document cards */}
+        <div className="w-2/3">
+          <Card className="mb-5">
+            <CardHeader>
+              <CardTitle className="text-2xl">Document Upload</CardTitle>
+              <CardDescription>
+                Please upload all required documents to complete your application
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-6">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm font-medium">Upload Progress</span>
+                  <span className="text-sm font-medium">
+                    {uploadedCount}/{totalCount} Documents
+                  </span>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {isUploaded ? (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 overflow-hidden">
-                      <FileText className="h-4 w-4 flex-shrink-0" />
-                      <span className="truncate text-sm">
-                        {uploadedFile.name}
-                      </span>
-                    </div>
+                <Progress value={progressPercentage} className="h-2" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <ScrollArea className="h-[calc(88vh-15rem)] rounded-lg border">
+            <div className="space-y-4 p-4">
+              {REQUIRED_DOCUMENTS.map((document) => {
+                const isUploaded = document.id in uploadedDocuments;
+                const uploadedFile = uploadedDocuments[document.id];
+
+                return (
+                  <Card
+                    key={document.id}
+                    className={`transition-colors ${isUploaded ? "bg-primary/5 border-primary/20" : ""
+                      }`}
+                  >
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-base">
+                            {document.label}
+                          </CardTitle>
+                          <CardDescription className="mt-1 text-xs">
+                            {document.description}
+                          </CardDescription>
+                        </div>
+                        {isUploaded ? (
+                          <CheckCircle className="text-primary h-5 w-5" />
+                        ) : (
+                          <AlertCircle className="text-muted-foreground h-5 w-5" />
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {isUploaded ? (
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2 overflow-hidden">
+                            <FileText className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate text-sm">
+                              {uploadedFile.name}
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive h-8 w-8"
+                            onClick={() => removeDocument(document.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => setCurrentDocumentType(document.id)}
+                        >
+                          Upload Document
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Right side - Sticky dropzone */}
+        <div className="w-1/3">
+          <div className="sticky top-10">
+            <Card className="h-[calc(90vh-8rem)]">
+              <CardContent className="h-full p-6">
+                {currentDocumentType ? (
+                  <div
+                    {...getRootProps()}
+                    className={`flex h-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-10 text-center transition-colors ${isDragActive
+                      ? "border-primary bg-primary/5"
+                      : "border-muted-foreground/25 hover:border-primary/50"
+                      }`}
+                  >
+                    <input {...getInputProps()} />
+                    <Upload className="text-muted-foreground mx-auto mb-4 h-10 w-10" />
+                    <h3 className="mb-1 text-lg font-medium">
+                      Upload{" "}
+                      {
+                        REQUIRED_DOCUMENTS.find(
+                          (doc) => doc.id === currentDocumentType
+                        )?.label
+                      }
+                    </h3>
+                    <p className="text-muted-foreground mb-2 text-sm">
+                      Drag & drop your file here, or click to select
+                    </p>
+                    <p className="text-muted-foreground text-xs">
+                      Supported formats: PDF, JPG, PNG (Max size: 10MB)
+                    </p>
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive h-8 w-8"
-                      onClick={() => removeDocument(document.id)}
+                      variant="outline"
+                      className="mt-4"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentDocumentType(null);
+                      }}
                     >
-                      <X className="h-4 w-4" />
+                      Cancel
                     </Button>
                   </div>
                 ) : (
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => setCurrentDocumentType(document.id)}
-                  >
-                    Upload Document
-                  </Button>
+                  <div className="flex h-full flex-col items-center justify-center rounded-lg bg-muted/50 p-6 text-center">
+                    <FileText className="text-muted-foreground mx-auto mb-4 h-10 w-10" />
+                    <h3 className="mb-1 text-lg font-medium">
+                      Select a document to upload
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      Choose from the document list on the left
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
-
-      <div className="mt-8 flex justify-end">
-        <Button disabled={uploadedCount < totalCount} className="px-8">
-          Submit Documents
-        </Button>
+          </div>
+            <CardFooter className="justify-center">
+              <div className="mt-8 flex justify-center">
+                <Button disabled={uploadedCount < totalCount} className="px-8">
+                  Submit Documents
+                </Button>
+              </div>
+            </CardFooter>
+        </div>
       </div>
     </div>
   );

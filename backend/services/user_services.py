@@ -4,6 +4,8 @@ import base64
 import json
 import time
 
+import asyncio
+
 from fastapi import HTTPException
 from web3 import Web3
 
@@ -182,104 +184,160 @@ class UserService:
                     """
         }
 
-        user = await UserService.get_user_doc_by_username(token.username)
-        user_documents = user["documents"]
+        # user = await UserService.get_user_doc_by_username(token.username)
+        # user_documents = user["documents"]
 
         for i, id in enumerate(ids):
             if ids[i] in document:
-                time.sleep(10)
+                await asyncio.sleep(10)
+                print("hello")
                 new_documents[ids[i]].extend(document[ids[i]])
                 continue
  
 
 
-        for i, file in enumerate(files):
-            image_paths = await pdf_to_images(file)
-            # Prepare the message with multiple images
-            if ids[i] in user_documents:
-                return {"Messsage": "Documents Uploaded"}
+        # for i, file in enumerate(files):
+        #     if ids[i] in user_documents:
+        #         return {"Messsage": "Documents Uploaded"}
             
-            if ids[i] in document:
-                time.sleep(10)
-                new_documents[ids[i]].extend(document[ids[i]])
-                continue
-
-            image_contents = []
-            for image_path in image_paths:
-                if os.path.exists(image_path):
-                    # Load and encode the local image
-                    with open(image_path, "rb") as image_file:
-                        image_bytes = image_file.read()
-
-                    # Convert image bytes to base64
-                    image_base64 = base64.b64encode(image_bytes).decode("utf-8")
-
-                    # Append the base64 image content to the list
-                    image_contents.append(
-                        {
-                            "type": "image_url",
-                            "image_url": f"data:image/jpeg;base64,{image_base64}"
-                        }
-                    )
-
-                    os.remove(image_path)
-
-            # Define the messages, with multiple images
-            messages = [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": f"""Give me exact detail of these images in the response of following format (create json object for each page
-                                        and return a json_object of list of documents as shown in the response format below)
-                                        Note: page content must contain the extracted text and tables for each image
-                                        Note: The length of the returned list of documetns should equals the number of images in the input
-                                        Final_note: I have already provided the source of Data use it as given in the response format
-                                        response format:
-                                        {{
-                                            "documents": [
-                                                {{
-                                                    "page_content": "all the text and table related data extracted from each image should be returned in this field",
-                                                    "metadata": {{
-                                                        "source": {ids[i]},
-                                                        "author": "author of the source if any such as bank name or electricity company or Nadra etc,
-                                                        "section": "what is the section",
-                                                        "document_type": "academic or financial",
-                                                        "date": "date of the document if available"
-                                                    }}
-                                                }}
-                                            ],
-                                            "extracted_fields": {extract_fields[ids[i]]}
-                                        }}
-                                    """
-                        },
-                        *image_contents  # Add the list of images to the message content
-                    ]
-                }
-            ]
-
-            response = vision_model(messages)
+        #     image_paths = await pdf_to_images(file)            
             
-            # Parse and validate the response
-            try:
-                parsed_response = json.loads(response) if isinstance(response, str) else response
+        #     if ids[i] in document:
+        #         time.sleep(10)
+        #         new_documents[ids[i]].extend(document[ids[i]])
+        #         continue
 
-                if "documents" in parsed_response and isinstance(parsed_response["documents"], list):
-                    for doc in parsed_response["documents"]:
-                        doc["page_content"] = json.dumps(doc["page_content"], indent=None)
+        #     image_contents = []
+        #     for image_path in image_paths:
+        #         if os.path.exists(image_path):
+        #             # Load and encode the local image
+        #             with open(image_path, "rb") as image_file:
+        #                 image_bytes = image_file.read()
+
+        #             # Convert image bytes to base64
+        #             image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        #             # Append the base64 image content to the list
+        #             image_contents.append(
+        #                 {
+        #                     "type": "image_url",
+        #                     "image_url": f"data:image/jpeg;base64,{image_base64}"
+        #                 }
+        #             )
+
+        #             os.remove(image_path)
+
+        #     # Define the messages, with multiple images
+        #     messages = [
+        #         {
+        #             "role": "user",
+        #             "content": [
+        #                 {
+        #                     "type": "text",
+        #                     "text": f"""Give me exact detail of these images in the response of following format (create json object for each page
+        #                                 and return a json_object of list of documents as shown in the response format below)
+        #                                 Note: page content must contain the extracted text and tables for each image
+        #                                 Note: The length of the returned list of documetns should equals the number of images in the input
+        #                                 Final_note: I have already provided the source of Data use it as given in the response format
+        #                                 response format:
+        #                                 {{
+        #                                     "documents": [
+        #                                         {{
+        #                                             "page_content": "all the text and table related data extracted from each image should be returned in this field",
+        #                                             "metadata": {{
+        #                                                 "source": {ids[i]},
+        #                                                 "author": "author of the source if any such as bank name or electricity company or Nadra etc,
+        #                                                 "section": "what is the section",
+        #                                                 "document_type": "academic or financial",
+        #                                                 "date": "date of the document if available"
+        #                                             }}
+        #                                         }}
+        #                                     ],
+        #                                     "extracted_fields": {extract_fields[ids[i]]}
+        #                                 }}
+        #                             """
+        #                 },
+        #                 *image_contents  # Add the list of images to the message content
+        #             ]
+        #         }
+        #     ]
+
+        #     response = await vision_model(messages)
+            
+        #     # Parse and validate the response
+        #     try:
+        #         parsed_response = json.loads(response) if isinstance(response, str) else response
+
+        #         if "documents" in parsed_response and isinstance(parsed_response["documents"], list):
+        #             for doc in parsed_response["documents"]:
+        #                 doc["page_content"] = json.dumps(doc["page_content"], indent=None)
                     
-                    print(parsed_response)
-                    extract_fields[ids[i]] = parsed_response["extracted_fields"]
-                    new_documents[ids[i]].extend(parsed_response["documents"])
-                else:
-                    raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
-            except json.JSONDecodeError:
-                raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
+        #             print(parsed_response)
+        #             extract_fields[ids[i]] = parsed_response["extracted_fields"]
+        #             new_documents[ids[i]].extend(parsed_response["documents"])
+        #         else:
+        #             raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
+        #     except json.JSONDecodeError:
+        #         raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
 
-        # Check if username is None, and raise an HTTPException if it is
-        if token.username is None:
-            raise HTTPException(status_code=400, detail="Username is missing in the token")
+        # # Check if username is None, and raise an HTTPException if it is
+        # if token.username is None:
+        #     raise HTTPException(status_code=400, detail="Username is missing in the token")
 
         # Now safely call add_documents, assuming username is always a valid string
         return await UserService.add_documents(token.username, new_documents)
+
+    async def check_all_document_types_present(username: str):
+        """
+        Checks if all document types in the 'documents' field of a user
+        are non-empty arrays.
+
+        Args:
+            username: The username of the user to check.
+
+        Returns:
+            True if all document types are non-empty, False otherwise.
+            Returns None if the user is not found or has no 'documents' field.
+        """
+        pipeline = [
+            {
+                "$match": {
+                    "username": username
+                }
+            },
+            {
+                "$project": {
+                    "all_present": {
+                        "$cond": {
+                            "if": {"$not": ["$documents"]},  # Check if 'documents' field exists
+                            "then": False,  # If 'documents' is missing, return False
+                            "else": {
+                                "$and": [
+                                    {"$gt": [{"$size": {"$ifNull": ["$documents.CNIC", []]}}, 0]},
+                                    {"$gt": [{"$size": {"$ifNull": ["$documents.gaurdian_CNIC", []]}}, 0]},
+                                    {"$gt": [{"$size": {"$ifNull": ["$documents.electricity_bills", []]}}, 0]},
+                                    {"$gt": [{"$size": {"$ifNull": ["$documents.gas_bills", []]}}, 0]},
+                                    {"$gt": [{"$size": {"$ifNull": ["$documents.intermediate_result", []]}}, 0]},
+                                    {"$gt": [{"$size": {"$ifNull": ["$documents.salary_slips", []]}}, 0]},
+                                    {"$gt": [{"$size": {"$ifNull": ["$documents.bank_statements", []]}}, 0]},
+                                    {"$gt": [{"$size": {"$ifNull": ["$documents.reference_letter", []]}}, 0]},
+                                ]
+                            }
+                        }
+                    },
+                    "_id": 0  # Exclude the _id field from the output
+                }
+            }
+        ]
+
+        result = await user_collection.aggregate(pipeline).to_list(length=1)  # Limit to 1 result
+
+        if result:
+            return result[0]["all_present"]
+        else:
+            return False  # User not found or no documents field
+        
+
+async def get_dash(username): 
+    
+    return

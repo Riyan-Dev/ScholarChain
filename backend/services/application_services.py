@@ -3,7 +3,7 @@ import json
 from fastapi import HTTPException # type: ignore
 from datetime import datetime
 from bson import ObjectId
-from db import application_collection, plan_collection, risk_assessment_collection
+from db import application_collection, plan_collection, risk_assessment_collection, user_collection
 from utility import convert_date_fields
 
 from models.application import Application
@@ -85,7 +85,17 @@ class ApplicationService:
         return await LoanService.create_loan(username, plan.total_loan_amount, plan.calculate_number_of_installments(), deploy_result["contract_address"])
 
 
+    @staticmethod
+    async def update_stage(username: str, stage: str):
+        update_data = {
+            "updated_at": datetime.now(),
+            "application_stage": stage
+        }
 
+        await user_collection.update_one(
+            {"username": username},
+            {"$set": update_data}
+            )
 
 
     @staticmethod

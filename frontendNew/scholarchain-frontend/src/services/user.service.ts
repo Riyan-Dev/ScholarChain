@@ -34,3 +34,16 @@ export async function uploadDocuments(
 
   return response.json();
 }
+
+export const fetchDocumentStatus = async () => {
+  const res = await fetch(`${API_BASE_URL}/user/documents-status`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${AuthService.getToken()}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error(`HTTP error! Status: ${res.status}`);
+  }
+  return res.json();
+};

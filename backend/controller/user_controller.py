@@ -33,13 +33,18 @@ async def process_documents( background_tasks: BackgroundTasks, files: List[Uplo
     ids_list = ids.split(",")
     print(f"Received ids: {ids_list}")  # Debugging
     ids_list = ['CNIC', 'gaurdian_CNIC', 'intermediate_result', 'bank_statements', 'salary_slips', 'gas_bills', 'electricity_bills', 'reference_letter']
-    background_tasks.add_task(UserService.upload_documents, [], ids_list, token)
+    background_tasks.add_task(UserService.upload_documents, files, ids_list, token)
     return {"Message": f"Docuemnt Uploading in process"}
 
-@user_router.post("/documents-status")
+@user_router.get("/documents-status")
 async def get_documents_status(token: TokenData = Depends(get_current_user)):
-    status = await UserService.get_documents_status(token)
+    status = await UserService.check_all_document_types_present(token.username)
     return {"status": status}
+
+@user_router.get("/get-dash")
+async def get_dash(token: TokenData = Depends(get_current_user)):
+    dash = await UserService.get_dash(token.username)
+    return dash
 
 
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardHeader,
@@ -11,13 +11,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const AnimatedCard: React.FC = () => {
-  const [active, setActive] = useState<boolean>(true);
+interface AnimatedCardProps {
+  title: string;
+  active: boolean; // Just a boolean now
+  setActive: React.Dispatch<React.SetStateAction<boolean>>; // And a separate setter function
+}
 
-  const handleToggle = (): void => {
-    setActive(!active);
-  };
-
+const AnimatedCard: React.FC<AnimatedCardProps> = ({
+  title,
+  active,
+  setActive,
+}) => {
+  useEffect(() => {
+    console.log("hello");
+  }, [active]);
   return (
     <>
       <Card
@@ -29,15 +36,13 @@ const AnimatedCard: React.FC = () => {
         )}
       >
         <CardHeader className="bg-black/20 px-6 py-4">
-          <CardTitle>Active State</CardTitle>
+          <CardTitle>{title}</CardTitle>
         </CardHeader>
         <CardContent className="px-6 py-4 text-center">
-          <p>
-            This card is currently active with a pink-purple gradient animation.
-          </p>
+          <p>This card is reflecting document upload status.</p>
         </CardContent>
         <CardFooter className="flex justify-end bg-black/20 px-6 py-4">
-          <Button variant="outline" onClick={handleToggle}>
+          <Button variant="outline" onClick={() => setActive(!active)}>
             {active ? "Deactivate" : "Activate"}
           </Button>
         </CardFooter>

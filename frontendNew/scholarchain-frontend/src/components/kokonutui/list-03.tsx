@@ -11,8 +11,10 @@ import {
   TrendingUp,
   CreditCard,
 } from "lucide-react";
-import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import React, { useEffect, useState } from "react";
 import AnimatedCard from "../animated-card";
+import { fetchDocumentStatus } from "@/services/user.service";
 
 interface ListItem {
   id: string;
@@ -94,7 +96,25 @@ const ITEMS: ListItem[] = [
 
 export default function List03({ items = ITEMS, className }: List03Props) {
   const [isActive, setIsActive] = useState(true);
+  const [pollingEnabled, setPollingEnabled] = useState(true);
 
+  const { data, error, isLoading } = useQuery({
+    queryKey: ["documentStatus"], // Corrected: Query key is an array
+    queryFn: fetchDocumentStatus, // Make sure this function is defined
+    refetchInterval: pollingEnabled ? 5000 : false,
+    refetchOnWindowFocus: false,
+    enabled: pollingEnabled,
+    retry: true,
+  });
+
+  // Stop polling when all_present is true
+  useEffect(() => {
+    if (data && data.status === true) {
+      setPollingEnabled(false);
+      setIsActive(false); // Set card to inactive
+    }
+    console.log(data);
+  }, [data]);
   return (
     <div className={cn("scrollbar-none w-full overflow-x-auto", className)}>
       <div className="flex min-w-full gap-3 p-1">
@@ -203,23 +223,9 @@ export default function List03({ items = ITEMS, className }: List03Props) {
       <div className="flex min-h-screen items-center justify-center p-4">
         <AnimatedCard
           title={isActive ? "Active State" : "Inactive State"}
-          condition={isActive}
-          onToggle={() => setIsActive(!isActive)}
-        >
-          <p className="mb-4 text-center">
-            {isActive
-              ? "This card is currently active with a pink-purple gradient animation."
-              : "This card is currently inactive with a solid green background."}
-          </p>
-          <div className="flex items-center justify-center">
-            <div
-              className={`mr-2 h-3 w-3 rounded-full ${isActive ? "bg-white" : "bg-white"}`}
-            ></div>
-            <span className="font-medium">
-              Status: {isActive ? "Active" : "Inactive"}
-            </span>
-          </div>
-        </AnimatedCard>
+          active={isActive}
+          setActive={setIsActive}
+        />
       </div>
     </div>
   );

@@ -1,172 +1,76 @@
-"use client"
+/* eslint-disable prettier/prettier */
+"use client";
 
-import { useState } from "react"
-import { useParams } from "next/navigation"
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import {
-  ArrowLeft,
-  Calendar,
-  CheckCircle2,
-  ChevronDown,
-  Clock,
-  CreditCard,
-  DollarSign,
-  Download,
-  FileText,
-  HelpCircle,
-  Info,
-  Layers,
-  LineChart,
-  Loader2,
-  Shield,
-  ThumbsUp,
-  User,
-  XCircle,
-} from "lucide-react"
-import { format } from "date-fns"
+  ArrowLeft, Calendar, CheckCircle2, ChevronDown, Clock, CreditCard,
+  DollarSign, Download, FileText, HelpCircle, Info, Layers,
+  LineChart, Loader2, Shield, ThumbsUp, User, XCircle
+} from "lucide-react";
+import { format } from "date-fns";
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-// Mock data for the application
-const applicationData = {
-  id: "APP-2023-1234",
-  status: "Approved", // "Pending", "Approved", "Rejected"
-  totalRiskScore: 72,
-  riskAssessment: [
-    {
-      type: "credit_risk",
-      score: 65,
-      weight: 0.4,
-      factors: [
-        { name: "Credit History", value: "Limited", impact: "negative" },
-        { name: "Outstanding Debts", value: "Low", impact: "positive" },
-        { name: "Payment History", value: "Good", impact: "positive" },
-      ],
-    },
-    {
-      type: "income_stability",
-      score: 80,
-      weight: 0.3,
-      factors: [
-        { name: "Employment Duration", value: "2 years", impact: "neutral" },
-        { name: "Income Source", value: "Stable", impact: "positive" },
-        { name: "Income Level", value: "Adequate", impact: "positive" },
-      ],
-    },
-    {
-      type: "education_profile",
-      score: 85,
-      weight: 0.2,
-      factors: [
-        { name: "Academic Performance", value: "3.8 GPA", impact: "positive" },
-        { name: "Program Relevance", value: "High", impact: "positive" },
-        { name: "Institution Ranking", value: "Top 50", impact: "positive" },
-      ],
-    },
-    {
-      type: "repayment_capacity",
-      score: 60,
-      weight: 0.1,
-      factors: [
-        { name: "Debt-to-Income Ratio", value: "45%", impact: "negative" },
-        { name: "Disposable Income", value: "Limited", impact: "negative" },
-        { name: "Financial Dependents", value: "None", impact: "positive" },
-      ],
-    },
-  ],
-  repaymentPlan: {
-    loanAmount: 15000,
-    startDate: "2023-09-01",
-    endDate: "2025-09-01",
-    frequency: "Monthly",
-    installmentAmount: 750,
-    totalPayments: 24,
-    interestRate: 5.5,
-    reasoning:
-      "Based on the applicant's income stability and academic performance, a 24-month repayment plan with monthly installments of $750 is recommended. This represents approximately 25% of the reported monthly income, which is within acceptable limits for financial sustainability.",
-  },
-  applicationDate: "2023-07-15",
-  reviewDate: "2023-07-20",
-  reviewedBy: "Jane Smith",
-  personal_info: {
-    full_name: "John Doe",
-    dob: "1998-05-12",
-    gender: "male",
-    nationality: "United States",
-    marital_status: "single",
-    phone_number: "+1 (555) 123-4567",
-    email_address: "john.doe@example.com",
-    residential_address: "123 College Ave, Apt 4B, Boston, MA 02115",
-    permanent_address: "456 Main St, Springfield, IL 62701",
-  },
-  financial_info: {
-    total_family_income: "$85,000",
-    other_income_sources: "Part-time job: $12,000/year",
-    outstanding_loans_or_debts: "Student loan: $5,000, Credit card: $1,200",
-  },
-  academic_info: {
-    current_education_level: "bachelors",
-    college_or_university: "Boston University",
-    student_id: "BU20201234",
-    program_name_degree: "Computer Science",
-    duration_of_course: "4 years",
-    year_or_semester: "3rd year, 2nd semester",
-    gpa: "3.8/4.0",
-    achievements_or_awards: "Dean's List (2021, 2022), Hackathon Winner (2022)",
-  },
-  loan_details: {
-    loan_amount_requested: "$15,000",
-    purpose_of_loan: "Tuition fees and educational materials",
-    proposed_repayment_period: "24 months",
-    preferred_repayment_frequency: "monthly",
-  },
-  references: [
-    {
-      name: "Dr. Sarah Johnson",
-      designation: "Associate Professor, Computer Science",
-      contact_details: "sarah.johnson@bu.edu, (555) 987-6543",
-      comments: "John is an exceptional student with great potential.",
-    },
-    {
-      name: "Michael Brown",
-      designation: "Tech Internship Supervisor",
-      contact_details: "m.brown@techcorp.com, (555) 456-7890",
-      comments: "John demonstrated excellent problem-solving skills during his internship.",
-    },
-  ],
+// Import the service functions and types
+import { getApplicationDetailsById, ApplicationDetails, fetchApplicationDetails, RiskAssessment, RepaymentPlan, RiskCategory } from "@/services/application.service"; // Corrected import
+
+interface RiskData {  // Combined interface for risk and repayment data
+  risk_assessment: RiskAssessment | null;
+  plan: RepaymentPlan | null;
+  total_score: number | null;
 }
 
 export default function ApplicationReviewPage() {
-  const params = useParams()
-  const applicationId = params.id
-  const [isLoading, setIsLoading] = useState(false)
+  const params = useParams();
+  const applicationId = params.id as string;
+  const [isLoading, setIsLoading] = useState(true); // Initialize to true for initial load
+  const [applicationData, setApplicationData] = useState<ApplicationDetails | null>(null);
+  const [riskData, setRiskData] = useState<RiskData>({
+    risk_assessment: null,
+    plan: null,
+    total_score: null,
+  }); // New state
+  const [error, setError] = useState<string | null>(null);
 
-  // Status badge styling
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        if (applicationId) {
+          const [appDetails, fetchedRiskData] = await Promise.all([
+            getApplicationDetailsById(applicationId),
+            fetchApplicationDetails(applicationId),
+          ]);
+
+          setApplicationData(appDetails);
+          setRiskData({
+            risk_assessment: fetchedRiskData.risk_assessment,
+            plan: fetchedRiskData.plan,
+            total_score: fetchedRiskData.total_score
+          });
+        }
+      } catch (error: any) {
+        console.error("Error fetching data:", error);
+        setError(error.message || "Failed to load data.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [applicationId]);
+
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case "approved":
@@ -175,72 +79,77 @@ export default function ApplicationReviewPage() {
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Approved
           </Badge>
-        )
+        );
       case "rejected":
         return (
           <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
             <XCircle className="mr-1 h-3 w-3" />
             Rejected
           </Badge>
-        )
+        );
       case "pending":
+      case "verified":
       default:
         return (
           <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
             <Clock className="mr-1 h-3 w-3" />
             Pending
           </Badge>
-        )
+        );
     }
-  }
+  };
 
-  // Calculate weighted risk score
-  const calculateWeightedScore = (riskItem: any) => {
-    return riskItem.score * riskItem.weight
-  }
-
-  // Format date
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), "MMMM d, yyyy")
-  }
-
-  // Get risk color
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return format(date, "MMMM d, yyyy");
+  };
+  //Updated getRiskColor
   const getRiskColor = (score: number) => {
-    if (score >= 80) return "text-green-600"
-    if (score >= 60) return "text-yellow-600"
-    return "text-red-600"
+    //const scaledScore = score / 100; // No longer needed
+    if (score >= 70) return "text-green-600";
+    if (score >= 40) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const getRiskColorForWeighted = (score: number) => {
+    if (score >= 17.5) return "text-green-600";  // 70 * 0.25
+    if (score >= 10) return "text-yellow-600"; // 40 * 0.25  Use the same ratios.
+    return "text-red-600";
+  };
+
+  const handleApprove = () => { setIsLoading(true); setTimeout(() => { setIsLoading(false); }, 1500); };
+  const handleReject = () => { setIsLoading(true); setTimeout(() => { setIsLoading(false); }, 1500); };
+
+  if (isLoading || !applicationData || !riskData.risk_assessment) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-10 w-10 animate-spin" />
+        <span className="ml-2">Loading Application Data...</span>
+      </div>
+    );
   }
 
-  // Get impact badge
-  const getImpactBadge = (impact: string) => {
-    switch (impact) {
-      case "positive":
-        return <Badge className="bg-green-100 text-green-800">Positive</Badge>
-      case "negative":
-        return <Badge className="bg-red-100 text-red-800">Negative</Badge>
-      case "neutral":
-      default:
-        return <Badge className="bg-gray-100 text-gray-800">Neutral</Badge>
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-red-500">Error: {error}</p>
+      </div>
+    );
+  }
+
+  // Helper function to get risk assessment categories
+  const getRiskCategories = () => {
+    if (!riskData.risk_assessment) {
+      return [];
     }
-  }
-
-  const handleApprove = () => {
-    setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      // Show success message or redirect
-    }, 1500)
-  }
-
-  const handleReject = () => {
-    setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      // Show success message or redirect
-    }, 1500)
-  }
+    return Object.entries(riskData.risk_assessment)
+      .filter(([key]) => key !== "_id" && key !== "application_id" && key !== "created_at")
+      .map(([key, value]) => ({
+        type: key,
+        ...(value as { risk_score: number; calculations: string }),
+      }));
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -255,15 +164,11 @@ export default function ApplicationReviewPage() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Application Review</h1>
             <p className="text-muted-foreground">
-              ID: {applicationId} • Submitted on {formatDate(applicationData.applicationDate)}
+              ID: {applicationId} • Submitted on {formatDate(applicationData.application_date.$date)}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-1">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button>Actions</Button>
@@ -293,56 +198,79 @@ export default function ApplicationReviewPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="mb-8 grid gap-6 md:grid-cols-3">
-        {/* Status Card */}
-        <Card className="overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 pb-8 pt-6 text-white">
-            <CardTitle className="flex items-center justify-between">
-              <span>Application Status</span>
-              {getStatusBadge(applicationData.status)}
-            </CardTitle>
-            <CardDescription className="text-indigo-100">
-              Last updated on {formatDate(applicationData.reviewDate)}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="-mt-6 rounded-t-xl bg-white p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Avatar className="h-10 w-10 border-2 border-white">
-                  <AvatarImage
-                    src="/placeholder.svg?height=40&width=40"
-                    alt={applicationData.personal_info.full_name}
-                  />
-                  <AvatarFallback>
-                    {applicationData.personal_info.full_name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium">{applicationData.personal_info.full_name}</p>
-                  <p className="text-sm text-muted-foreground">{applicationData.personal_info.email_address}</p>
-                </div>
+        <Card>
+          {(() => {
+            let bgColorClass = "bg-yellow-100"; // Default for pending
+            let textColorClass = "text-yellow-800";
+            let borderColorClass = "border border-yellow-200"; // Border color
+
+            switch (applicationData.status.toLowerCase()) {
+              case "approved":
+                bgColorClass = "bg-green-100";
+                textColorClass = "text-green-800";
+                borderColorClass = "border border-green-200";
+                break;
+              case "rejected":
+                bgColorClass = "bg-red-100";
+                textColorClass = "text-red-800";
+                borderColorClass = "border border-red-200";
+                break;
+              case "pending":
+              case "verified":
+                break; // Defaults are already set
+              default:
+                bgColorClass = "bg-gray-100";
+                textColorClass = "text-gray-800";
+                borderColorClass = "border border-gray-200";
+            }
+
+            return (
+              <div className={`${bgColorClass} ${borderColorClass} rounded-lg`}> {/* Apply bg and border to a wrapping div */}
+                <CardHeader className={`px-6 py-4 ${textColorClass}`}>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Application Status</span>
+                    {getStatusBadge(applicationData.status)}
+                  </CardTitle>
+                  <CardDescription className={textColorClass}>
+                    Last updated on {formatDate(applicationData.updated_at.$date)}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className={`px-6 py-4`}> {/* Removed bgColorClass from here */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-10 w-10 border-2 border-white">
+                        <AvatarImage
+                          src="/placeholder.svg?height=40&width=40"
+                          alt={applicationData.personal_info.full_name}
+                        />
+                        <AvatarFallback>
+                          {applicationData.personal_info.full_name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className={`font-medium ${textColorClass}`}>
+                          {applicationData.personal_info.full_name}
+                        </p>
+                        <p className="text-muted-foreground text-sm">
+                          {applicationData.personal_info.email_address}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-sm font-medium ${textColorClass}`}>Reviewed by</p>
+                      <p className="text-muted-foreground text-sm">Admin</p>
+                    </div>
+                  </div>
+                </CardContent>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-medium">Reviewed by</p>
-                <p className="text-sm text-muted-foreground">{applicationData.reviewedBy}</p>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="bg-white px-6 pb-6 pt-0">
-            <Button
-              className="w-full"
-              variant={applicationData.status.toLowerCase() === "pending" ? "default" : "outline"}
-            >
-              {applicationData.status.toLowerCase() === "pending" ? "Review Now" : "View Details"}
-            </Button>
-          </CardFooter>
+            );
+          })()}
         </Card>
 
-        {/* Risk Score Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
@@ -350,7 +278,7 @@ export default function ApplicationReviewPage() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-4 w-4 text-muted-foreground" />
+                    <Info className="text-muted-foreground h-4 w-4" />
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Overall risk score based on weighted factors</p>
@@ -362,10 +290,12 @@ export default function ApplicationReviewPage() {
           </CardHeader>
           <CardContent>
             <div className="mb-4 flex items-center justify-center">
-              <div className="relative flex h-36 w-36 items-center justify-center rounded-full border-8 border-muted p-2">
+              <div className="border-muted relative flex h-36 w-36 items-center justify-center rounded-full border-8 p-2">
                 <div className="flex flex-col items-center">
-                  <span className="text-3xl font-bold">{applicationData.totalRiskScore}</span>
-                  <span className="text-sm text-muted-foreground">Risk Score</span>
+                  <span className={`text-3xl font-bold ${getRiskColor(riskData.total_score || 0)}`}>
+                    {riskData.total_score?.toFixed(1)}
+                  </span>
+                  <span className="text-muted-foreground text-sm">Risk Score</span>
                 </div>
                 <svg className="absolute -rotate-90" width="150" height="150" viewBox="0 0 120 120">
                   <circle cx="60" cy="60" r="54" fill="none" stroke="#e2e8f0" strokeWidth="12" />
@@ -374,61 +304,48 @@ export default function ApplicationReviewPage() {
                     cy="60"
                     r="54"
                     fill="none"
-                    stroke={
-                      applicationData.totalRiskScore >= 80
-                        ? "#10b981"
-                        : applicationData.totalRiskScore >= 60
-                          ? "#f59e0b"
-                          : "#ef4444"
-                    }
+                    stroke="currentColor" // Use currentColor for dynamic stroke
+                    className={getRiskColor(riskData.total_score || 0)} // Apply color class here
                     strokeWidth="12"
                     strokeDasharray="339.292"
-                    strokeDashoffset={339.292 * (1 - applicationData.totalRiskScore / 100)}
+                    strokeDashoffset={339.292 * (1 - (riskData.total_score || 0) / 100)}
                   />
                 </svg>
               </div>
             </div>
             <div className="space-y-2">
-              {applicationData.riskAssessment.map((risk) => (
+              {getRiskCategories().map((risk) => (
                 <div key={risk.type} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div
                       className="h-2 w-2 rounded-full"
                       style={{
-                        backgroundColor: risk.score >= 80 ? "#10b981" : risk.score >= 60 ? "#f59e0b" : "#ef4444",
+                        backgroundColor: `var(--risk-color-${risk.type})`, // Use CSS variable for dynamic color
                       }}
                     />
-                    <span className="text-sm capitalize">{risk.type.replace("_", " ")}</span>
+                    <span className="text-sm capitalize">{risk.type.replace(/_/g, " ")}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-sm font-medium ${getRiskColor(risk.score)}`}>{risk.score}</span>
-                    <span className="text-xs text-muted-foreground">({(risk.weight * 100).toFixed(0)}%)</span>
+                    <span className={`text-sm font-medium ${getRiskColorForWeighted(risk.risk_score)}`}>{risk.risk_score}</span>
                   </div>
                 </div>
               ))}
             </div>
           </CardContent>
-          <CardFooter>
-            <Button variant="outline" className="w-full" size="sm">
-              <LineChart className="mr-2 h-4 w-4" />
-              View Detailed Analysis
-            </Button>
-          </CardFooter>
         </Card>
 
-        {/* Repayment Plan Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Repayment Plan</span>
               <HoverCard>
                 <HoverCardTrigger asChild>
-                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  <HelpCircle className="text-muted-foreground h-4 w-4" />
                 </HoverCardTrigger>
                 <HoverCardContent className="w-80">
                   <div className="space-y-2">
                     <h4 className="text-sm font-semibold">Repayment Reasoning</h4>
-                    <p className="text-sm">{applicationData.repaymentPlan.reasoning}</p>
+                    <p className="text-sm">{riskData.plan?.reasoning}</p>
                   </div>
                 </HoverCardContent>
               </HoverCard>
@@ -438,47 +355,48 @@ export default function ApplicationReviewPage() {
           <CardContent>
             <div className="mb-6 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Loan Amount</span>
-                <span className="font-medium">${applicationData.repaymentPlan.loanAmount.toLocaleString()}</span>
+                <span className="text-muted-foreground text-sm">Loan Amount</span>
+                <span className="font-medium">
+                  PKR {riskData.plan?.total_loan_amount.toLocaleString()}
+                </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Installment</span>
-                <span className="font-medium">${applicationData.repaymentPlan.installmentAmount}/month</span>
+                <span className="text-muted-foreground text-sm">Installment</span>
+                <span className="font-medium">PKR {riskData.plan?.installment_amount.toLocaleString()}/month</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Duration</span>
-                <span className="font-medium">{applicationData.repaymentPlan.totalPayments} months</span>
+                <span className="text-muted-foreground text-sm">
+                  Start Date
+                </span>
+                <span className="font-medium">
+                  {riskData.plan?.Start_date}
+                </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Interest Rate</span>
-                <span className="font-medium">{applicationData.repaymentPlan.interestRate}%</span>
+                <span className="text-muted-foreground text-sm">
+                  End Date
+                </span>
+                <span className="font-medium">
+                  {riskData.plan?.end_date}
+                </span>
               </div>
+
               <Separator />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Period</span>
-                <span className="font-medium">
-                  {formatDate(applicationData.repaymentPlan.startDate)} -{" "}
-                  {formatDate(applicationData.repaymentPlan.endDate)}
-                </span>
+                <span className="text-muted-foreground text-sm">Frequency</span>
+                <span className="font-medium">{riskData.plan?.repayment_frequency}</span>
               </div>
             </div>
             <div className="mt-2 flex items-center gap-2">
-              <div className="h-2 flex-1 rounded-full bg-muted">
-                <div className="h-2 rounded-full bg-primary" style={{ width: "0%" }} />
+              <div className="bg-muted h-2 flex-1 rounded-full">
+                <div className="bg-primary h-2 rounded-full" style={{ width: "0%" }} />
               </div>
-              <span className="text-xs text-muted-foreground">0% Complete</span>
+              <span className="text-muted-foreground text-xs">0% Complete</span>
             </div>
           </CardContent>
-          <CardFooter>
-            <Button variant="outline" className="w-full" size="sm">
-              <Calendar className="mr-2 h-4 w-4" />
-              View Payment Schedule
-            </Button>
-          </CardFooter>
         </Card>
       </div>
 
-      {/* Detailed Information Tabs */}
       <Tabs defaultValue="risk-assessment" className="mb-8">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="risk-assessment">
@@ -495,12 +413,13 @@ export default function ApplicationReviewPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Risk Assessment Tab */}
         <TabsContent value="risk-assessment" className="mt-6">
           <Card>
             <CardHeader>
               <CardTitle>Detailed Risk Assessment</CardTitle>
-              <CardDescription>Breakdown of risk factors and their impact on the application decision</CardDescription>
+              <CardDescription>
+                Breakdown of risk factors and their impact on the application decision
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -515,51 +434,68 @@ export default function ApplicationReviewPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {applicationData.riskAssessment.map((risk) => (
-                    <TableRow key={risk.type}>
-                      <TableCell className="font-medium capitalize">{risk.type.replace("_", " ")}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Progress value={risk.score} className="h-2 w-20" />
-                          <span className={getRiskColor(risk.score)}>{risk.score}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{(risk.weight * 100).toFixed(0)}%</TableCell>
-                      <TableCell className={getRiskColor(risk.score)}>
-                        {calculateWeightedScore(risk).toFixed(1)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              View Factors
-                              <ChevronDown className="ml-2 h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-[300px]">
-                            <DropdownMenuLabel>Contributing Factors</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            {risk.factors.map((factor, index) => (
-                              <DropdownMenuItem key={index} className="flex justify-between">
-                                <span>
-                                  {factor.name}: {factor.value}
-                                </span>
-                                {getImpactBadge(factor.impact)}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {getRiskCategories().map((risk) => {
+                    // Hardcoded weights:
+                    const weights: Record<string, number> = {
+                      personal_risk: 0.15,
+                      academic_risk: 0.25,
+                      financial_risk: 0.35,
+                      reference_risk: 0.10,
+                      repayment_potential: 0.15,
+                    };
+                    const weight = weights[risk.type] || 0; // Get weight, default to 0
+
+                    // Calculate raw score:
+                    const rawScore = weight !== 0 ? (risk.risk_score / weight) : 0;
+
+                    return (
+                      <TableRow key={risk.type}>
+                        <TableCell className="font-medium capitalize">
+                          {risk.type.replace(/_/g, " ")}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Progress value={Math.round(rawScore)} className="h-2 w-20" />
+                            <span className={getRiskColor(rawScore)}>
+                              {Math.round(rawScore)} {/* Display rounded raw score */}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{(weight * 100).toFixed(0)}%</TableCell>
+                        <TableCell>
+                          {/* Display the weighted score from the API (no color change) */}
+                          {risk.risk_score.toFixed(1)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                View Factors
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-[300px]">
+                              <DropdownMenuLabel>Contributing Factors</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              {risk.calculations.split(';').map((factor, index) => (
+                                <DropdownMenuItem key={index} className="flex justify-between">
+                                  <span>{factor.trim()}</span>
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
                 <TableFooter>
                   <TableRow>
                     <TableCell colSpan={3} className="text-right font-medium">
                       Total Risk Score
                     </TableCell>
-                    <TableCell colSpan={2} className={`font-bold ${getRiskColor(applicationData.totalRiskScore)}`}>
-                      {applicationData.totalRiskScore}
+                    <TableCell colSpan={1} className={`font-bold ${getRiskColor(riskData.total_score || 0)}`}>
+                      {riskData.total_score?.toFixed(1)}
                     </TableCell>
                   </TableRow>
                 </TableFooter>
@@ -568,12 +504,13 @@ export default function ApplicationReviewPage() {
           </Card>
         </TabsContent>
 
-        {/* Repayment Plan Tab */}
         <TabsContent value="repayment-plan" className="mt-6">
           <Card>
             <CardHeader>
               <CardTitle>Repayment Plan Details</CardTitle>
-              <CardDescription>Comprehensive breakdown of the proposed repayment schedule</CardDescription>
+              <CardDescription>
+                Comprehensive breakdown of the proposed repayment schedule
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-6 md:grid-cols-2">
@@ -582,138 +519,70 @@ export default function ApplicationReviewPage() {
                   <div className="space-y-4 rounded-lg border p-4">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Principal Amount</span>
-                      <span className="font-medium">${applicationData.repaymentPlan.loanAmount.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Interest Rate</span>
-                      <span className="font-medium">{applicationData.repaymentPlan.interestRate}% APR</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total Payments</span>
-                      <span className="font-medium">{applicationData.repaymentPlan.totalPayments}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Payment Frequency</span>
-                      <span className="font-medium">{applicationData.repaymentPlan.frequency}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total Interest</span>
                       <span className="font-medium">
-                        $
-                        {(
-                          applicationData.repaymentPlan.installmentAmount *
-                            applicationData.repaymentPlan.totalPayments -
-                          applicationData.repaymentPlan.loanAmount
-                        ).toLocaleString()}
+                        PKR {riskData.plan?.total_loan_amount.toLocaleString()}
                       </span>
                     </div>
+                    {/* Removed Interest Rate, Total Payments */}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Payment Frequency</span>
+                      <span className="font-medium">{riskData.plan?.repayment_frequency}</span>
+                    </div>
+                    <Separator />
+                    {/* Removed Total Interest */}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Total Repayment</span>
                       <span className="font-medium">
-                        $
-                        {(
-                          applicationData.repaymentPlan.installmentAmount * applicationData.repaymentPlan.totalPayments
-                        ).toLocaleString()}
+                        PKR {riskData.plan?.total_loan_amount.toLocaleString()}
                       </span>
                     </div>
                   </div>
                 </div>
-
                 <div>
                   <h3 className="mb-4 text-lg font-medium">Payment Schedule</h3>
                   <div className="rounded-lg border">
                     <div className="flex items-center justify-between border-b p-4">
                       <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <Calendar className="text-muted-foreground h-4 w-4" />
                         <span className="font-medium">Timeline</span>
                       </div>
-                      <Badge variant="outline" className="gap-1">
-                        <Clock className="h-3 w-3" />
-                        {applicationData.repaymentPlan.totalPayments} months
-                      </Badge>
+                      {/* Removed Badge with Clock */}
                     </div>
                     <div className="p-4">
                       <div className="mb-4 flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-muted-foreground">Start Date</p>
-                          <p className="font-medium">{formatDate(applicationData.repaymentPlan.startDate)}</p>
+                          <p className="text-muted-foreground text-sm">Start Date</p>
+                          <p className="font-medium">{riskData.plan?.Start_date}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm text-muted-foreground">End Date</p>
-                          <p className="font-medium">{formatDate(applicationData.repaymentPlan.endDate)}</p>
+                          <p className="text-muted-foreground text-sm">End Date</p>
+                          <p className="font-medium">{riskData.plan?.end_date}</p>
                         </div>
                       </div>
-
-                      <div className="relative mb-6 mt-8">
-                        <div className="absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 bg-muted" />
-                        <div className="relative flex justify-between">
-                          <div className="flex flex-col items-center">
-                            <div className="z-10 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                              <span className="text-xs">1</span>
-                            </div>
-                            <span className="mt-1 text-xs">
-                              {format(new Date(applicationData.repaymentPlan.startDate), "MMM yyyy")}
-                            </span>
-                          </div>
-
-                          <div className="flex flex-col items-center">
-                            <div className="z-10 flex h-6 w-6 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                              <span className="text-xs">
-                                {Math.floor(applicationData.repaymentPlan.totalPayments / 2)}
-                              </span>
-                            </div>
-                            <span className="mt-1 text-xs">
-                              {format(
-                                new Date(
-                                  new Date(applicationData.repaymentPlan.startDate).setMonth(
-                                    new Date(applicationData.repaymentPlan.startDate).getMonth() +
-                                      Math.floor(applicationData.repaymentPlan.totalPayments / 2),
-                                  ),
-                                ),
-                                "MMM yyyy",
-                              )}
-                            </span>
-                          </div>
-
-                          <div className="flex flex-col items-center">
-                            <div className="z-10 flex h-6 w-6 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                              <span className="text-xs">{applicationData.repaymentPlan.totalPayments}</span>
-                            </div>
-                            <span className="mt-1 text-xs">
-                              {format(new Date(applicationData.repaymentPlan.endDate), "MMM yyyy")}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
+                      {/* Removed Timeline Graphic */}
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Monthly Payment</span>
-                          <span className="font-medium">${applicationData.repaymentPlan.installmentAmount}</span>
+                          <span className="text-muted-foreground text-sm">Monthly Payment</span>
+                          <span className="font-medium">PKR {riskData.plan?.installment_amount.toLocaleString()}</span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">First Payment Due</span>
-                          <span className="font-medium">
-                            {format(new Date(applicationData.repaymentPlan.startDate), "MMMM d, yyyy")}
-                          </span>
-                        </div>
+                        {/* Removed First Payment Due */}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-
               <div className="mt-6">
                 <h3 className="mb-4 text-lg font-medium">Repayment Reasoning</h3>
                 <Card className="bg-muted/50">
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-4">
-                      <div className="rounded-full bg-primary/10 p-2">
-                        <Info className="h-5 w-5 text-primary" />
+                      <div className="bg-primary/10 rounded-full p-2">
+                        <Info className="text-primary h-5 w-5" />
                       </div>
                       <div>
-                        <p className="text-sm leading-relaxed">{applicationData.repaymentPlan.reasoning}</p>
+                        <p className="text-sm leading-relaxed">
+                          {riskData.plan?.reasoning}
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -723,7 +592,6 @@ export default function ApplicationReviewPage() {
           </Card>
         </TabsContent>
 
-        {/* Application Details Tab */}
         <TabsContent value="application-details" className="mt-6">
           <Card>
             <CardHeader>
@@ -732,7 +600,7 @@ export default function ApplicationReviewPage() {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="personal">
-                <TabsList className="mb-4 grid w-full grid-cols-4">
+                <TabsList className="mb-4 grid w-full grid-cols-5">
                   <TabsTrigger value="personal">
                     <User className="mr-2 h-4 w-4" />
                     Personal
@@ -749,45 +617,49 @@ export default function ApplicationReviewPage() {
                     <CreditCard className="mr-2 h-4 w-4" />
                     Loan
                   </TabsTrigger>
+                  <TabsTrigger value="references">
+                    <User className="mr-2 h-4 w-4" />
+                    References
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="personal" className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Full Name</p>
+                      <p className="text-muted-foreground text-sm font-medium">Full Name</p>
                       <p>{applicationData.personal_info.full_name}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Date of Birth</p>
-                      <p>{formatDate(applicationData.personal_info.dob)}</p>
+                      <p className="text-muted-foreground text-sm font-medium">Date of Birth</p>
+                      <p>{formatDate(applicationData.personal_info.dob.$date)}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Gender</p>
+                      <p className="text-muted-foreground text-sm font-medium">Gender</p>
                       <p className="capitalize">{applicationData.personal_info.gender}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Nationality</p>
+                      <p className="text-muted-foreground text-sm font-medium">Nationality</p>
                       <p>{applicationData.personal_info.nationality}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Marital Status</p>
+                      <p className="text-muted-foreground text-sm font-medium">Marital Status</p>
                       <p className="capitalize">{applicationData.personal_info.marital_status}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Phone Number</p>
+                      <p className="text-muted-foreground text-sm font-medium">Phone Number</p>
                       <p>{applicationData.personal_info.phone_number}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Email Address</p>
+                      <p className="text-muted-foreground text-sm font-medium">Email Address</p>
                       <p>{applicationData.personal_info.email_address}</p>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Residential Address</p>
+                    <p className="text-muted-foreground text-sm font-medium">Residential Address</p>
                     <p>{applicationData.personal_info.residential_address}</p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Permanent Address</p>
+                    <p className="text-muted-foreground text-sm font-medium">Permanent Address</p>
                     <p>{applicationData.personal_info.permanent_address}</p>
                   </div>
                 </TabsContent>
@@ -795,55 +667,59 @@ export default function ApplicationReviewPage() {
                 <TabsContent value="financial" className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Total Family Income</p>
-                      <p>{applicationData.financial_info.total_family_income}</p>
+                      <p className="text-muted-foreground text-sm font-medium">Total Family Income</p>
+                      <p>PKR {applicationData.financial_info.total_family_income.toLocaleString()}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Other Income Sources</p>
-                      <p>{applicationData.financial_info.other_income_sources}</p>
+                      <p className="text-muted-foreground text-sm font-medium">
+                        Other Income Sources
+                      </p>
+                      <p>{applicationData.financial_info.other_income_sources.join(', ')}</p>
+
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">Outstanding Loans or Debts</p>
-                    <p>{applicationData.financial_info.outstanding_loans_or_debts}</p>
+                    <p className="text-muted-foreground text-sm font-medium">Outstanding Loans or Debts</p>
+                    <p>{applicationData.financial_info.outstanding_loans_or_debts.join(', ')}</p>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="academic" className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Current Education Level</p>
-                      <p className="capitalize">
-                        {applicationData.academic_info.current_education_level.replace("_", " ")}
-                      </p>
+                      <p className="text-muted-foreground text-sm font-medium">Current Education Level</p>
+                      <p className="capitalize">{applicationData.academic_info.current_education_level}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">College or University</p>
+                      <p className="text-muted-foreground text-sm font-medium">College or University</p>
                       <p>{applicationData.academic_info.college_or_university}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Student ID</p>
+                      <p className="text-muted-foreground text-sm font-medium">Student ID</p>
                       <p>{applicationData.academic_info.student_id}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Program Name/Degree</p>
+                      <p className="text-muted-foreground text-sm font-medium">Program Name/Degree</p>
                       <p>{applicationData.academic_info.program_name_degree}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Duration of Course</p>
+                      <p className="text-muted-foreground text-sm font-medium">Duration of Course</p>
                       <p>{applicationData.academic_info.duration_of_course}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Year/Semester</p>
+                      <p className="text-muted-foreground text-sm font-medium">Year/Semester</p>
                       <p>{applicationData.academic_info.year_or_semester}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">GPA</p>
+                      <p className="text-muted-foreground text-sm font-medium">GPA</p>
                       <p>{applicationData.academic_info.gpa}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Achievements or Awards</p>
-                      <p>{applicationData.academic_info.achievements_or_awards}</p>
+                      <p className="text-muted-foreground text-sm font-medium">
+                        Achievements or Awards
+                      </p>
+                      <p>{applicationData.academic_info.achievements_or_awards.join(', ')}</p>
+
                     </div>
                   </div>
                 </TabsContent>
@@ -851,64 +727,78 @@ export default function ApplicationReviewPage() {
                 <TabsContent value="loan" className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Loan Amount Requested</p>
-                      <p>{applicationData.loan_details.loan_amount_requested}</p>
+                      <p className="text-muted-foreground text-sm font-medium">Loan Amount Requested</p>
+                      <p>PKR {applicationData.loan_details.loan_amount_requested.toLocaleString()}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Purpose of Loan</p>
+                      <p className="text-muted-foreground text-sm font-medium">Purpose of Loan</p>
                       <p>{applicationData.loan_details.purpose_of_loan}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Proposed Repayment Period</p>
+                      <p className="text-muted-foreground text-sm font-medium">Proposed Repayment Period</p>
                       <p>{applicationData.loan_details.proposed_repayment_period}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Preferred Repayment Frequency</p>
-                      <p className="capitalize">{applicationData.loan_details.preferred_repayment_frequency}</p>
+                      <p className="text-muted-foreground text-sm font-medium">
+                        Preferred Repayment Frequency
+                      </p>
+                      <p className="capitalize">
+                        {
+                          applicationData.loan_details
+                            .preferred_repayment_frequency
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* References Tab Content */}
+                <TabsContent value="references" className="space-y-4">
+                  <div className="mt-8">
+                    <h3 className="mb-4 text-lg font-medium">References</h3>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {applicationData.references.map((reference, index) => (
+                        <Card key={index}>
+                          <CardContent className="pt-6">
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <p className="text-muted-foreground text-sm font-medium">
+                                  Name
+                                </p>
+                                <p>{reference.name}</p>
+                              </div>
+                              <div className="space-y-2">
+                                <p className="text-muted-foreground text-sm font-medium">
+                                  Designation
+                                </p>
+                                <p>{reference.designation}</p>
+                              </div>
+                              <div className="space-y-2">
+                                <p className="text-muted-foreground text-sm font-medium">
+                                  Contact Details
+                                </p>
+                                <p>{reference.contact_details}</p>
+                              </div>
+                              <div className="space-y-2">
+                                <p className="text-muted-foreground text-sm font-medium">
+                                  Comments
+                                </p>
+                                <p>{reference.comments}</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
                   </div>
                 </TabsContent>
               </Tabs>
-
-              <div className="mt-8">
-                <h3 className="mb-4 text-lg font-medium">References</h3>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {applicationData.references.map((reference, index) => (
-                    <Card key={index}>
-                      <CardContent className="pt-6">
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium text-muted-foreground">Name</p>
-                            <p>{reference.name}</p>
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium text-muted-foreground">Designation</p>
-                            <p>{reference.designation}</p>
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium text-muted-foreground">Contact Details</p>
-                            <p>{reference.contact_details}</p>
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-sm font-medium text-muted-foreground">Comments</p>
-                            <p>{reference.comments}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Action Buttons */}
       <div className="flex items-center justify-end gap-4">
-        <Button variant="outline" disabled={isLoading}>
-          Request Additional Information
-        </Button>
         <Button variant="destructive" onClick={handleReject} disabled={isLoading}>
           {isLoading ? (
             <>
@@ -937,6 +827,5 @@ export default function ApplicationReviewPage() {
         </Button>
       </div>
     </div>
-  )
+  );
 }
-

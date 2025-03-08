@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowUpDown,
@@ -44,66 +44,106 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-// Mock data for applications list
-const applications = [
-  {
-    id: "APP-2023-1234",
-    applicant: "John Doe",
-    email: "john.doe@example.com",
-    amount: 15000,
-    purpose: "Tuition fees",
-    status: "Approved",
-    riskScore: 72,
-    submittedDate: "2023-07-15",
-  },
-  {
-    id: "APP-2023-1235",
-    applicant: "Jane Smith",
-    email: "jane.smith@example.com",
-    amount: 8000,
-    purpose: "Educational materials",
-    status: "Pending",
-    riskScore: 65,
-    submittedDate: "2023-07-18",
-  },
-  {
-    id: "APP-2023-1236",
-    applicant: "Michael Johnson",
-    email: "michael.j@example.com",
-    amount: 12000,
-    purpose: "Tuition and accommodation",
-    status: "Rejected",
-    riskScore: 45,
-    submittedDate: "2023-07-10",
-  },
-  {
-    id: "APP-2023-1237",
-    applicant: "Emily Williams",
-    email: "emily.w@example.com",
-    amount: 10000,
-    purpose: "Semester fees",
-    status: "Approved",
-    riskScore: 82,
-    submittedDate: "2023-07-05",
-  },
-  {
-    id: "APP-2023-1238",
-    applicant: "David Brown",
-    email: "david.b@example.com",
-    amount: 7500,
-    purpose: "Course materials",
-    status: "Pending",
-    riskScore: 68,
-    submittedDate: "2023-07-20",
-  },
-];
+import { Skeleton } from "@/components/ui/skeleton";
+import { getAllApplications, Application } from "@/services/application.service";
 
 export default function ApplicationsListPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Application | null;
+    direction: "ascending" | "descending";
+  }>({ key: null, direction: "ascending" });
+  const [currentTab, setCurrentTab] = useState("all"); // Track current tab
+  const applicationsPerPage = 5;
 
-  // Status badge styling
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await getAllApplications();
+        console.log("Fetched data:", data); // Keep for debugging
+
+        const applicationsWithRiskScore = data.filter(
+          (app) =>
+            app.riskScore !== undefined &&
+            app.riskScore !== null &&
+            app.riskScore !== "N/A"
+        );
+        setApplications(applicationsWithRiskScore);
+      } catch (err: any) {
+        setError(
+          err.message || "An error occurred while fetching applications."
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // --- Filtering, Sorting, and Pagination Logic ---
+
+  // 1. Filtering (by search query)
+  const filteredApplications = applications.filter((app) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      app.applicant.toLowerCase().includes(searchLower) ||
+      app.id.toLowerCase().includes(searchLower) ||
+      app.email.toLowerCase().includes(searchLower)
+    );
+  });
+
+  // 2. Filtering (by tab - "pending", "approved", "rejected")
+  const tabFilteredApplications =
+    currentTab === "all"
+      ? filteredApplications
+      : filteredApplications.filter(
+        (app) => app.status.toLowerCase() === currentTab
+      );
+
+  // 3. Sorting
+  const sortedApplications = [...tabFilteredApplications]; // Sort *after* tab filtering
+  if (sortConfig.key) {
+    sortedApplications.sort((a, b) => {
+      const aValue = sortConfig.key ? a[sortConfig.key] : undefined;
+      const bValue = sortConfig.key ? b[sortConfig.key] : undefined;
+
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortConfig.direction === "ascending"
+          ? aValue - bValue
+          : bValue - aValue;
+      } else if (typeof aValue === "string" && typeof bValue === "string") {
+        return sortConfig.direction === "ascending"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      } else {
+        if (aValue === null || aValue === undefined) return 1;
+        if (bValue === null || bValue === undefined) return -1;
+        return 0;
+      }
+    });
+  }
+
+  // 4. Pagination
+  const startIndex = (currentPage - 1) * applicationsPerPage;
+  const endIndex = startIndex + applicationsPerPage;
+  const paginatedApplications = sortedApplications.slice(startIndex, endIndex);
+
+  // --- Helper Functions ---
+
+  const requestSort = (key: keyof Application) => {
+    let direction: "ascending" | "descending" = "ascending";
+    if (sortConfig.key === key && sortConfig.direction === "ascending") {
+      direction = "descending";
+    }
+    setSortConfig({ key, direction });
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case "approved":
@@ -131,30 +171,48 @@ export default function ApplicationsListPage() {
     }
   };
 
-  // Format date
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (e) {
+      return "Invalid Date";
+    }
   };
 
-  // Get risk color
-  const getRiskColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-yellow-600";
+  const getRiskColor = (score: number | null | "N/A" | undefined) => {
+    if (typeof score === "number") {
+      if (score >= 80) return "text-green-600";
+      if (score >= 60) return "text-yellow-600";
+    }
     return "text-red-600";
   };
 
-  // Filter applications based on search query
-  const filteredApplications = applications.filter(
-    (app) =>
-      app.applicant.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // --- Event Handlers ---
 
+  const handleNextPage = () => {
+    setCurrentPage((prevPage) =>
+      Math.min(
+        prevPage + 1,
+        Math.ceil(sortedApplications.length / applicationsPerPage)
+      )
+    );
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
+  };
+
+  const handleTabChange = (tabValue: string) => {
+    setCurrentTab(tabValue); // Update currentTab
+    setCurrentPage(1);
+    setSortConfig({ key: null, direction: "ascending" });
+  };
+
+  // --- Render ---
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -166,19 +224,14 @@ export default function ApplicationsListPage() {
             Manage and review student loan applications
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-1">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Application
-          </Button>
-        </div>
       </div>
 
-      <Tabs defaultValue="all" className="mb-6">
+      <Tabs
+        defaultValue="all"
+        className="mb-6"
+        onValueChange={handleTabChange}
+        value={currentTab}
+      >
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <TabsList>
             <TabsTrigger value="all">All Applications</TabsTrigger>
@@ -195,7 +248,10 @@ export default function ApplicationsListPage() {
                 placeholder="Search applications..."
                 className="pl-8"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
             </div>
             <DropdownMenu>
@@ -208,136 +264,255 @@ export default function ApplicationsListPage() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Filter by</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuCheckboxItem checked>
+                <DropdownMenuCheckboxItem
+                  checked={
+                    sortConfig.key === "submittedDate" &&
+                    sortConfig.direction === "descending"
+                  }
+                  onCheckedChange={() => requestSort("submittedDate")}
+                >
                   Date (Newest first)
                 </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={
+                    sortConfig.key === "submittedDate" &&
+                    sortConfig.direction === "ascending"
+                  }
+                  onCheckedChange={() => requestSort("submittedDate")}
+                >
                   Date (Oldest first)
                 </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={
+                    sortConfig.key === "amount" &&
+                    sortConfig.direction === "descending"
+                  }
+                  onCheckedChange={() => requestSort("amount")}
+                >
                   Amount (High to low)
                 </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={
+                    sortConfig.key === "amount" &&
+                    sortConfig.direction === "ascending"
+                  }
+                  onCheckedChange={() => requestSort("amount")}
+                >
                   Amount (Low to high)
                 </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={
+                    sortConfig.key === "riskScore" &&
+                    sortConfig.direction === "descending"
+                  }
+                  onCheckedChange={() => requestSort("riskScore")}
+                >
                   Risk Score (High to low)
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={
+                    sortConfig.key === "riskScore" &&
+                    sortConfig.direction === "ascending"
+                  }
+                  onCheckedChange={() => requestSort("riskScore")}
+                >
+                  Risk Score (Low to high)
                 </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
 
+        {/* --- All Applications Tab --- */}
         <TabsContent value="all" className="mt-6">
           <Card>
             <CardHeader className="px-6 py-4">
               <div className="flex items-center justify-between">
                 <CardTitle>All Applications</CardTitle>
                 <CardDescription>
-                  {filteredApplications.length} applications found
+                  {isLoading ? (
+                    "Loading applications..."
+                  ) : error ? (
+                    `Error: ${error}`
+                  ) : (
+                    `${tabFilteredApplications.length} applications found`
+                  )}
                 </CardDescription>
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="px-2">Applicant</TableHead> {/* Added px-2 to Applicant */}
-                    <TableHead className="px-2"> {/* Added px-2 here */}
-                      <div className="flex items-center gap-1">
-                        Amount
-                        <ArrowUpDown className="h-3 w-3" />
-                      </div>
-                    </TableHead>
-                    <TableHead className="px-2"> {/* Added px-2 here */}
-                      <div className="flex items-center gap-1">
-                        Status
-                        <ArrowUpDown className="h-3 w-3" />
-                      </div>
-                    </TableHead>
-                    <TableHead className="px-2"> {/* Added px-2 here */}
-                      <div className="flex items-center gap-1">
-                        Risk Score
-                        <ArrowUpDown className="h-3 w-3" />
-                      </div>
-                    </TableHead>
-                    <TableHead className="px-2"> {/* Added px-2 here */}
-                      <div className="flex items-center gap-1">
-                        Submitted
-                        <ArrowUpDown className="h-3 w-3" />
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-right px-2">Actions</TableHead> {/* Added px-2 here */}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredApplications.length === 0 ? (
+              {isLoading ? (
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
-                        No applications found.
-                      </TableCell>
+                      <TableHead>Applicant</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Risk Score</TableHead>
+                      <TableHead>Submitted</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ) : (
-                    filteredApplications.map((application) => (
-                      <TableRow key={application.id}>
-                        <TableCell className="pl-4"> {/* Added pl-4 to Applicant cell's content */}
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage
-                                src="/placeholder.svg?height=32&width=32"
-                                alt={application.applicant}
-                              />
-                              <AvatarFallback>
-                                {application.applicant
-                                  .split(" ")
-                                  .map((n) => n[0])
-                                  .join("")}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium">
-                                {application.applicant}
-                              </p>
-                              <p className="text-muted-foreground text-xs">
-                                {application.email}
-                              </p>
-                            </div>
-                          </div>
+                  </TableHeader>
+                  <TableBody>
+                    {[...Array(5)].map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <Skeleton className="h-8 w-40" />
                         </TableCell>
-                        <TableCell className="px-2">${application.amount.toLocaleString()}</TableCell> {/* Added px-2 */}
-                        <TableCell className="px-2">{getStatusBadge(application.status)}</TableCell> {/* Added px-2 */}
-                        <TableCell className="px-2"> {/* Added px-2 */}
-                          <span className={getRiskColor(application.riskScore)}>
-                            {application.riskScore}
-                          </span>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
                         </TableCell>
-                        <TableCell className="px-2">{formatDate(application.submittedDate)}</TableCell> {/* Added px-2 */}
-                        <TableCell className="text-right px-2"> {/* Added px-2 */}
-                          <Button variant="ghost" size="icon" asChild>
-                            <Link
-                              href={`/admin/applications/${application.id}`}
-                            >
-                              <FileText className="h-4 w-4" />
-                              <span className="sr-only">View</span>
-                            </Link>
-                          </Button>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Skeleton className="h-8 w-10" />
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : error ? (
+                <div className="p-4 text-red-500">Error: {error}</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead
+                        className="px-2 cursor-pointer"
+                        onClick={() => requestSort("applicant")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Applicant
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="px-2 cursor-pointer"
+                        onClick={() => requestSort("amount")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Amount
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="px-2 cursor-pointer"
+                        onClick={() => requestSort("status")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Status
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="px-2 cursor-pointer"
+                        onClick={() => requestSort("riskScore")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Risk Score
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="px-2 cursor-pointer"
+                        onClick={() => requestSort("submittedDate")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Submitted
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-right px-2">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedApplications.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center">
+                          No applications found.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      paginatedApplications.map((application) => (
+                        <TableRow key={application.id}>
+                          <TableCell className="pl-4">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback>
+                                  {application.applicant
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">
+                                  {application.applicant}
+                                </p>
+                                <p className="text-muted-foreground text-xs">
+                                  {application.email}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-2">
+                            ${application.amount.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="px-2">
+                            {getStatusBadge(application.status)}
+                          </TableCell>
+                          <TableCell className="px-2">
+                            <span className={getRiskColor(application.riskScore)}>
+                              {application.riskScore}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-2">
+                            {formatDate(application.submittedDate)}
+                          </TableCell>
+                          <TableCell className="text-right px-2">
+                            <Button variant="ghost" size="icon" asChild>
+                              <Link href={`/admin/applications/${application.id}`}>
+                                <FileText className="h-4 w-4" />
+                                <span className="sr-only">View</span>
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
+
             <CardFooter className="flex items-center justify-between border-t px-6 py-4">
               <div className="text-muted-foreground text-sm">
-                Showing <strong>{filteredApplications.length}</strong> of{" "}
-                <strong>{applications.length}</strong> applications
+                Showing <strong>{paginatedApplications.length}</strong> of{" "}
+                <strong>{tabFilteredApplications.length}</strong> applications
+                (Total: {applications.length})
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                >
                   Previous
                 </Button>
-                <Button variant="outline" size="sm" disabled>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={endIndex >= sortedApplications.length}
+                >
                   Next
                 </Button>
               </div>
@@ -345,46 +520,561 @@ export default function ApplicationsListPage() {
           </Card>
         </TabsContent>
 
-        {/* Other tabs would have similar content but filtered by status */}
+        {/* --- Pending Applications Tab --- */}
         <TabsContent value="pending" className="mt-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Pending Applications</CardTitle>
+            <CardHeader className="px-6 py-4">
+              <div className="flex items-center justify-between">
+                <CardTitle>Pending Applications</CardTitle>
+                <CardDescription>
+                  {isLoading
+                    ? "Loading pending applications..."
+                    : error
+                      ? `Error: ${error}`
+                      : `${tabFilteredApplications.length
+                      } pending applications found`}
+                </CardDescription>
+              </div>
             </CardHeader>
-            <CardContent>
-              {/* Similar table but filtered for pending applications */}
-              <p className="text-muted-foreground text-center">
-                Pending applications would be shown here
-              </p>
+            <CardContent className="p-0">
+              {isLoading ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Applicant</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Risk Score</TableHead>
+                      <TableHead>Submitted</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[...Array(5)].map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <Skeleton className="h-8 w-40" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Skeleton className="h-8 w-10" />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : error ? (
+                <div className="p-4 text-red-500">Error: {error}</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="px-2">Applicant</TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Amount
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Status
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Risk Score
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Submitted
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-right px-2">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedApplications.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center">
+                          No pending applications found.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      paginatedApplications.map((application) => (
+                        <TableRow key={application.id}>
+                          <TableCell className="pl-4">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage
+                                  src="/placeholder.svg?height=32&width=32"
+                                  alt={application.applicant}
+                                />
+                                <AvatarFallback>
+                                  {application.applicant
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">
+                                  {application.applicant}
+                                </p>
+                                <p className="text-muted-foreground text-xs">
+                                  {application.email}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-2">
+                            ${application.amount.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="px-2">
+                            {getStatusBadge(application.status)}
+                          </TableCell>
+                          <TableCell className="px-2">
+                            <span className={getRiskColor(application.riskScore)}>
+                              {application.riskScore}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-2">
+                            {formatDate(application.submittedDate)}
+                          </TableCell>
+                          <TableCell className="text-right px-2">
+                            <Button variant="ghost" size="icon" asChild>
+                              <Link
+                                href={`/admin/applications/${application.id}`}
+                              >
+                                <FileText className="h-4 w-4" />
+                                <span className="sr-only">View</span>
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
+
+            <CardFooter className="flex items-center justify-between border-t px-6 py-4">
+              <div className="text-muted-foreground text-sm">
+                Showing <strong>{paginatedApplications.length}</strong> of{" "}
+                <strong>
+                  {tabFilteredApplications.length}
+                </strong>{" "}
+                pending applications (Total:{" "}
+                {applications.filter((app) => app.status.toLowerCase() === "pending").length}
+                )
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={endIndex >= sortedApplications.length}
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
           </Card>
         </TabsContent>
 
+        {/* --- Approved Applications Tab --- */}
         <TabsContent value="approved" className="mt-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Approved Applications</CardTitle>
+            <CardHeader className="px-6 py-4">
+              <div className="flex items-center justify-between">
+                <CardTitle>Approved Applications</CardTitle>
+                <CardDescription>
+                  {isLoading
+                    ? "Loading approved applications..."
+                    : error
+                      ? `Error: ${error}`
+                      : `${tabFilteredApplications.length
+                      } approved applications found`}
+                </CardDescription>
+              </div>
             </CardHeader>
-            <CardContent>
-              {/* Similar table but filtered for approved applications */}
-              <p className="text-muted-foreground text-center">
-                Approved applications would be shown here
-              </p>
+            <CardContent className="p-0">
+              {isLoading ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Applicant</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Risk Score</TableHead>
+                      <TableHead>Submitted</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[...Array(5)].map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <Skeleton className="h-8 w-40" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Skeleton className="h-8 w-10" />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : error ? (
+                <div className="p-4 text-red-500">Error: {error}</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="px-2">Applicant</TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Amount
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Status
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Risk Score
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Submitted
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-right px-2">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedApplications.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center">
+                          No approved applications found.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      paginatedApplications.map((application) => (
+                        <TableRow key={application.id}>
+                          <TableCell className="pl-4">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage
+                                  src="/placeholder.svg?height=32&width=32"
+                                  alt={application.applicant}
+                                />
+                                <AvatarFallback>
+                                  {application.applicant
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">
+                                  {application.applicant}
+                                </p>
+                                <p className="text-muted-foreground text-xs">
+                                  {application.email}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-2">
+                            ${application.amount.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="px-2">
+                            {getStatusBadge(application.status)}
+                          </TableCell>
+                          <TableCell className="px-2">
+                            <span className={getRiskColor(application.riskScore)}>
+                              {application.riskScore}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-2">
+                            {formatDate(application.submittedDate)}
+                          </TableCell>
+                          <TableCell className="text-right px-2">
+                            <Button variant="ghost" size="icon" asChild>
+                              <Link
+                                href={`/admin/applications/${application.id}`}
+                              >
+                                <FileText className="h-4 w-4" />
+                                <span className="sr-only">View</span>
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
+
+            <CardFooter className="flex items-center justify-between border-t px-6 py-4">
+              <div className="text-muted-foreground text-sm">
+                Showing <strong>{paginatedApplications.length}</strong> of{" "}
+                <strong>
+                  {tabFilteredApplications.length}
+                </strong>{" "}
+                approved applications (Total:{" "}
+                {applications.filter((app) => app.status.toLowerCase() === "approved").length}
+                )
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={endIndex >= sortedApplications.length}
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
           </Card>
         </TabsContent>
 
+        {/* --- Rejected Applications Tab --- */}
         <TabsContent value="rejected" className="mt-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Rejected Applications</CardTitle>
+            <CardHeader className="px-6 py-4">
+              <div className="flex items-center justify-between">
+                <CardTitle>Rejected Applications</CardTitle>
+                <CardDescription>
+                  {isLoading
+                    ? "Loading rejected applications..."
+                    : error
+                      ? `Error: ${error}`
+                      : `${tabFilteredApplications.length
+                      } rejected applications found`}
+                </CardDescription>
+              </div>
             </CardHeader>
-            <CardContent>
-              {/* Similar table but filtered for rejected applications */}
-              <p className="text-muted-foreground text-center">
-                Rejected applications would be shown here
-              </p>
+            <CardContent className="p-0">
+              {isLoading ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Applicant</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Risk Score</TableHead>
+                      <TableHead>Submitted</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[...Array(5)].map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <Skeleton className="h-8 w-40" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Skeleton className="h-8 w-10" />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : error ? (
+                <div className="p-4 text-red-500">Error: {error}</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="px-2">Applicant</TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Amount
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Status
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Risk Score
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Submitted
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-right px-2">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedApplications.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center">
+                          No rejected applications found.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      paginatedApplications.map((application) => (
+                        <TableRow key={application.id}>
+                          <TableCell className="pl-4">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage
+                                  src="/placeholder.svg?height=32&width=32"
+                                  alt={application.applicant}
+                                />
+                                <AvatarFallback>
+                                  {application.applicant
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">
+                                  {application.applicant}
+                                </p>
+                                <p className="text-muted-foreground text-xs">
+                                  {application.email}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-2">
+                            ${application.amount.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="px-2">
+                            {getStatusBadge(application.status)}
+                          </TableCell>
+                          <TableCell className="px-2">
+                            <span className={getRiskColor(application.riskScore)}>
+                              {application.riskScore}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-2">
+                            {formatDate(application.submittedDate)}
+                          </TableCell>
+                          <TableCell className="text-right px-2">
+                            <Button variant="ghost" size="icon" asChild>
+                              <Link
+                                href={`/admin/applications/${application.id}`}
+                              >
+                                <FileText className="h-4 w-4" />
+                                <span className="sr-only">View</span>
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
+
+            <CardFooter className="flex items-center justify-between border-t px-6 py-4">
+              <div className="text-muted-foreground text-sm">
+                Showing <strong>{paginatedApplications.length}</strong> of{" "}
+                <strong>
+                  {tabFilteredApplications.length}
+                </strong>{" "}
+                rejected applications (Total:{" "}
+                {applications.filter((app) => app.status.toLowerCase() === "rejected").length}
+                )
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={endIndex >= sortedApplications.length}
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>

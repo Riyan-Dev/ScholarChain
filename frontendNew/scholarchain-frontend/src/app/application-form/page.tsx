@@ -30,6 +30,10 @@ import {
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { useQuery } from "@tanstack/react-query";
+import { fetchApplication, submitApplication } from "@/services/user.service";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface Reference {
   name: string;
@@ -119,12 +123,29 @@ export default function ApplicationFormComponent({
   initialData,
   onSubmit,
 }: ApplicationFormComponentProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const id = searchParams.get("id");
   const [formData, setFormData] = useState<FormData>(
     initialData || defaultFormData
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
+
+  const { data, error, isLoading } = useQuery({
+    queryKey: ["application_form", id], // Corrected: Query key is an array
+    queryFn: fetchApplication, // Make sure this function is defined
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    if (data) {
+      setFormData(data);
+    }
+    console.log(data);
+  }, [data]);
 
   // Function to check if all required fields are filled
   const checkFormValidity = useCallback(() => {
@@ -286,10 +307,12 @@ export default function ApplicationFormComponent({
     setIsSubmitting(true);
 
     try {
-      const result = await onSubmit(formData);
+      formData.status = "submitted";
+      const result = await submitApplication(formData);
 
       if (result.success) {
         toast.success(result.message);
+        router.push("/dashboard");
       } else {
         toast.error(result.message);
       }
@@ -301,7 +324,15 @@ export default function ApplicationFormComponent({
       setIsSubmitting(false);
     }
   };
-
+  if (isLoading) {
+    return (
+      <div className="space-y-4 p-4">
+        <div className="w-full">
+          <Skeleton className="h-48 w-full" />{" "}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="space-y-8">
       <div className="text-left">
@@ -513,7 +544,7 @@ export default function ApplicationFormComponent({
 
                 <div className="space-y-2">
                   <Label htmlFor="otherIncomeSources">
-                    Other Income Sources
+                    Other Income Sources (eg: source1, source2)
                   </Label>
                   <Input
                     id="otherIncomeSources"
@@ -527,7 +558,7 @@ export default function ApplicationFormComponent({
 
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="outstandingLoansOrDebts">
-                    Outstanding Loans or Debts
+                    Outstanding Loans or Debts (eg: loan1, loan2)
                   </Label>
                   <Textarea
                     id="outstandingLoansOrDebts"

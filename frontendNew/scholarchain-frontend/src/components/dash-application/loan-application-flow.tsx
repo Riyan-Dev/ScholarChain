@@ -10,6 +10,7 @@ import { ApplicationTimeline } from "./application-timeline";
 import { ReviewApplicationCard } from "./review-application-card";
 import { RepaymentPlanCard } from "./repayment-plan-card";
 import { StartApplicationCard } from "./start-application-card";
+import { updateStage } from "@/services/user.service";
 
 export type ApplicationStage =
   | "start"
@@ -20,9 +21,13 @@ export type ApplicationStage =
 
 interface ApplicationFlowProps {
   stage: ApplicationStage;
+  isUploaded: boolean;
 }
 
-export function LoanApplicationFlow({ stage }: ApplicationFlowProps) {
+export function LoanApplicationFlow({
+  stage,
+  isUploaded,
+}: ApplicationFlowProps) {
   const [currentStage, setCurrentStage] = useState<ApplicationStage>(stage);
   const [previousStage, setPreviousStage] = useState<ApplicationStage | null>(
     null
@@ -87,19 +92,16 @@ export function LoanApplicationFlow({ stage }: ApplicationFlowProps) {
     setPreviousStage(currentStage);
 
     if (currentStage === "start") {
-      setCurrentStage("upload");
-      setUploadProgress(0);
-      setIsAnalyzing(true);
-      simulateDocumentAnalysis();
-    } else if (currentStage === "upload" && uploadProgress === 100) {
+      updateStage("upload");
+    } else if (currentStage === "upload") {
       setCurrentStage("review");
-      setReviewProgress(0);
-      setIsReviewing(true);
-      simulateApplicationReview();
-    } else if (currentStage === "review" && reviewProgress === 100) {
+      updateStage("review");
+    } else if (currentStage === "review") {
       setCurrentStage("repayment");
+      updateStage("repayment");
     } else if (currentStage === "repayment") {
       setCurrentStage("complete");
+      updateStage("complete");
     }
   };
 
@@ -125,7 +127,7 @@ export function LoanApplicationFlow({ stage }: ApplicationFlowProps) {
     <Card className="w-full flex-grow p-6">
       <div className="space-y-8">
         {/* Demo Controls */}
-        <Card className="border border-dashed p-4">
+        {/* <Card className="border border-dashed p-4">
           <h3 className="mb-3 text-sm font-medium">Demo Controls</h3>
           <Tabs
             defaultValue={currentStage}
@@ -139,7 +141,7 @@ export function LoanApplicationFlow({ stage }: ApplicationFlowProps) {
               <TabsTrigger value="complete">Complete</TabsTrigger>
             </TabsList>
           </Tabs>
-        </Card>
+        </Card> */}
 
         {/* Application Timeline */}
         <ApplicationTimeline currentStage={currentStage} />
@@ -151,10 +153,8 @@ export function LoanApplicationFlow({ stage }: ApplicationFlowProps) {
 
           {currentStage === "upload" && (
             <DocumentUploadCard
-              isProcessing={isAnalyzing}
-              progress={uploadProgress}
+              isUploaded={isUploaded}
               onNext={handleNextStage}
-              onPrevious={handlePreviousStage}
             />
           )}
 

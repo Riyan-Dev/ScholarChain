@@ -42,7 +42,7 @@ export function ApplicationCard({
       className={cn(
         "w-full shadow-lg transition-all duration-700 ease-in-out",
         isProcessing &&
-          "animate-gradient bg-gradient-to-r from-blue-500 via-cyan-200 to-blue-500 bg-[length:200%_100%] text-white",
+          "animate-gradient bg-gradient-to-r from-blue-500 via-purple-200 to-blue-500 bg-[length:200%_100%] text-white",
         className
       )}
     >
@@ -69,7 +69,7 @@ export function ApplicationCard({
       {showFooter && (
         <CardFooter
           className={cn(
-            "flex justify-between gap-2 border-t p-4",
+            "flex justify-center gap-2 border-t p-4",
             isProcessing && "bg-black/20"
           )}
         >

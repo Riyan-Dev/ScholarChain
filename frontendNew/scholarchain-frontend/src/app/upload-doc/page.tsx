@@ -273,7 +273,7 @@ export default function DocumentUploadPage() {
           <CardFooter className="justify-center">
             <div className="mt-8 flex justify-center">
               <Button
-                disabled={uploadedCount < totalCount}
+                // disabled={uploadedCount < totalCount}
                 onClick={handleSubmitDocuments}
                 className="px-8"
               >

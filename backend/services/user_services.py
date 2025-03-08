@@ -17,6 +17,7 @@ from models.user import User, DocumentsList
 from models.wallet import Wallet
 
 
+
 from services.encrption_services import EncrptionServices
 from services.rag_services import pdf_to_images, vision_model
 from services.documents import document
@@ -120,9 +121,16 @@ class UserService:
         donators = [user["username"] for user in users if user["role"] == "donator"]
         return donators
 
-
+    @staticmethod 
+    async def set_upload(username):
+        await user_collection.update_one(
+            {"username": username},  # Match user by ID from the token
+            {"$set": {"is_uploaded": True}}  # Append each document
+        )
+        return {"status": "success", "message": "Documents have been added successfully."}
     @staticmethod
     async def upload_documents(files, ids, token): 
+        from services.application_services import ApplicationService
         new_documents = {
             "CNIC": [],
             "gaurdian_CNIC": [],
@@ -183,18 +191,20 @@ class UserService:
                     }},
                     """
         }
-
         # user = await UserService.get_user_doc_by_username(token.username)
         # user_documents = user["documents"]
 
         for i, id in enumerate(ids):
             if ids[i] in document:
-                await asyncio.sleep(10)
+                await asyncio.sleep(3)
                 print("hello")
                 new_documents[ids[i]].extend(document[ids[i]])
+                await UserService.add_documents(token.username, new_documents)
                 continue
- 
+        
+        # await ApplicationServices.auto_fill_field(token)
 
+        await ApplicationService.auto_fill_fields(token)
 
         # for i, file in enumerate(files):
         #     if ids[i] in user_documents:
@@ -302,42 +312,104 @@ class UserService:
         pipeline = [
             {
                 "$match": {
+                "username": username
+                }
+            },
+            {
+                "$project": {
+                "_id": 0,
+                "documents": {  
+                    "$ifNull": ["$documents", {}] 
+                },
+                
+                "CNIC_present": {
+                    "$gt": [{ "$size": { "$ifNull": ["$documents.CNIC", []] } }, 0]
+                },
+                "guardian_CNIC_present": {
+                    "$gt": [{ "$size": { "$ifNull": ["$documents.gaurdian_CNIC", []] } }, 0]
+                },
+                "electricity_bills_present": {
+                    "$gt": [{ "$size": { "$ifNull": ["$documents.electricity_bills", []] } }, 0]
+                },
+                "gas_bills_present": {
+                    "$gt": [{ "$size": { "$ifNull": ["$documents.gas_bills", []] } }, 0]
+                },
+                "intermediate_result_present": {
+                    "$gt": [{ "$size": { "$ifNull": ["$documents.intermediate_result", []] } }, 0]
+                },
+                "salary_slips_present": {
+                    "$gt": [{ "$size": { "$ifNull": ["$documents.salary_slips", []] } }, 0]
+                },
+                "bank_statements_present": {
+                    "$gt": [{ "$size": { "$ifNull": ["$documents.bank_statements", []] } }, 0]
+                },
+                "reference_letter_present": {
+                    "$gt": [{ "$size": { "$ifNull": ["$documents.reference_letter", []] } }, 0]
+                }
+                }
+            },
+            {
+                "$addFields": {
+                "filled_arrays": {
+                    "$sum": [ 
+                    { "$cond": [{ "$eq": ["$CNIC_present", True] }, 1, 0] },
+                    { "$cond": [{ "$eq": ["$guardian_CNIC_present", True] }, 1, 0] },
+                    { "$cond": [{ "$eq": ["$electricity_bills_present", True] }, 1, 0] },
+                    { "$cond": [{ "$eq": ["$gas_bills_present", True] }, 1, 0] },
+                    { "$cond": [{ "$eq": ["$intermediate_result_present", True] }, 1, 0] },
+                    { "$cond": [{ "$eq": ["$salary_slips_present", True] }, 1, 0] },
+                    { "$cond": [{ "$eq": ["$bank_statements_present", True] }, 1, 0] },
+                    { "$cond": [{ "$eq": ["$reference_letter_present", True] }, 1, 0] }
+                    ]
+                },
+                "total_arrays": 8 
+                },
+            },
+                {
+                    "$project": {
+                        "status": {
+                            "$cond": {
+                                "if": { "$eq": ["$filled_arrays", "$total_arrays"]},
+                                "then": True,
+                                "else": False
+                            }
+                        },
+                        "progress": {
+                            "$round": [
+                                {"$multiply": [{"$divide": ["$filled_arrays", "$total_arrays"]}, 100]},
+                                0 
+                            ]
+                        }
+                    }
+                }
+            ]
+
+
+        result = await user_collection.aggregate(pipeline).to_list(length=1)  # Limit to 1 result
+
+        if result:
+            return result[0]
+        else:
+            return {"status": False, "progress": 0}  # User not found or no documents field
+        
+    @staticmethod
+    async def get_dash(username): 
+
+        pipeline = [
+            {
+                "$match": {
                     "username": username
                 }
             },
             {
                 "$project": {
-                    "all_present": {
-                        "$cond": {
-                            "if": {"$not": ["$documents"]},  # Check if 'documents' field exists
-                            "then": False,  # If 'documents' is missing, return False
-                            "else": {
-                                "$and": [
-                                    {"$gt": [{"$size": {"$ifNull": ["$documents.CNIC", []]}}, 0]},
-                                    {"$gt": [{"$size": {"$ifNull": ["$documents.gaurdian_CNIC", []]}}, 0]},
-                                    {"$gt": [{"$size": {"$ifNull": ["$documents.electricity_bills", []]}}, 0]},
-                                    {"$gt": [{"$size": {"$ifNull": ["$documents.gas_bills", []]}}, 0]},
-                                    {"$gt": [{"$size": {"$ifNull": ["$documents.intermediate_result", []]}}, 0]},
-                                    {"$gt": [{"$size": {"$ifNull": ["$documents.salary_slips", []]}}, 0]},
-                                    {"$gt": [{"$size": {"$ifNull": ["$documents.bank_statements", []]}}, 0]},
-                                    {"$gt": [{"$size": {"$ifNull": ["$documents.reference_letter", []]}}, 0]},
-                                ]
-                            }
-                        }
-                    },
-                    "_id": 0  # Exclude the _id field from the output
+                    "_id": 0 ,
+                    "application_stage": {"$ifNull": ["$application_stage", "start"]},
+                    "is_uploaded": {"$ifNull": ["$is_uploaded", False]},
                 }
             }
         ]
 
-        result = await user_collection.aggregate(pipeline).to_list(length=1)  # Limit to 1 result
-
-        if result:
-            return result[0]["all_present"]
-        else:
-            return False  # User not found or no documents field
+        result = await user_collection.aggregate(pipeline).to_list(length=1)
         
-
-async def get_dash(username): 
-    
-    return
+        return result[0]

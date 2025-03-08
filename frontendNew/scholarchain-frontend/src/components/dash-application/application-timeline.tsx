@@ -39,7 +39,7 @@ export function ApplicationTimeline({
           <div key={stage.id} className="relative flex flex-col items-center">
             {/* Connector line */}
             {index < stages.length - 1 && (
-              <div className="absolute top-4 left-[50%] z-0 h-0.5 w-[calc(100%-2rem)] -translate-y-1/2">
+              <div className="absolute top-4 left-[50%] z-0 h-0.5 w-[calc(100vw/4-2rem)] -translate-y-1/2">
                 <div
                   className={`h-full ${getStageStatus(stage.id) === "complete" ? "bg-primary" : "bg-muted"}`}
                 />

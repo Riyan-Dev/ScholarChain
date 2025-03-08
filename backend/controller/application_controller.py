@@ -16,6 +16,9 @@ application_router = APIRouter()
 async def accept_plan(application_id: str, current_user: TokenData = Depends(get_current_user)):
     return await ApplicationService.accept_application(current_user.username, application_id)
 
+@application_router.post('/update-stage/{stage}')
+async def accept_plan(stage: str, current_user: TokenData = Depends(get_current_user)):
+    return await ApplicationService.update_stage(current_user.username, stage)
 
 @application_router.get('/repay/')
 async def repay_loan(current_user: TokenData = Depends(get_current_user)):

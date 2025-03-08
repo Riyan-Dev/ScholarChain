@@ -336,3 +336,8 @@ class UserService:
             return result[0]["all_present"]
         else:
             return False  # User not found or no documents field
+        
+
+async def get_dash(username): 
+    
+    return

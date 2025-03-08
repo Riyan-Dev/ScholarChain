@@ -20,7 +20,7 @@ export default function Layout({ children }: LayoutProps) {
   if (!mounted) {
     return (
       <div className="flex h-screen">
-        <div className="hidden w-64 border-r border-gray-200 lg:block"></div>
+        {/* <div className="hidden w-64 border-r border-gray-200 lg:block"></div> */}
         <div className="flex w-full flex-1 flex-col">
           <header className="h-16 border-b border-gray-200"></header>
           <main className="flex-1 overflow-auto bg-white p-6">{children}</main>
@@ -31,9 +31,9 @@ export default function Layout({ children }: LayoutProps) {
 
   // Client-side rendering with proper theme
   return (
-    <div className="flex h-screen">
+    <div className="flex-col-grow flex">
       <div className="flex w-full flex-1 flex-col">
-        <header className="h-16 border-b border-gray-200 dark:border-[#1F1F23]"></header>
+        <header className="h-6 border-b border-gray-200 dark:border-[#1F1F23]"></header>
         <main className="flex-1 overflow-auto bg-white p-6 dark:bg-[#0F0F12]">
           {children}
         </main>

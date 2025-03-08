@@ -38,4 +38,5 @@ class User(BaseModel):
     email: str
     hashed_password: str
     role: UserRole
+    application_stage: str
     documents: DocumentsList

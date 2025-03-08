@@ -41,6 +41,11 @@ async def get_documents_status(token: TokenData = Depends(get_current_user)):
     status = await UserService.check_all_document_types_present(token.username)
     return {"status": status}
 
+@user_router.get("/get-dash")
+async def get_dash(token: TokenData = Depends(get_current_user)):
+    dash = await UserService.get_dash(token.username)
+    return dash
+
 
 
 

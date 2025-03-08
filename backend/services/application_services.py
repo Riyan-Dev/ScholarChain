@@ -3,7 +3,7 @@ import json
 from fastapi import HTTPException # type: ignore
 from datetime import datetime
 from bson import ObjectId
-from db import application_collection, plan_collection
+from db import application_collection, plan_collection, risk_assessment_collection
 from utility import convert_date_fields
 
 from models.application import Application
@@ -21,18 +21,50 @@ class ApplicationService:
 
     @staticmethod
     async def get_all_applications():
-        # In your services/application_services.py file
-        applications = await application_collection.find().to_list(None)  # Convert cursor to list
+        applications = await application_collection.find().to_list(None)
         filtered_data = []
         for app in applications:
-            # print(app)
-            filtered_data.append({
-                "id": str(app["_id"]),
-                "username": app["username"],
-                "status": app["status"],
-                "application_date": app["application_date"]
+            try:
+                app_id_str = str(app["_id"])  # Convert ObjectId to string *here*
+                full_name = app["personal_info"]["full_name"]
+                email = app["personal_info"]["email_address"]
+                amount_requested = app["loan_details"]["loan_amount_requested"]
+                status = app["status"]
+                application_date = app["application_date"]
 
-                })  # Convert ObjectId to string
+                # Fetch risk assessment
+                risk_assessment = await risk_assessment_collection.find_one({"application_id": app_id_str})
+
+                if risk_assessment:
+                    # Calculate total risk score
+                    total_risk_score = (
+                        risk_assessment["financial_risk"]["risk_score"] +
+                        risk_assessment["academic_risk"]["risk_score"] +
+                        risk_assessment["personal_risk"]["risk_score"] +
+                        risk_assessment["reference_risk"]["risk_score"] +
+                        risk_assessment["repayment_potential"]["risk_score"]
+                    )
+                else:
+                    total_risk_score = None  # Or some default value, like -1, if no assessment exists
+
+
+                filtered_data.append({
+                    "id": app_id_str,
+                    "applicant": full_name,
+                    "email": email,
+                    "amount": amount_requested,
+                    "status": status,
+                    "submittedDate": application_date,
+                    "riskScore": total_risk_score,  # Add the risk score
+                })
+
+            except KeyError as e:
+                print(f"KeyError: {e} in application with _id: {app.get('_id', 'Unknown')}")
+                continue
+            except Exception as e: # catch other exceptions
+                print(f"An unexpected error occurred: {e} in application with _id: {app.get('_id', 'Unknown')}")
+                continue
+
         return filtered_data
 
     @staticmethod

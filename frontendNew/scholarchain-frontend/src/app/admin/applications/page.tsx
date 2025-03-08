@@ -1,7 +1,8 @@
-"use client"
+/* eslint-disable prettier/prettier */
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
+import { useState } from "react";
+import Link from "next/link";
 import {
   ArrowUpDown,
   CheckCircle2,
@@ -12,13 +13,27 @@ import {
   Search,
   SlidersHorizontal,
   XCircle,
-} from "lucide-react"
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -26,9 +41,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Mock data for applications list
 const applications = [
@@ -82,11 +97,11 @@ const applications = [
     riskScore: 68,
     submittedDate: "2023-07-20",
   },
-]
+];
 
 export default function ApplicationsListPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Status badge styling
   const getStatusBadge = (status: string) => {
@@ -97,14 +112,14 @@ export default function ApplicationsListPage() {
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Approved
           </Badge>
-        )
+        );
       case "rejected":
         return (
           <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
             <XCircle className="mr-1 h-3 w-3" />
             Rejected
           </Badge>
-        )
+        );
       case "pending":
       default:
         return (
@@ -112,9 +127,9 @@ export default function ApplicationsListPage() {
             <Clock className="mr-1 h-3 w-3" />
             Pending
           </Badge>
-        )
+        );
     }
-  }
+  };
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -122,30 +137,34 @@ export default function ApplicationsListPage() {
       year: "numeric",
       month: "short",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   // Get risk color
   const getRiskColor = (score: number) => {
-    if (score >= 80) return "text-green-600"
-    if (score >= 60) return "text-yellow-600"
-    return "text-red-600"
-  }
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-yellow-600";
+    return "text-red-600";
+  };
 
   // Filter applications based on search query
   const filteredApplications = applications.filter(
     (app) =>
       app.applicant.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.email.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
+      app.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Loan Applications</h1>
-          <p className="text-muted-foreground">Manage and review student loan applications</p>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Loan Applications
+          </h1>
+          <p className="text-muted-foreground">
+            Manage and review student loan applications
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" className="gap-1">
@@ -170,7 +189,7 @@ export default function ApplicationsListPage() {
 
           <div className="flex w-full items-center gap-2 sm:w-auto">
             <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
               <Input
                 type="search"
                 placeholder="Search applications..."
@@ -189,11 +208,21 @@ export default function ApplicationsListPage() {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Filter by</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuCheckboxItem checked>Date (Newest first)</DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem>Date (Oldest first)</DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem>Amount (High to low)</DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem>Amount (Low to high)</DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem>Risk Score (High to low)</DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem checked>
+                  Date (Newest first)
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem>
+                  Date (Oldest first)
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem>
+                  Amount (High to low)
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem>
+                  Amount (Low to high)
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem>
+                  Risk Score (High to low)
+                </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -204,63 +233,60 @@ export default function ApplicationsListPage() {
             <CardHeader className="px-6 py-4">
               <div className="flex items-center justify-between">
                 <CardTitle>All Applications</CardTitle>
-                <CardDescription>{filteredApplications.length} applications found</CardDescription>
+                <CardDescription>
+                  {filteredApplications.length} applications found
+                </CardDescription>
               </div>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[180px]">
-                      <div className="flex items-center gap-1">
-                        Application ID
-                        <ArrowUpDown className="h-3 w-3" />
-                      </div>
-                    </TableHead>
-                    <TableHead>Applicant</TableHead>
-                    <TableHead>
+                    <TableHead className="px-2">Applicant</TableHead> {/* Added px-2 to Applicant */}
+                    <TableHead className="px-2"> {/* Added px-2 here */}
                       <div className="flex items-center gap-1">
                         Amount
                         <ArrowUpDown className="h-3 w-3" />
                       </div>
                     </TableHead>
-                    <TableHead>Purpose</TableHead>
-                    <TableHead>
+                    <TableHead className="px-2"> {/* Added px-2 here */}
                       <div className="flex items-center gap-1">
                         Status
                         <ArrowUpDown className="h-3 w-3" />
                       </div>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="px-2"> {/* Added px-2 here */}
                       <div className="flex items-center gap-1">
                         Risk Score
                         <ArrowUpDown className="h-3 w-3" />
                       </div>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="px-2"> {/* Added px-2 here */}
                       <div className="flex items-center gap-1">
                         Submitted
                         <ArrowUpDown className="h-3 w-3" />
                       </div>
                     </TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-right px-2">Actions</TableHead> {/* Added px-2 here */}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredApplications.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="h-24 text-center">
+                      <TableCell colSpan={6} className="h-24 text-center">
                         No applications found.
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredApplications.map((application) => (
                       <TableRow key={application.id}>
-                        <TableCell className="font-medium">{application.id}</TableCell>
-                        <TableCell>
+                        <TableCell className="pl-4"> {/* Added pl-4 to Applicant cell's content */}
                           <div className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src="/placeholder.svg?height=32&width=32" alt={application.applicant} />
+                              <AvatarImage
+                                src="/placeholder.svg?height=32&width=32"
+                                alt={application.applicant}
+                              />
                               <AvatarFallback>
                                 {application.applicant
                                   .split(" ")
@@ -269,21 +295,28 @@ export default function ApplicationsListPage() {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium">{application.applicant}</p>
-                              <p className="text-xs text-muted-foreground">{application.email}</p>
+                              <p className="font-medium">
+                                {application.applicant}
+                              </p>
+                              <p className="text-muted-foreground text-xs">
+                                {application.email}
+                              </p>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>${application.amount.toLocaleString()}</TableCell>
-                        <TableCell>{application.purpose}</TableCell>
-                        <TableCell>{getStatusBadge(application.status)}</TableCell>
-                        <TableCell>
-                          <span className={getRiskColor(application.riskScore)}>{application.riskScore}</span>
+                        <TableCell className="px-2">${application.amount.toLocaleString()}</TableCell> {/* Added px-2 */}
+                        <TableCell className="px-2">{getStatusBadge(application.status)}</TableCell> {/* Added px-2 */}
+                        <TableCell className="px-2"> {/* Added px-2 */}
+                          <span className={getRiskColor(application.riskScore)}>
+                            {application.riskScore}
+                          </span>
                         </TableCell>
-                        <TableCell>{formatDate(application.submittedDate)}</TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="px-2">{formatDate(application.submittedDate)}</TableCell> {/* Added px-2 */}
+                        <TableCell className="text-right px-2"> {/* Added px-2 */}
                           <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/admin/applications/${application.id}`}>
+                            <Link
+                              href={`/admin/applications/${application.id}`}
+                            >
                               <FileText className="h-4 w-4" />
                               <span className="sr-only">View</span>
                             </Link>
@@ -296,9 +329,9 @@ export default function ApplicationsListPage() {
               </Table>
             </CardContent>
             <CardFooter className="flex items-center justify-between border-t px-6 py-4">
-              <div className="text-sm text-muted-foreground">
-                Showing <strong>{filteredApplications.length}</strong> of <strong>{applications.length}</strong>{" "}
-                applications
+              <div className="text-muted-foreground text-sm">
+                Showing <strong>{filteredApplications.length}</strong> of{" "}
+                <strong>{applications.length}</strong> applications
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" disabled>
@@ -320,7 +353,9 @@ export default function ApplicationsListPage() {
             </CardHeader>
             <CardContent>
               {/* Similar table but filtered for pending applications */}
-              <p className="text-center text-muted-foreground">Pending applications would be shown here</p>
+              <p className="text-muted-foreground text-center">
+                Pending applications would be shown here
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -332,7 +367,9 @@ export default function ApplicationsListPage() {
             </CardHeader>
             <CardContent>
               {/* Similar table but filtered for approved applications */}
-              <p className="text-center text-muted-foreground">Approved applications would be shown here</p>
+              <p className="text-muted-foreground text-center">
+                Approved applications would be shown here
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -344,12 +381,13 @@ export default function ApplicationsListPage() {
             </CardHeader>
             <CardContent>
               {/* Similar table but filtered for rejected applications */}
-              <p className="text-center text-muted-foreground">Rejected applications would be shown here</p>
+              <p className="text-muted-foreground text-center">
+                Rejected applications would be shown here
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
-

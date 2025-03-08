@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 // lib/auth.service.ts
 import Cookies from "js-cookie";
 import { jwtDecode, JwtPayload } from "jwt-decode";

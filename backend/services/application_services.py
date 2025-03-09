@@ -97,22 +97,25 @@ class ApplicationService:
             {"$set": update_data}
             )
 
+        return {"Message": "Application Stage Updated"}
 
     @staticmethod
-    async def verify_application(username: str):
-
-        update_data = {
-            "updated_at": datetime.now(),
-            "status": "verified"
-        }
+    async def verify_application(application_id: str, verified: bool):
+        if verified:
+            update_data = {
+                "updated_at": datetime.now(),
+                "status": "verified"
+            }
+        else:
+            update_data = {
+                "updated_at": datetime.now(),
+                "status": "rejected"
+            }
 
         try:
-            
-            update_data['updated_at'] = datetime.utcnow()
-
             # Perform the update
             result = await application_collection.update_one(
-                {"username": username},
+                {"_id": ObjectId(application_id)},
                 {"$set": update_data}
             )
             if result.modified_count == 0:
@@ -268,8 +271,26 @@ class ApplicationService:
             print(e)
             raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
         
-    
-    
+    async def application_overview(username):
+        pipeline = [
+            { "$match": { "username": username } },
+            { "$project": {
+                "_id": 1,
+                "name": "$personal_info.full_name",
+                "phoneNo": "$personal_info.phone_number",
+                "email": "$personal_info.email_address",
+                "status": 1,
+                "created_at": 1
+            }}
+        ]
+
+        result = await application_collection.aggregate(pipeline).to_list(length=1)
+
+        if (result):
+            result[0]["_id"] = str(result[0]["_id"])
+            return result[0]
+        else:
+            return None
         
     async def auto_fill_fields(current_user):
 

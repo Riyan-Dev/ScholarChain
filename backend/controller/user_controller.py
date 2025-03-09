@@ -38,14 +38,16 @@ async def process_documents( background_tasks: BackgroundTasks, files: List[Uplo
 
 @user_router.get("/documents-status")
 async def get_documents_status(token: TokenData = Depends(get_current_user)):
-    status = await UserService.check_all_document_types_present(token.username)
-    return {"status": status}
+    return await UserService.check_all_document_types_present(token.username)
 
 @user_router.get("/get-dash")
 async def get_dash(token: TokenData = Depends(get_current_user)):
     dash = await UserService.get_dash(token.username)
     return dash
 
+@user_router.post("/set-upload")
+async def set_upload(token: TokenData = Depends(get_current_user)):
+    return await UserService.set_upload(token.username)
 
 
 

@@ -13,8 +13,8 @@ app = {
     "gender": "Male",
     "nationality": "Pakistani",
     "marital_status": "",
-    "phone_number": "",
-    "email_address": "",
+    "phone_number": "+92 300 8769432",
+    "email_address": "tayyaabalisajid@gmail.com",
     "residential_address": "DHARY HASNABAD, RAVALPINDI",
     "permanent_address": "DHARY HASNABAD, RAVALPINDI"
   },

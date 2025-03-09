@@ -23,6 +23,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import AlertDialogBox from "../commons/alert-box";
+import { fetchDash, updateStage } from "@/services/user.service";
 
 export default function Sidebar() {
   const router = useRouter();
@@ -124,19 +125,16 @@ export default function Sidebar() {
                   <NavItem
                     href="/upload-doc"
                     icon={SquarePlus}
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.preventDefault();
 
-                      // Check your conditions here
-                      const conditionNotMet = false; // Replace with your actual condition
-
-                      if (conditionNotMet) {
-                        // Open your ShadCN AlertDialog
-                        // For example, update state to show an alert:
-                        setAlertOpen(true);
-                      } else {
-                        // If conditions are met, perform navigation
+                      const data = await fetchDash();
+                      if (data.application_stage === "start") {
                         router.push("/upload-doc");
+                        updateStage("upload");
+
+                      } else {
+                        setAlertOpen(true);
                       }
                     }}
                   >
@@ -211,8 +209,8 @@ export default function Sidebar() {
       )}
       <AlertDialogBox
         open={alertOpen}
-        title="Attention"
-        description="The conditions are not met. Do you wish to continue?"
+        title="Action Not Allowed"
+        description="You already have an ongoing application. Kindly Look Dashboard or Application Details tab to continue?"
         onCancel={handleCancel}
         onOpenChange={setAlertOpen}
       />

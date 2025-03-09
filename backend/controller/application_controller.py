@@ -16,7 +16,7 @@ application_router = APIRouter()
 async def accept_plan(application_id: str, current_user: TokenData = Depends(get_current_user)):
     return await ApplicationService.accept_application(current_user.username, application_id)
 
-@application_router.post('/update-stage/{stage}')
+@application_router.put('/update-stage/{stage}')
 async def accept_plan(stage: str, current_user: TokenData = Depends(get_current_user)):
     return await ApplicationService.update_stage(current_user.username, stage)
 
@@ -41,7 +41,7 @@ async def update_application(updated_data:Application, background_tasks: Backgro
     if result:
         background_tasks.add_task(RiskScoreCalCulations.generate_risk_scores, updated_data.dict(), current_user)
     
-    return {'message': 'Application Added Successfully, Risk Assessment and personalised Plan Under Construction'}
+    return {'message': 'Application Added Successfully, Risk Assessment and personalised Plan Under Construction', 'success': True}
 
 @application_router.get('/auto-fill-fields/')
 async def auto_fill_fields(background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
@@ -50,8 +50,12 @@ async def auto_fill_fields(background_tasks: BackgroundTasks, current_user: Toke
     return {'message': 'Documents Under Analysis, Fields will updated soon poll the application'}
 
 
-
-
+@application_router.get('/application-overview/')
+async def application_overview(current_user: TokenData = Depends(get_current_user)):
+    result = await ApplicationService.application_overview(current_user.username)
+    if result is None:
+        raise HTTPException(status_code=404, detail="No Application Found")
+    return result
 # *************Strong case*****************
 # {
 #   "personal_info": {

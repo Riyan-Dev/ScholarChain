@@ -15,28 +15,12 @@ interface CardFooterActionsProps {
 
 export function CardFooterActions({
   onNext,
-  onPrevious,
   nextLabel = "Continue",
-  previousLabel = "Back",
   isProcessing = false,
   isNextDisabled = false,
 }: CardFooterActionsProps) {
   return (
     <>
-      {onPrevious && (
-        <Button
-          variant="outline"
-          onClick={onPrevious}
-          className={cn(
-            "gap-1",
-            isProcessing &&
-              "border-white/20 bg-white/10 text-white hover:bg-white/20"
-          )}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {previousLabel}
-        </Button>
-      )}
       <Button
         onClick={onNext}
         disabled={isNextDisabled}

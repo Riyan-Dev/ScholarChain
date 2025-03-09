@@ -464,7 +464,7 @@ export default function ApplicationsListPage() {
                             </div>
                           </TableCell>
                           <TableCell className="px-2">
-                            ${application.amount.toLocaleString()}
+                            PKR {application.amount.toLocaleString()}
                           </TableCell>
                           <TableCell className="px-2">
                             {getStatusBadge(application.status)}

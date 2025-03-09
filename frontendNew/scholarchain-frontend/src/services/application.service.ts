@@ -82,11 +82,12 @@ export interface RiskCategory {
 }
 
 // Interface for the Repayment Plan data
+// Use consistent naming (startDate, not Start_date)
 export interface RepaymentPlan {
     _id: string;
     total_loan_amount: number;
-    Start_date: string; // Consider using Date if consistent format
-    end_date: string;    // Consider using Date if consistent format
+    start_date: string; // Consistent naming
+    end_date: string;    // Consistent naming
     repayment_frequency: string;
     installment_amount: number;
     reasoning: string;
@@ -94,7 +95,6 @@ export interface RepaymentPlan {
     created_at: string; // Could also use Date
     updated_at: string; // Could also use Date
 }
-
 // Interface for the complete response from the endpoint
 export interface ApplicationDetailsResponse {
     Status: string;
@@ -102,6 +102,7 @@ export interface ApplicationDetailsResponse {
     plan: RepaymentPlan;
     total_score: number;
 }
+
 
 export async function getAllApplications(): Promise<Application[]> {
     const response = await fetch(`${API_BASE_URL}/admin/get-all-applications`, {
@@ -166,6 +167,7 @@ export async function verifyApplication(applicationId: string, verified: boolean
         method: "PUT",
         headers: {
             Authorization: `Bearer ${AuthService.getToken()}`,
+            "Content-Type": "application/json", // IMPORTANT:  Include Content-Type
             "accept": "application/json",
         },
     });
@@ -174,4 +176,27 @@ export async function verifyApplication(applicationId: string, verified: boolean
         const errorData = await response.text();
         throw new Error(`Failed to verify application: ${errorData}`);
     }
+    // Consider returning something, even if it's just an empty object:
+    // return response.json(); // Or {} if the response is truly empty.
+}
+
+
+// Function to update the repayment plan
+export async function updateRepaymentPlan(updatedPlan: RepaymentPlan): Promise<any> { // Using any since your route returns a message
+    const response = await fetch(`${API_BASE_URL}/admin/update-plan/?application_id=${updatedPlan.application_id}`, {
+        method: "PUT",
+        headers: {
+            Authorization: `Bearer ${AuthService.getToken()}`,
+            "Content-Type": "application/json", // CRUCIAL: Set Content-Type
+            "accept": "application/json",         // Good practice
+        },
+        body: JSON.stringify(updatedPlan), // Send the updated data in the request body
+    });
+
+    if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to update repayment plan: ${errorData}`);
+    }
+
+    return await response.json(); // Return the response (which should be {message: ...})
 }

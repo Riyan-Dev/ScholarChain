@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -148,7 +149,7 @@ export default function ApplicationsListPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
-      case "approved":
+      case "verified":
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
             <CheckCircle2 className="mr-1 h-3 w-3" />
@@ -238,7 +239,7 @@ export default function ApplicationsListPage() {
           <TabsList>
             <TabsTrigger value="all">All Applications</TabsTrigger>
             <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="approved">Approved</TabsTrigger>
+            <TabsTrigger value="verified">Approved</TabsTrigger>
             <TabsTrigger value="rejected">Rejected</TabsTrigger>
           </TabsList>
 
@@ -716,7 +717,7 @@ export default function ApplicationsListPage() {
         </TabsContent>
 
         {/* --- Approved Applications Tab --- */}
-        <TabsContent value="approved" className="mt-6">
+        <TabsContent value="verified" className="mt-6">
           <Card>
             <CardHeader className="px-6 py-4">
               <div className="flex items-center justify-between">
@@ -879,7 +880,7 @@ export default function ApplicationsListPage() {
                 applications (Total:{" "}
                 {
                   applications.filter(
-                    (app) => app.status.toLowerCase() === "approved"
+                    (app) => app.status.toLowerCase() === "verified"
                   ).length
                 }
                 )

@@ -21,9 +21,10 @@ import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, Tabl
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner"
 
 // Import the service functions and types
-import { getApplicationDetailsById, ApplicationDetails, fetchApplicationDetails, RiskAssessment, RepaymentPlan, RiskCategory } from "@/services/application.service"; // Corrected import
+import { getApplicationDetailsById, ApplicationDetails, fetchApplicationDetails, RiskAssessment, RepaymentPlan, RiskCategory, verifyApplication } from "@/services/application.service"; // Corrected import
 
 interface RiskData {  // Combined interface for risk and repayment data
   risk_assessment: RiskAssessment | null;
@@ -43,37 +44,39 @@ export default function ApplicationReviewPage() {
   }); // New state
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        if (applicationId) {
-          const [appDetails, fetchedRiskData] = await Promise.all([
-            getApplicationDetailsById(applicationId),
-            fetchApplicationDetails(applicationId),
-          ]);
+  // Function to fetch data (reusable)
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      if (applicationId) {
+        const [appDetails, fetchedRiskData] = await Promise.all([
+          getApplicationDetailsById(applicationId),
+          fetchApplicationDetails(applicationId),
+        ]);
 
-          setApplicationData(appDetails);
-          setRiskData({
-            risk_assessment: fetchedRiskData.risk_assessment,
-            plan: fetchedRiskData.plan,
-            total_score: fetchedRiskData.total_score
-          });
-        }
-      } catch (error: any) {
-        console.error("Error fetching data:", error);
-        setError(error.message || "Failed to load data.");
-      } finally {
-        setIsLoading(false);
+        setApplicationData(appDetails);
+        setRiskData({
+          risk_assessment: fetchedRiskData.risk_assessment,
+          plan: fetchedRiskData.plan,
+          total_score: fetchedRiskData.total_score
+        });
       }
-    };
+    } catch (error: any) {
+      console.error("Error fetching data:", error);
+      setError(error.message || "Failed to load data.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchData();
   }, [applicationId]);
 
+
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
-      case "approved":
+      case "verified":
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
             <CheckCircle2 className="mr-1 h-3 w-3" />
@@ -88,7 +91,8 @@ export default function ApplicationReviewPage() {
           </Badge>
         );
       case "pending":
-      case "verified":
+      // case "verified":  <-- REMOVE DUPLICATE CASE
+        break;
       default:
         return (
           <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
@@ -118,26 +122,10 @@ export default function ApplicationReviewPage() {
     return "text-red-600";
   };
 
-  const handleApprove = () => { setIsLoading(true); setTimeout(() => { setIsLoading(false); }, 1500); };
-  const handleReject = () => { setIsLoading(true); setTimeout(() => { setIsLoading(false); }, 1500); };
+  // const handleApprove = () => { setIsLoading(true); setTimeout(() => { setIsLoading(false); }, 1500); };
+  // const handleReject = () => { setIsLoading(true); setTimeout(() => { setIsLoading(false); }, 1500); };
 
-  if (isLoading || !applicationData || !riskData.risk_assessment) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader2 className="h-10 w-10 animate-spin" />
-        <span className="ml-2">Loading Application Data...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-red-500">Error: {error}</p>
-      </div>
-    );
-  }
-
+  //Moved this outside of loading check
   // Helper function to get risk assessment categories
   const getRiskCategories = () => {
     if (!riskData.risk_assessment) {
@@ -150,6 +138,87 @@ export default function ApplicationReviewPage() {
         ...(value as { risk_score: number; calculations: string }),
       }));
   };
+
+
+  if (isLoading && !applicationData) { // Only show loading if we DON'T have data yet
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-10 w-10 animate-spin" />
+        <span className="ml-2">Loading Application Data...</span>
+      </div>
+    );
+  }
+
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-red-500">Error: {error}</p>
+      </div>
+    );
+  }
+
+
+
+  const handleApprove = async () => {
+    if (!applicationId) {
+      toast.error("Application ID is missing."); //use toast for notifications
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await verifyApplication(applicationId, true); // Verify as true (approved)
+      toast.success("Application approved successfully!"); // Notify on success
+
+      // Update the application status locally *immediately*
+      setApplicationData((prevData) => {
+        if (prevData) {
+          return { ...prevData, status: "verified" };
+        }
+        return prevData;
+      });
+
+    } catch (error: any) {
+      toast.error(`Error approving application: ${error.message}`); // Notify on error
+      console.error("Error approving application:", error);
+    } finally {
+      setIsLoading(false); // Keep this.  Good practice.
+    }
+  };
+
+  const handleReject = async () => {
+    if (!applicationId) {
+      toast.error("Application ID is missing.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await verifyApplication(applicationId, false); // Verify as false (rejected)
+      toast.success("Application rejected successfully!");
+
+      // Update the application status locally *immediately*
+      setApplicationData((prevData) => {
+        if (prevData) {
+          return { ...prevData, status: "rejected" };
+        }
+        return prevData;
+      });
+
+    } catch (error: any) {
+      toast.error(`Error rejecting application: ${error.message}`);
+      console.error("Error rejecting application:", error);
+    } finally {
+      setIsLoading(false); // Keep this. Good practice.
+    }
+  };
+
+  // Important:  Check for null applicationData *before* accessing its properties.
+  // This handles the case where the data is still loading after an update.
+  if (!applicationData) {
+    return null; // Or a loading spinner, if you prefer.
+  }
 
   return (
     <div className="container mx-auto p-6">
@@ -184,91 +253,90 @@ export default function ApplicationReviewPage() {
                 <XCircle className="mr-2 h-4 w-4 text-red-600" />
                 Reject Application
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Clock className="mr-2 h-4 w-4 text-yellow-600" />
-                Mark as Pending
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <FileText className="mr-2 h-4 w-4" />
-                View Full Application
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
 
       <div className="mb-8 grid gap-6 md:grid-cols-3">
-        <Card>
-          {(() => {
-            let bgColorClass = "bg-yellow-100"; // Default for pending
-            let textColorClass = "text-yellow-800";
-            let borderColorClass = "border border-yellow-200"; // Border color
+        <Card className={(() => {
+          // Define color schemes for different statuses
+          let colorClasses = {
+            bgColor: "bg-yellow-100",
+            textColor: "text-yellow-800",
+            mutedColor: "text-yellow-600",
+            borderColor: "border-yellow-200"
+          };
 
-            switch (applicationData.status.toLowerCase()) {
-              case "approved":
-                bgColorClass = "bg-green-100";
-                textColorClass = "text-green-800";
-                borderColorClass = "border border-green-200";
-                break;
-              case "rejected":
-                bgColorClass = "bg-red-100";
-                textColorClass = "text-red-800";
-                borderColorClass = "border border-red-200";
-                break;
-              case "pending":
-              case "verified":
-                break; // Defaults are already set
-              default:
-                bgColorClass = "bg-gray-100";
-                textColorClass = "text-gray-800";
-                borderColorClass = "border border-gray-200";
-            }
+          switch (applicationData.status.toLowerCase()) {
+            case "verified":
+              colorClasses = {
+                bgColor: "bg-green-100",
+                textColor: "text-green-800",
+                mutedColor: "text-green-600",
+                borderColor: "border-green-200"
+              };
+              break;
+            case "rejected":
+              colorClasses = {
+                bgColor: "bg-red-100",
+                textColor: "text-red-800",
+                mutedColor: "text-red-600",
+                borderColor: "border-red-200"
+              };
+              break;
+            case "pending":
+              break; // Use default yellow colors
+            default:
+              colorClasses = {
+                bgColor: "bg-gray-100",
+                textColor: "text-gray-800",
+                mutedColor: "text-gray-600",
+                borderColor: "border-gray-200"
+              };
+          }
 
-            return (
-              <div className={`${bgColorClass} ${borderColorClass} rounded-lg`}> {/* Apply bg and border to a wrapping div */}
-                <CardHeader className={`px-6 py-4 ${textColorClass}`}>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Application Status</span>
-                    {getStatusBadge(applicationData.status)}
-                  </CardTitle>
-                  <CardDescription className={textColorClass}>
-                    Last updated on {formatDate(applicationData.updated_at.$date)}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className={`px-6 py-4`}> {/* Removed bgColorClass from here */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-10 w-10 border-2 border-white">
-                        <AvatarImage
-                          src="/placeholder.svg?height=40&width=40"
-                          alt={applicationData.personal_info.full_name}
-                        />
-                        <AvatarFallback>
-                          {applicationData.personal_info.full_name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className={`font-medium ${textColorClass}`}>
-                          {applicationData.personal_info.full_name}
-                        </p>
-                        <p className="text-muted-foreground text-sm">
-                          {applicationData.personal_info.email_address}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className={`text-sm font-medium ${textColorClass}`}>Reviewed by</p>
-                      <p className="text-muted-foreground text-sm">Admin</p>
-                    </div>
-                  </div>
-                </CardContent>
+          return `${colorClasses.bgColor} border ${colorClasses.borderColor}`;
+        })()}>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Application Status</span>
+              {getStatusBadge(applicationData.status)}
+            </CardTitle>
+            <CardDescription>
+              Last updated on {formatDate(applicationData.updated_at.$date)}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Avatar className="h-10 w-10 border-2 border-white">
+                  <AvatarImage
+                    src="/placeholder.svg?height=40&width=40"
+                    alt={applicationData.personal_info.full_name}
+                  />
+                  <AvatarFallback>
+                    {applicationData.personal_info.full_name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">
+                    {applicationData.personal_info.full_name}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {applicationData.personal_info.email_address}
+                  </p>
+                </div>
               </div>
-            );
-          })()}
+              <div className="text-right">
+                <p className="text-sm font-medium">Reviewed by</p>
+                <p className="text-sm text-muted-foreground">Admin</p>
+              </div>
+            </div>
+          </CardContent>
         </Card>
 
         <Card>
@@ -736,7 +804,7 @@ export default function ApplicationReviewPage() {
                     </div>
                     <div className="space-y-2">
                       <p className="text-muted-foreground text-sm font-medium">Proposed Repayment Period</p>
-                      <p>{applicationData.loan_details.proposed_repayment_period}</p>
+                                            <p>{applicationData.loan_details.proposed_repayment_period}</p>
                     </div>
                     <div className="space-y-2">
                       <p className="text-muted-foreground text-sm font-medium">

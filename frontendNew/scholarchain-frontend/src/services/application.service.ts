@@ -159,3 +159,19 @@ export async function fetchApplicationDetails(applicationId: string): Promise<Ap
     const data: ApplicationDetailsResponse = await response.json();
     return data;
 }
+
+// Added: Function to verify an application
+export async function verifyApplication(applicationId: string, verified: boolean): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/admin/verify/?application_id=${applicationId}&verified=${verified}`, {
+        method: "PUT",
+        headers: {
+            Authorization: `Bearer ${AuthService.getToken()}`,
+            "accept": "application/json",
+        },
+    });
+
+    if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to verify application: ${errorData}`);
+    }
+}

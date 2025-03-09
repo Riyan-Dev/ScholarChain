@@ -98,7 +98,7 @@ const LoginPage = () => {
                 placeholder="Password"
                 className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200"
               />
-              <button className="mt-3 cursor-pointer rounded-lg bg-indigo-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600">
+              <button className="mt-3 cursor-pointer rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-gray-500 dark:hover:bg-indigo-600">
                 Sign Up
               </button>
             </form>
@@ -170,7 +170,7 @@ const LoginPage = () => {
               >
                 Forget Your Password?
               </a>
-              <button className="mt-3 cursor-pointer rounded-lg bg-indigo-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600">
+              <button className="mt-3 cursor-pointer rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-gray-500 dark:hover:bg-indigo-600">
                 Sign In
               </button>
             </form>
@@ -187,7 +187,7 @@ const LoginPage = () => {
             <div
               className={`relative -left-full h-full w-[200%] transition-transform duration-500 ease-in-out ${
                 isActive ? "translate-x-1/2" : "translate-x-0"
-              } bg-gradient-to-r from-indigo-500 to-indigo-700 text-white dark:from-indigo-400 dark:to-indigo-600`}
+              } dark: bg-gradient-to-r from-gray-600 to-gray-800 text-white`}
             >
               <div
                 className={`absolute flex h-full w-1/2 flex-col items-center justify-center px-8 text-center transition-transform duration-500 ease-in-out ${

@@ -52,7 +52,7 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {pathname !== "/auth" ? (
+            {pathname !== "/auth" && pathname !== "/" ? (
               <div className="flex h-screen">
                 <Sidebar />
                 <div className="flex w-full flex-1 flex-col">

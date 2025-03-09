@@ -68,16 +68,19 @@ class ApplicationService:
         return {"Message": "Application Stage Updated"}
 
     @staticmethod
-    async def verify_application(application_id: str):
-
-        update_data = {
-            "updated_at": datetime.now(),
-            "status": "verified"
-        }
+    async def verify_application(application_id: str, verified: bool):
+        if verified:
+            update_data = {
+                "updated_at": datetime.now(),
+                "status": "verified"
+            }
+        else:
+            update_data = {
+                "updated_at": datetime.now(),
+                "status": "rejected"
+            }
 
         try:
-            
-
             # Perform the update
             result = await application_collection.update_one(
                 {"_id": ObjectId(application_id)},

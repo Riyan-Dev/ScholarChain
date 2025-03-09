@@ -39,7 +39,10 @@ export function ReviewApplicationCard({ onNext }: ReviewApplicationCardProps) {
       setPollingEnabled(true);
       setIsProcessing(true); // Set card to inactive
       setProgress(50);
-    } else if (data && data.status === "verified") {
+    } else if (
+      data &&
+      (data.status === "verified" || data.status === "rejected")
+    ) {
       setPollingEnabled(false);
       setIsProcessing(false);
       setProgress(100);
@@ -79,32 +82,52 @@ export function ReviewApplicationCard({ onNext }: ReviewApplicationCardProps) {
             nextLabel="Review Application Form"
             isProcessing={isProcessing}
           />
-        ) : (
+        ) : data.status !== "rejected" ? (
           <CardFooterActions
             onNext={onNext}
             isProcessing={isProcessing}
             isNextDisabled={progress < 100}
           />
-        )
+        ) : null
       }
     >
-      <ProcessingIndicator
-        isProcessing={isProcessing}
-        progress={progress}
-        processingTitle="Application Processing"
-        processingItems={[
-          "Validating application data...",
-          "Performing credit check...",
-          "Calculating loan eligibility...",
-        ]}
-        completeTitle="Review Complete"
-        completeItems={[
-          "Application data verified",
-          "Credit check passed",
-          "Loan pre-approved",
-        ]}
-      />
-
+      {data.status !== "rejected" && (
+        <ProcessingIndicator
+          isProcessing={isProcessing}
+          progress={progress}
+          processingTitle="Application Processing"
+          processingItems={[
+            "Validating application data...",
+            "Performing credit check...",
+            "Calculating loan eligibility...",
+          ]}
+          completeTitle="Review Complete"
+          completeItems={[
+            "Application data verified",
+            "Credit check passed",
+            "Loan pre-approved",
+          ]}
+        />
+      )}
+      {data && data.status === "rejected" && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-900/20">
+          <h4 className="mb-2 font-medium text-red-800 dark:text-red-300">
+            Application Review Complete
+          </h4>
+          <ul className="space-y-2 text-sm text-red-700 dark:text-red-300">
+            {[
+              "Feasibility report did not pass the criteria",
+              "Contact our customer service to be eligible for applying again",
+              "Or, Try Again in 6 months",
+            ].map((item, index) => (
+              <li key={index} className="flex items-center gap-2">
+                <div className="size-2 rounded-full bg-red-500"></div>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {data && data.status === "pending" && (
         <div className="space-y-4">
           <h3 className="font-medium">Application Summary</h3>

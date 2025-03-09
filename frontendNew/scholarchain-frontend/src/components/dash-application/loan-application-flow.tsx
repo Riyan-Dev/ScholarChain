@@ -11,6 +11,7 @@ import { ReviewApplicationCard } from "./review-application-card";
 import { RepaymentPlanCard } from "./repayment-plan-card";
 import { StartApplicationCard } from "./start-application-card";
 import { updateStage } from "@/services/user.service";
+import { RepaymentPlanDisplay } from "./repayment-plan-card-2";
 
 export type ApplicationStage =
   | "start"
@@ -168,10 +169,15 @@ export function LoanApplicationFlow({
           )}
 
           {currentStage === "repayment" && (
-            <RepaymentPlanCard
-              onNext={handleNextStage}
-              onPrevious={handlePreviousStage}
-            />
+            <div className="p-8">
+              <RepaymentPlanDisplay
+                total_loan_amount={1500000}
+                start_date="01-Nov-2024"
+                end_date="31-Oct-2026"
+                repayment_frequency="quarterly"
+                installment_amount={58333.33}
+              />
+            </div>
           )}
 
           {currentStage === "complete" && (

@@ -13,26 +13,7 @@ import {
   SlidersHorizontal,
   XCircle,
 } from "lucide-react";
-} from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,7 +33,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -64,7 +44,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getAllApplications, Application } from "@/services/application.service";
+import {
+  getAllApplications,
+  Application,
+} from "@/services/application.service";
 
 export default function ApplicationsListPage() {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -122,8 +105,8 @@ export default function ApplicationsListPage() {
     currentTab === "all"
       ? filteredApplications
       : filteredApplications.filter(
-        (app) => app.status.toLowerCase() === currentTab
-      );
+          (app) => app.status.toLowerCase() === currentTab
+        );
 
   // 3. Sorting
   const sortedApplications = [...tabFilteredApplications]; // Sort *after* tab filtering
@@ -349,13 +332,11 @@ export default function ApplicationsListPage() {
               <div className="flex items-center justify-between">
                 <CardTitle>All Applications</CardTitle>
                 <CardDescription>
-                  {isLoading ? (
-                    "Loading applications..."
-                  ) : error ? (
-                    `Error: ${error}`
-                  ) : (
-                    `${tabFilteredApplications.length} applications found`
-                  )}
+                  {isLoading
+                    ? "Loading applications..."
+                    : error
+                      ? `Error: ${error}`
+                      : `${tabFilteredApplications.length} applications found`}
                 </CardDescription>
               </div>
             </CardHeader>
@@ -404,7 +385,7 @@ export default function ApplicationsListPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead
-                        className="px-2 cursor-pointer"
+                        className="cursor-pointer px-2"
                         onClick={() => requestSort("applicant")}
                       >
                         <div className="flex items-center gap-1">
@@ -413,7 +394,7 @@ export default function ApplicationsListPage() {
                         </div>
                       </TableHead>
                       <TableHead
-                        className="px-2 cursor-pointer"
+                        className="cursor-pointer px-2"
                         onClick={() => requestSort("amount")}
                       >
                         <div className="flex items-center gap-1">
@@ -422,7 +403,7 @@ export default function ApplicationsListPage() {
                         </div>
                       </TableHead>
                       <TableHead
-                        className="px-2 cursor-pointer"
+                        className="cursor-pointer px-2"
                         onClick={() => requestSort("status")}
                       >
                         <div className="flex items-center gap-1">
@@ -431,7 +412,7 @@ export default function ApplicationsListPage() {
                         </div>
                       </TableHead>
                       <TableHead
-                        className="px-2 cursor-pointer"
+                        className="cursor-pointer px-2"
                         onClick={() => requestSort("riskScore")}
                       >
                         <div className="flex items-center gap-1">
@@ -440,7 +421,7 @@ export default function ApplicationsListPage() {
                         </div>
                       </TableHead>
                       <TableHead
-                        className="px-2 cursor-pointer"
+                        className="cursor-pointer px-2"
                         onClick={() => requestSort("submittedDate")}
                       >
                         <div className="flex items-center gap-1">
@@ -448,7 +429,7 @@ export default function ApplicationsListPage() {
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
-                      <TableHead className="text-right px-2">Actions</TableHead>
+                      <TableHead className="px-2 text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -488,16 +469,20 @@ export default function ApplicationsListPage() {
                             {getStatusBadge(application.status)}
                           </TableCell>
                           <TableCell className="px-2">
-                            <span className={getRiskColor(application.riskScore)}>
+                            <span
+                              className={getRiskColor(application.riskScore)}
+                            >
                               {application.riskScore}
                             </span>
                           </TableCell>
                           <TableCell className="px-2">
                             {formatDate(application.submittedDate)}
                           </TableCell>
-                          <TableCell className="text-right px-2">
+                          <TableCell className="px-2 text-right">
                             <Button variant="ghost" size="icon" asChild>
-                              <Link href={`/admin/applications/${application.id}`}>
+                              <Link
+                                href={`/admin/applications/${application.id}`}
+                              >
                                 <FileText className="h-4 w-4" />
                                 <span className="sr-only">View</span>
                               </Link>
@@ -550,8 +535,9 @@ export default function ApplicationsListPage() {
                     ? "Loading pending applications..."
                     : error
                       ? `Error: ${error}`
-                      : `${tabFilteredApplications.length
-                      } pending applications found`}
+                      : `${
+                          tabFilteredApplications.length
+                        } pending applications found`}
                 </CardDescription>
               </div>
             </CardHeader>
@@ -624,7 +610,7 @@ export default function ApplicationsListPage() {
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
-                      <TableHead className="text-right px-2">Actions</TableHead>
+                      <TableHead className="px-2 text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -668,14 +654,16 @@ export default function ApplicationsListPage() {
                             {getStatusBadge(application.status)}
                           </TableCell>
                           <TableCell className="px-2">
-                            <span className={getRiskColor(application.riskScore)}>
+                            <span
+                              className={getRiskColor(application.riskScore)}
+                            >
                               {application.riskScore}
                             </span>
                           </TableCell>
                           <TableCell className="px-2">
                             {formatDate(application.submittedDate)}
                           </TableCell>
-                          <TableCell className="text-right px-2">
+                          <TableCell className="px-2 text-right">
                             <Button variant="ghost" size="icon" asChild>
                               <Link
                                 href={`/admin/applications/${application.id}`}
@@ -696,11 +684,13 @@ export default function ApplicationsListPage() {
             <CardFooter className="flex items-center justify-between border-t px-6 py-4">
               <div className="text-muted-foreground text-sm">
                 Showing <strong>{paginatedApplications.length}</strong> of{" "}
-                <strong>
-                  {tabFilteredApplications.length}
-                </strong>{" "}
-                pending applications (Total:{" "}
-                {applications.filter((app) => app.status.toLowerCase() === "pending").length}
+                <strong>{tabFilteredApplications.length}</strong> pending
+                applications (Total:{" "}
+                {
+                  applications.filter(
+                    (app) => app.status.toLowerCase() === "pending"
+                  ).length
+                }
                 )
               </div>
               <div className="flex items-center gap-2">
@@ -736,8 +726,9 @@ export default function ApplicationsListPage() {
                     ? "Loading approved applications..."
                     : error
                       ? `Error: ${error}`
-                      : `${tabFilteredApplications.length
-                      } approved applications found`}
+                      : `${
+                          tabFilteredApplications.length
+                        } approved applications found`}
                 </CardDescription>
               </div>
             </CardHeader>
@@ -810,7 +801,7 @@ export default function ApplicationsListPage() {
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
-                      <TableHead className="text-right px-2">Actions</TableHead>
+                      <TableHead className="px-2 text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -854,14 +845,16 @@ export default function ApplicationsListPage() {
                             {getStatusBadge(application.status)}
                           </TableCell>
                           <TableCell className="px-2">
-                            <span className={getRiskColor(application.riskScore)}>
+                            <span
+                              className={getRiskColor(application.riskScore)}
+                            >
                               {application.riskScore}
                             </span>
                           </TableCell>
                           <TableCell className="px-2">
                             {formatDate(application.submittedDate)}
                           </TableCell>
-                          <TableCell className="text-right px-2">
+                          <TableCell className="px-2 text-right">
                             <Button variant="ghost" size="icon" asChild>
                               <Link
                                 href={`/admin/applications/${application.id}`}
@@ -882,11 +875,13 @@ export default function ApplicationsListPage() {
             <CardFooter className="flex items-center justify-between border-t px-6 py-4">
               <div className="text-muted-foreground text-sm">
                 Showing <strong>{paginatedApplications.length}</strong> of{" "}
-                <strong>
-                  {tabFilteredApplications.length}
-                </strong>{" "}
-                approved applications (Total:{" "}
-                {applications.filter((app) => app.status.toLowerCase() === "approved").length}
+                <strong>{tabFilteredApplications.length}</strong> approved
+                applications (Total:{" "}
+                {
+                  applications.filter(
+                    (app) => app.status.toLowerCase() === "approved"
+                  ).length
+                }
                 )
               </div>
               <div className="flex items-center gap-2">
@@ -922,8 +917,9 @@ export default function ApplicationsListPage() {
                     ? "Loading rejected applications..."
                     : error
                       ? `Error: ${error}`
-                      : `${tabFilteredApplications.length
-                      } rejected applications found`}
+                      : `${
+                          tabFilteredApplications.length
+                        } rejected applications found`}
                 </CardDescription>
               </div>
             </CardHeader>
@@ -996,7 +992,7 @@ export default function ApplicationsListPage() {
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
-                      <TableHead className="text-right px-2">Actions</TableHead>
+                      <TableHead className="px-2 text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1040,14 +1036,16 @@ export default function ApplicationsListPage() {
                             {getStatusBadge(application.status)}
                           </TableCell>
                           <TableCell className="px-2">
-                            <span className={getRiskColor(application.riskScore)}>
+                            <span
+                              className={getRiskColor(application.riskScore)}
+                            >
                               {application.riskScore}
                             </span>
                           </TableCell>
                           <TableCell className="px-2">
                             {formatDate(application.submittedDate)}
                           </TableCell>
-                          <TableCell className="text-right px-2">
+                          <TableCell className="px-2 text-right">
                             <Button variant="ghost" size="icon" asChild>
                               <Link
                                 href={`/admin/applications/${application.id}`}
@@ -1068,11 +1066,13 @@ export default function ApplicationsListPage() {
             <CardFooter className="flex items-center justify-between border-t px-6 py-4">
               <div className="text-muted-foreground text-sm">
                 Showing <strong>{paginatedApplications.length}</strong> of{" "}
-                <strong>
-                  {tabFilteredApplications.length}
-                </strong>{" "}
-                rejected applications (Total:{" "}
-                {applications.filter((app) => app.status.toLowerCase() === "rejected").length}
+                <strong>{tabFilteredApplications.length}</strong> rejected
+                applications (Total:{" "}
+                {
+                  applications.filter(
+                    (app) => app.status.toLowerCase() === "rejected"
+                  ).length
+                }
                 )
               </div>
               <div className="flex items-center gap-2">
@@ -1099,6 +1099,4 @@ export default function ApplicationsListPage() {
       </Tabs>
     </div>
   );
-  );
 }
-

@@ -11,23 +11,30 @@ import { ReviewApplicationCard } from "./review-application-card";
 import { RepaymentPlanCard } from "./repayment-plan-card";
 import { StartApplicationCard } from "./start-application-card";
 import { updateStage } from "@/services/user.service";
+import { LoanDashData } from "@/lib/types";
 import { RepaymentPlanDisplay } from "./repayment-plan-card-2";
+import { LoanCard } from "../loan-details/loan-card";
 
 export type ApplicationStage =
   | "start"
   | "upload"
   | "review"
   | "repayment"
-  | "complete";
+  | "complete"
+  | "accepted";
 
 interface ApplicationFlowProps {
   stage: ApplicationStage;
   isUploaded: boolean;
+  application_id: string;
+  loan: LoanDashData;
 }
 
 export function LoanApplicationFlow({
   stage,
   isUploaded,
+  application_id,
+  loan,
 }: ApplicationFlowProps) {
   const [currentStage, setCurrentStage] = useState<ApplicationStage>(stage);
   const [previousStage, setPreviousStage] = useState<ApplicationStage | null>(
@@ -103,6 +110,9 @@ export function LoanApplicationFlow({
     } else if (currentStage === "repayment") {
       setCurrentStage("complete");
       updateStage("complete");
+    } else if (currentStage === "complete") {
+      setCurrentStage("accepted");
+      updateStage("accepted");
     }
   };
 
@@ -145,7 +155,9 @@ export function LoanApplicationFlow({
         </Card> */}
 
         {/* Application Timeline */}
-        <ApplicationTimeline currentStage={currentStage} />
+        {currentStage !== "accepted" && (
+          <ApplicationTimeline currentStage={currentStage} />
+        )}
         {/* Application Cards */}
         <div className="grid grid-cols-1 gap-6">
           {currentStage === "start" && (
@@ -171,11 +183,8 @@ export function LoanApplicationFlow({
           {currentStage === "repayment" && (
             <div className="p-8">
               <RepaymentPlanDisplay
-                total_loan_amount={1500000}
-                start_date="01-Nov-2024"
-                end_date="31-Oct-2026"
-                repayment_frequency="quarterly"
-                installment_amount={58333.33}
+                onNext={handleNextStage}
+                application_id={application_id}
               />
             </div>
           )}
@@ -191,11 +200,19 @@ export function LoanApplicationFlow({
                   Your loan application has been successfully submitted. You
                   will receive a confirmation email shortly.
                 </p>
-                <Button onClick={resetFlow} className="mt-4">
-                  Start New Application
+                <Button onClick={handleNextStage} className="mt-4">
+                  View Details
                 </Button>
               </div>
             </Card>
+          )}
+          {currentStage === "accepted" && (
+            <div className="container mx-auto p-4">
+              <h1 className="mb-6 text-2xl font-bold">Loan Sumamry</h1>
+              <div className="grid gap-6">
+                <LoanCard loan={loan || undefined} />
+              </div>
+            </div>
           )}
         </div>
       </div>

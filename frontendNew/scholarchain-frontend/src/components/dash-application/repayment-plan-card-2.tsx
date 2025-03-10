@@ -21,56 +21,101 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchPlan } from "@/services/user.service";
+import { Skeleton } from "../ui/skeleton";
+
+interface RepaymentPlanData {
+  _id: string;
+  total_loan_amount: number;
+  start_date: string; // Keep as string, handle parsing inside component
+  end_date: string; // Keep as string
+  repayment_frequency: "monthly" | "quarterly" | "biannually" | "annually";
+  installment_amount: number;
+  reasoning: string;
+  application_id: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface RepaymentPlanDisplayProps {
-  total_loan_amount: number;
-  start_date: string;
-  end_date: string;
-  repayment_frequency: "monthly"; // Could be extended to other frequencies
-  installment_amount: number;
+  onNext: () => void;
+  application_id: string;
 }
 
 export function RepaymentPlanDisplay({
-  total_loan_amount,
-  start_date,
-  end_date,
-  repayment_frequency,
-  installment_amount,
+  onNext,
+  application_id,
 }: RepaymentPlanDisplayProps) {
   const [isInstallmentsOpen, setIsInstallmentsOpen] = useState(false);
+  const [installmentDates, setInstallmentDates] = useState<Date[]>([]);
 
-  // Helper function to parse date string (handles "DD-MMM-YYYY" format)
+  const { data, error, isLoading } = useQuery<RepaymentPlanData, Error>({
+    // Specify data and error types
+    queryKey: ["repayment_plan", application_id],
+    queryFn: fetchPlan, // Pass application_id to fetchPlan
+  });
+
+  // Helper function to parse date string (handles "MMM-YYYY" format)
   const parseDate = (dateStr: string): Date => {
-    const [day, monthStr, year] = dateStr.split("-");
-    const monthNames = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const month = monthNames.indexOf(monthStr); // Convert month string to number (0-11)
+    //Handle different Date formats
+    console.log(dateStr);
+    if (dateStr.includes("-")) {
+      const parts = dateStr.split("-");
 
-    return new Date(parseInt(year), month, parseInt(day));
+      if (parts.length === 3) {
+        const [day, monthStr, year] = parts;
+        const monthNames = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+        const month = monthNames.indexOf(monthStr);
+        return new Date(parseInt(year), month, parseInt(day));
+      } else {
+        const [monthStr, year] = parts;
+        const monthNames = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+        const month = monthNames.indexOf(monthStr); // Convert month string to number (0-11)
+
+        return new Date(parseInt(year), month, 1); // Default to 1st of the month
+      }
+    }
+    return new Date(dateStr); // Fallback for other formats
   };
 
   // Improved installment date generation (always 5th of the month)
   const generateInstallmentDates = (
     startDateStr: string,
-    endDateStr: string
+    endDateStr: string,
+    frequency: "monthly" | "quarterly" | "biannually" | "annually"
   ) => {
     const startDate = parseDate(startDateStr);
     const endDate = parseDate(endDateStr);
 
-    const installmentDates = [];
+    const installmentDatesArray: Date[] = [];
     let currentDate = new Date(
       startDate.getFullYear(),
       startDate.getMonth(),
@@ -78,13 +123,41 @@ export function RepaymentPlanDisplay({
     ); // Start at the 5th
 
     while (currentDate <= endDate) {
-      installmentDates.push(new Date(currentDate)); // Push a *copy* of the date
-      currentDate.setMonth(currentDate.getMonth() + 1); // Go to the next month
+      installmentDatesArray.push(new Date(currentDate)); // Push a *copy*
+
+      // Adjust the date based on the frequency
+      switch (frequency) {
+        case "monthly":
+          currentDate.setMonth(currentDate.getMonth() + 1);
+          break;
+        case "quarterly":
+          currentDate.setMonth(currentDate.getMonth() + 3);
+          break;
+        case "biannually":
+          currentDate.setMonth(currentDate.getMonth() + 6);
+          break;
+        case "annually":
+          currentDate.setFullYear(currentDate.getFullYear() + 1);
+          break;
+      }
     }
-    return installmentDates;
+
+    return installmentDatesArray;
   };
 
-  const installmentDates = generateInstallmentDates(start_date, end_date);
+  useEffect(() => {
+    console.log(data);
+    if (data) {
+      const newInstallmentDates = generateInstallmentDates(
+        data.start_date,
+        data.end_date,
+        data.repayment_frequency
+      );
+      setInstallmentDates(newInstallmentDates);
+      // No need to modify data.installment_amount here; use the value from the API
+    }
+  }, [data]);
+
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
       year: "numeric",
@@ -92,6 +165,24 @@ export function RepaymentPlanDisplay({
       day: "numeric",
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 p-4">
+        <div className="w-full">
+          <Skeleton className="h-48 w-full" />{" "}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  if (!data) {
+    return <div>No data found.</div>;
+  }
 
   return (
     <Card className="w-full">
@@ -105,31 +196,35 @@ export function RepaymentPlanDisplay({
             <div>
               <Label>Total Loan Amount</Label>
               <div className="text-lg font-semibold">
-                ${total_loan_amount.toLocaleString()}
+                ${data.total_loan_amount.toLocaleString()}
               </div>
             </div>
             <div>
               <Label>Repayment Frequency</Label>
-              <div className="text-lg font-semibold">{repayment_frequency}</div>
+              <div className="text-lg font-semibold">
+                {data.repayment_frequency}
+              </div>
             </div>
             <div>
               <Label>Start Date</Label>
               <div className="text-base font-semibold">
-                {parseDate(start_date).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+                {data &&
+                  parseDate(data.start_date).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
               </div>
             </div>
             <div>
               <Label>End Date</Label>
               <div className="text-base font-semibold">
-                {parseDate(end_date).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+                {data &&
+                  parseDate(data.end_date).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
               </div>
             </div>
           </div>
@@ -137,7 +232,7 @@ export function RepaymentPlanDisplay({
           <div>
             <Label>Installment Amount</Label>
             <div className="text-lg font-semibold">
-              ${installment_amount.toLocaleString()}
+              ${data.installment_amount.toLocaleString()}
             </div>
           </div>
 
@@ -170,7 +265,7 @@ export function RepaymentPlanDisplay({
                       <TableRow key={index}>
                         <TableCell>{formatDate(date)}</TableCell>
                         <TableCell>
-                          ${installment_amount.toLocaleString()}
+                          ${data.installment_amount.toLocaleString()}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -181,8 +276,8 @@ export function RepaymentPlanDisplay({
           </div>
         </div>
 
-        <Button className="mt-6 w-full" disabled>
-          Submit Application
+        <Button className="mt-6 w-full" onClick={onNext}>
+          Accept Application
         </Button>
       </CardContent>
     </Card>

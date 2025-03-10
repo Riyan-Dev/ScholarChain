@@ -275,7 +275,7 @@ export default function DocumentUploadPage() {
               <Button
                 // disabled={uploadedCount < totalCount}
                 onClick={handleSubmitDocuments}
-                className="px-8"
+                className="cursor-pointer px-8"
               >
                 Submit Documents
               </Button>

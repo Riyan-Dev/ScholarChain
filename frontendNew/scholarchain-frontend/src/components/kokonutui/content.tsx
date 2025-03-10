@@ -44,14 +44,13 @@ export default function Content() {
   return (
     <div className="space-y-4">
       <div className="w-full">
-        <h1 className="mb-8 text-center text-3xl font-bold">
-          Loan Application Process
-        </h1>
         {/* Correct conditional rendering: */}
         {data && (
           <LoanApplicationFlow
             stage={data.application_stage}
             isUploaded={data.is_uploaded}
+            application_id={data.app_id}
+            loan={data.loan}
           />
         )}
       </div>

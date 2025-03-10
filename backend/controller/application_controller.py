@@ -24,6 +24,14 @@ async def accept_plan(stage: str, current_user: TokenData = Depends(get_current_
 async def repay_loan(current_user: TokenData = Depends(get_current_user)):
     return await LoanService.repay_loan(current_user.username)
 
+@application_router.get('/get-loan-details/')
+async def get_loan_details(current_user: TokenData = Depends(get_current_user)):
+    return await LoanService.get_loan_details(current_user.username)
+
+@application_router.get('/get-plan')
+async def get_plan(application_id: str, current_user: TokenData = Depends(get_current_user)):
+    return await ApplicationService.get_plan_db(application_id)
+
 # @application_router.get('/risk-assessment/')
 # async def get_risk_assessment(application_id: str, current_user: TokenData = Depends(get_current_user)):
 #     return await RiskScoreCalCulations.get_riskscore(application_id);

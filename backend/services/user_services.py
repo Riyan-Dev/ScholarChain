@@ -394,7 +394,8 @@ class UserService:
         
     @staticmethod
     async def get_dash(username): 
-
+        from services.application_services import ApplicationService
+        from services.loan_services import LoanService
         pipeline = [
             {
                 "$match": {
@@ -411,5 +412,13 @@ class UserService:
         ]
 
         result = await user_collection.aggregate(pipeline).to_list(length=1)
-        
-        return result[0]
+        dashData = result[0]
+        application_data = await ApplicationService.application_overview(username);
+        dashData["app_id"] = str(application_data["_id"])
+
+        loan = await LoanService.get_loan_summary(username)
+
+        if loan:
+            dashData["loan"] = loan
+
+        return dashData

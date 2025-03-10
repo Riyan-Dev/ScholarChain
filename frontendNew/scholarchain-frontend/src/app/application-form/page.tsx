@@ -307,7 +307,6 @@ export default function ApplicationFormComponent({
     setIsSubmitting(true);
 
     try {
-      formData.status = "submitted";
       const result = await submitApplication(formData);
 
       if (result.success) {

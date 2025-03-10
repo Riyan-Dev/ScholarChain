@@ -73,16 +73,15 @@ class ApplicationService:
             "updated_at": datetime.now(),
             "status": "accepted"
         }
-        await ApplicationService.update_application(username, update_data)
-
+        results = await ApplicationService.update_application(username, update_data)
+        print(results)
         plan_data = await ApplicationService.get_plan_db(application_id)    
-        plan = Plan(**plan_data)
 
-        await TransactionServices.transfer_token(plan.total_loan_amount, "scholarchain", username)
+        # await TransactionServices.transfer_token(plan_data["total_loan_amount"], "scholarchain", username)
 
-        deploy_result = await BlockchainService.deploy_loan_contract(username, plan.total_loan_amount)
-        print(deploy_result)
-        return await LoanService.create_loan(username, plan.total_loan_amount, plan.calculate_number_of_installments(), deploy_result["contract_address"])
+        # deploy_result = await BlockchainService.deploy_loan_contract(username, plan_data["total_loan_amount"])
+        # print(deploy_result)
+        return await LoanService.create_loan(plan_data["total_loan_amount"], plan_data["start_date"], plan_data["end_date"], plan_data["repayment_frequency"], username, "")
 
 
     @staticmethod
@@ -131,7 +130,9 @@ class ApplicationService:
         if not update_data:
             raise HTTPException(status_code=400, detail="No data provided for update.")
 
-        update_data = convert_date_fields(update_data)
+        update_data["start_date"] = update_data["start_date"].strftime("%b-%Y")
+        update_data["end_date"] = update_data["end_date"].strftime("%b-%Y")
+        print(update_data)
         try:
             
             update_data['updated_at'] = datetime.utcnow()
@@ -248,7 +249,7 @@ class ApplicationService:
                     Example JSON OBject
                     {{
                         "total_loan_amount": 2000000, (double)
-                        "Start_date": "month-year", # month and Year as date
+                        "start_date": "month-year", # month and Year as date
                         "end_date": "month-year", # month and Year as date
                         "repayment_frequency": "", (only options are monthly, quarterly, bi-yearly, or annually)
                         "installment_amount": 500000, (double) also make sure twice by calculating this value is correct or not

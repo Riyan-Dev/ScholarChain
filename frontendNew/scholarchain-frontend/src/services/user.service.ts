@@ -105,6 +105,27 @@ export const fetchApplication = async ({ queryKey }) => {
   return res.json();
 };
 
+export const fetchPlan = async ({ queryKey }) => {
+  const [_key, id] = queryKey;
+  const params = new URLSearchParams({
+    application_id: id,
+  });
+  const res = await fetch(
+    `${API_BASE_URL}/application/get-plan/?${params.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${AuthService.getToken()}`,
+      },
+    }
+  );
+  if (!res.ok) {
+    throw new Error(`HTTP error! Status: ${res.status}`);
+  }
+  return res.json();
+};
+
+
 export const submitApplication = async (formData: any) => {
   formData.status = "submitted";
   formData.financial_info.other_income_sources = commaSplitString(

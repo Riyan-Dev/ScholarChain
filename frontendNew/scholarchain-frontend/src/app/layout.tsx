@@ -69,7 +69,7 @@ export default async function RootLayout({
                 {children}
               </main>
             )}
-            <Toaster />
+            <Toaster className="z-[9999]" />
           </ThemeProvider>
         </Providers>
       </body>

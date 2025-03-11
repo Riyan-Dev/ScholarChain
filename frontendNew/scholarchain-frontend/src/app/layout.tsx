@@ -52,7 +52,20 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {pathname !== "/auth" && pathname !== "/" ? (
+            {pathname && pathname.includes("donor") ? (
+              // Layout for donor pages
+              <div className="flex h-screen">
+                <div className="flex w-full flex-1 flex-col">
+                  <header className="h-16 border-b border-gray-200 dark:border-[#1F1F23]">
+                    <TopNav />
+                  </header>
+                  <main className="flex-1 overflow-auto bg-white p-6 dark:bg-[#0F0F12]">
+                    {children}
+                  </main>
+                </div>
+              </div>
+            ) : pathname !== "/auth" && pathname !== "/" ? (
+              // Layout with Sidebar
               <div className="flex h-screen">
                 <Sidebar />
                 <div className="flex w-full flex-1 flex-col">
@@ -65,6 +78,7 @@ export default async function RootLayout({
                 </div>
               </div>
             ) : (
+              // Default layout
               <main className="flex-1 overflow-auto bg-white dark:bg-[#0F0F12]">
                 {children}
               </main>

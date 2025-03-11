@@ -21,6 +21,7 @@ from models.wallet import Wallet
 from services.encrption_services import EncrptionServices
 from services.rag_services import pdf_to_images, vision_model
 from services.documents import document
+from services.transaction_services import TransactionServices
 
 
 
@@ -396,7 +397,7 @@ class UserService:
             return {"status": False, "progress": 0}  # User not found or no documents field
         
     @staticmethod
-    async def get_dash(username): 
+    async def get_applicant_dash(username): 
         from services.application_services import ApplicationService
         from services.loan_services import LoanService
         pipeline = [
@@ -421,8 +422,11 @@ class UserService:
             dashData["app_id"] = str(application_data["_id"])
 
         loan = await LoanService.get_loan_summary(username)
-
         if loan:
             dashData["loan"] = loan
+
+        wallet = await TransactionServices.get_wallet(username)
+        if wallet:
+            dashData["wallet_data"] = wallet
 
         return dashData

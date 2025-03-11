@@ -69,12 +69,12 @@ class ApplicationService:
 
     @staticmethod
     async def accept_application(username: str, application_id: str):
-        update_data = {
-            "updated_at": datetime.now(),
-            "status": "accepted"
-        }
-        results = await ApplicationService.update_application(username, update_data)
-        print(results)
+        # update_data = {
+        #     "updated_at": datetime.now(),
+        #     "status": "accepted"
+        # }
+        # results = await ApplicationService.update_application(username, update_data)
+        # print(results)
         plan_data = await ApplicationService.get_plan_db(application_id)    
 
         # await TransactionServices.transfer_token(plan_data["total_loan_amount"], "scholarchain", username)

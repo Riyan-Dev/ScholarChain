@@ -70,20 +70,25 @@ class LoanService:
 
     @staticmethod
     async def repay_loan(username): 
-        loan_data = await LoanService.get_loan(username)
+        loan_data = await LoanService.get_loan_details(username)
         loan = Loan(**loan_data)
-
         installments_remaining = loan.no_of_installments - loan.installments_completed
         amount_remaining = loan.loan_amount - loan.loan_amount_repaid
         amount_to_pay = math.ceil(amount_remaining / installments_remaining)
 
-        await TransactionServices.transfer_token(amount_to_pay, username, "scholarchain")
+        
+        # await TransactionServices.transfer_token(amount_to_pay, username, "scholarchain")
 
-        deploy_result = await BlockchainService.repay_loan(username, loan.contract_address, amount_to_pay)
-        print(deploy_result)
+        # deploy_result = await BlockchainService.repay_loan(username, loan.contract_address, amount_to_pay)
+        # print(deploy_result)
 
+        first_pending = next((inst for inst in loan.installments if inst.installment_status == "pending"), None)
+        first_pending.installment_status = "paid"
+        first_pending.amount_paid = amount_to_pay
+        first_pending.installment_paid_date = datetime.now()
         loan.installments_completed += 1
         loan.loan_amount_repaid += amount_to_pay
+        
 
         return await LoanService.update_loan(username, loan.dict())
     

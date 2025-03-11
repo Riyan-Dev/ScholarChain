@@ -5,6 +5,7 @@ from datetime import datetime
 class Installment(BaseModel):
     installment_id: int
     installment_date: datetime
+    installment_paid_date: Optional[datetime] = None
     installment_status: str = "pending"
     amount_paid: float = 0
     class Config:

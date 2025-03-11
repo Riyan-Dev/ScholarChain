@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { DonorDashboard } from "@/components/donor-dash-new/donor-dashboard";
 
 export default function Home() {

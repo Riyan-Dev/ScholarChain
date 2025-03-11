@@ -1,6 +1,7 @@
+/* eslint-disable prettier/prettier */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CreditCard, DollarSign, History, LayoutDashboard } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -8,95 +9,78 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DonateTokens } from "./donate-tokens";
 import { TokenOverview } from "./token-overview";
 import { TransactionHistory } from "./transaction-history";
-import { TransactionsCard } from "../crpto-dash/transactions-card";
-import { WalletCard } from "../crpto-dash/wallet-card";
+import { fetchDash } from "@/services/user.service";
+import { AuthService } from "@/services/auth.service";
+import { useRouter } from "next/navigation";
 
-// Mock data based on the provided MongoDB document
-const mockUserData = {
-  _id: "67d083541fc6af0758bc0d90",
-  username: "Donor2",
-  public_key: "0xFB221727f2Fd0aD1b22E0B0066aF404F6B448CE6",
-  encrypted_private_key:
-    "0HCmR2Ci5x6C74siv6i7DQ4TyzshhYmFRJrMbEJU0naKcLtpn9XIMFUAeHCOeCKgrkINWMBTgDbP1VCMZfQIhQ==",
-  balance: 19100,
-  transactions: [
-    {
-      username: "",
-      amount: 1000,
-      action: "buy",
-      timestamp: "2025-03-11 23:39:06",
-    },
-    {
-      username: "scholarchain",
-      amount: 500,
-      action: "debit",
-      timestamp: "2025-03-11 23:39:06",
-    },
-    {
-      username: "scholarchain",
-      amount: 500,
-      action: "debit",
-      timestamp: "2025-03-11 23:39:06",
-    },
-    {
-      username: "",
-      amount: 1000,
-      action: "buy",
-      timestamp: "2025-03-11 23:42:53",
-    },
-    {
-      username: "scholarchain",
-      amount: 500,
-      action: "debit",
-      timestamp: "2025-03-11 23:42:53",
-    },
-    {
-      username: "",
-      amount: 0,
-      action: "buy",
-      timestamp: "2025-03-11 23:42:53",
-    },
-    {
-      username: "",
-      amount: 100,
-      action: "buy",
-      timestamp: "2025-03-12 00:56:51",
-    },
-    {
-      username: "",
-      amount: 15500,
-      action: "buy",
-      timestamp: "2025-03-12 00:56:51",
-    },
-    {
-      username: "",
-      amount: 3000,
-      action: "buy",
-      timestamp: "2025-03-12 00:56:51",
-    },
-  ],
-};
+interface Transaction {
+  username: string;
+  amount: number;
+  action: string;
+  timestamp: string;
+}
 
+interface UserData {
+  username: string;
+  public_key: string;
+  balance: number;
+  transactions: Transaction[];
+  totalCredit?: number;
+  totalDebit?: number;
+  loan?: any;
+  wallet_data?: any;
+}
 
 
 export function DonorDashboard() {
-  const [userData, setUserData] = useState(mockUserData);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  const handleDonation = (amount: number) => {
-    // In a real app, this would make an API call to process the donation
-    const newTransaction = {
-      username: "scholarchain",
-      amount: amount,
-      action: "debit",
-      timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+  // Function to fetch and update user data
+  const updateUserData = async () => {
+    try {
+      const data = await fetchDash();
+      setUserData(data);
+    } catch (err: any) {
+      setError(err.message || "An error occurred while fetching data.");
+    }
+  };
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (!AuthService.getToken()) {
+          setError("User not authenticated. Please log in.");
+          setLoading(false);
+          return;
+        }
+        await updateUserData();
+
+      } catch (err: any) {
+        setError(err.message || "An error occurred while fetching data.");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    setUserData({
-      ...userData,
-      balance: userData.balance - amount,
-      transactions: [newTransaction, ...userData.transactions],
-    });
-  };
+    fetchData();
+  }, []);
+
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (!userData) {
+    return <div>No data available.</div>;
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -104,7 +88,7 @@ export function DonorDashboard() {
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-3xl font-bold tracking-tight">Donor Dashboard</h2>
           <div className="flex items-center space-x-2">
-            <Button>Buy Tokens</Button>
+            <Button onClick={() => router.push("/purchase")}>Buy Tokens</Button>
           </div>
         </div>
         <Tabs defaultValue="overview" className="space-y-4">
@@ -132,14 +116,14 @@ export function DonorDashboard() {
             <TransactionHistory transactions={userData.transactions} />
           </TabsContent>
           <TabsContent value="donate" className="space-y-4">
+            {/* Pass updateUserData to DonateTokens */}
             <DonateTokens
               balance={userData.balance}
-              onDonate={handleDonation}
+              onDonate={updateUserData}  // Pass the update function!
             />
           </TabsContent>
         </Tabs>
       </div>
-      
     </div>
   );
 }

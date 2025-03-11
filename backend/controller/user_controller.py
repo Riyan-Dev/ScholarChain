@@ -47,7 +47,8 @@ async def get_dash(token: TokenData = Depends(get_current_user)):
         dash = await UserService.get_applicant_dash(token.username)
         return dash
     elif token.role == "donator": 
-        pass
+        dash = await UserService.get_donator_dash(token.username)
+        return dash
     elif token.role == "admin":
         pass
 

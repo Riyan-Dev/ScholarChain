@@ -30,6 +30,29 @@ export default function Sidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
 
+  const sidebarItems = {
+    applicant: {
+      overview: [
+        {
+          href: "#",
+          icon: Home,
+          label: "Dashboard",
+          onClick: () => {
+            router.push("/dashboard");
+          },
+        },
+        {
+          href: "#",
+          icon: SquarePlus,
+          label: "New Application",
+          onClick: () => {},
+        },
+      ],
+    },
+    donor: {},
+    admin: {},
+  };
+
   function handleNavigation() {
     setIsMobileMenuOpen(false);
   }
@@ -111,42 +134,11 @@ export default function Sidebar() {
                 <div className="mb-2 px-3 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
                   Overview
                 </div>
-                <div className="space-y-1">
-                  <NavItem
-                    href="#"
-                    icon={Home}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      router.push("/dashboard");
-                    }}
-                  >
-                    Dashboard
+                {sidebarItems.applicant.overview.map((item, index) => (
+                  <NavItem key={index} href={item.href} icon={item.icon}>
+                    {item.label}
                   </NavItem>
-                  <NavItem
-                    href="/upload-doc"
-                    icon={SquarePlus}
-                    onClick={async (e) => {
-                      e.preventDefault();
-
-                      const data = await fetchDash();
-                      if (data.application_stage === "start") {
-                        router.push("/upload-doc");
-                        updateStage("upload");
-
-                      } else {
-                        setAlertOpen(true);
-                      }
-                    }}
-                  >
-                    New Application
-                  </NavItem>
-                  {/* <NavItem href="#" icon={Building2}>
-                    Organization
-                  </NavItem>
-                  <NavItem href="#" icon={Folder}>
-                    Projects
-                  </NavItem> */}
-                </div>
+                ))}
               </div>
 
               <div>

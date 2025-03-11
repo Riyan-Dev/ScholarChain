@@ -154,7 +154,7 @@ class LoanService:
             return
         loan["_id"] = str(loan["_id"])
         pipeline = [
-            {"$match": {"username": "scholarchain"}},  
+            {"$match": {"username": username}},  
             {"$unwind": "$installments"},  
             {
                 "$group": {

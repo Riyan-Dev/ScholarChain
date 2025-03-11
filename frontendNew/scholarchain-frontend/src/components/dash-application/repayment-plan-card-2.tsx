@@ -25,6 +25,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPlan } from "@/services/user.service";
 import { Skeleton } from "../ui/skeleton";
+import { acceptApplication } from "@/services/application.service";
 
 interface RepaymentPlanData {
   _id: string;
@@ -57,6 +58,11 @@ export function RepaymentPlanDisplay({
     queryFn: fetchPlan, // Pass application_id to fetchPlan
   });
 
+  const handleAcceptApplication = () => {
+    acceptApplication(application_id);
+
+    onNext();
+  };
   // Helper function to parse date string (handles "MMM-YYYY" format)
   const parseDate = (dateStr: string): Date => {
     //Handle different Date formats
@@ -196,7 +202,7 @@ export function RepaymentPlanDisplay({
             <div>
               <Label>Total Loan Amount</Label>
               <div className="text-lg font-semibold">
-                ${data.total_loan_amount.toLocaleString()}
+                {data.total_loan_amount.toLocaleString()} PKR
               </div>
             </div>
             <div>
@@ -232,7 +238,7 @@ export function RepaymentPlanDisplay({
           <div>
             <Label>Installment Amount</Label>
             <div className="text-lg font-semibold">
-              ${data.installment_amount.toLocaleString()}
+              {data.installment_amount.toLocaleString()} PKR
             </div>
           </div>
 
@@ -265,7 +271,7 @@ export function RepaymentPlanDisplay({
                       <TableRow key={index}>
                         <TableCell>{formatDate(date)}</TableCell>
                         <TableCell>
-                          ${data.installment_amount.toLocaleString()}
+                          {data.installment_amount.toLocaleString()} PKR
                         </TableCell>
                       </TableRow>
                     ))}
@@ -276,7 +282,7 @@ export function RepaymentPlanDisplay({
           </div>
         </div>
 
-        <Button className="mt-6 w-full" onClick={onNext}>
+        <Button className="mt-6 w-full" onClick={handleAcceptApplication}>
           Accept Application
         </Button>
       </CardContent>

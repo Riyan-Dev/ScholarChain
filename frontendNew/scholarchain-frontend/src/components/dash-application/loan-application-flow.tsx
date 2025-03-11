@@ -14,6 +14,7 @@ import { updateStage } from "@/services/user.service";
 import { LoanDashData } from "@/lib/types";
 import { RepaymentPlanDisplay } from "./repayment-plan-card-2";
 import { LoanCard } from "../loan-details/loan-card";
+import { useRouter } from "next/navigation";
 
 export type ApplicationStage =
   | "start"
@@ -36,6 +37,8 @@ export function LoanApplicationFlow({
   application_id,
   loan,
 }: ApplicationFlowProps) {
+  const router = useRouter();
+
   const [currentStage, setCurrentStage] = useState<ApplicationStage>(stage);
   const [previousStage, setPreviousStage] = useState<ApplicationStage | null>(
     null
@@ -94,7 +97,6 @@ export function LoanApplicationFlow({
 
     return () => clearInterval(interval);
   };
-
   // Handle next stage navigation
   const handleNextStage = () => {
     setPreviousStage(currentStage);
@@ -111,8 +113,8 @@ export function LoanApplicationFlow({
       setCurrentStage("complete");
       updateStage("complete");
     } else if (currentStage === "complete") {
-      setCurrentStage("accepted");
       updateStage("accepted");
+      router.push("/loan-details");
     }
   };
 
@@ -134,11 +136,12 @@ export function LoanApplicationFlow({
     setReviewProgress(0);
   };
 
-  return (
-    <Card className="w-full flex-grow p-6">
-      <div className="space-y-8">
-        {/* Demo Controls */}
-        {/* <Card className="border border-dashed p-4">
+  if (currentStage !== "accepted")
+    return (
+      <Card className="w-full flex-grow p-6">
+        <div className="space-y-8">
+          {/* Demo Controls */}
+          {/* <Card className="border border-dashed p-4">
           <h3 className="mb-3 text-sm font-medium">Demo Controls</h3>
           <Tabs
             defaultValue={currentStage}
@@ -154,68 +157,61 @@ export function LoanApplicationFlow({
           </Tabs>
         </Card> */}
 
-        {/* Application Timeline */}
-        {currentStage !== "accepted" && (
-          <ApplicationTimeline currentStage={currentStage} />
-        )}
-        {/* Application Cards */}
-        <div className="grid grid-cols-1 gap-6">
-          {currentStage === "start" && (
-            <StartApplicationCard onNext={handleNextStage} />
+          {/* Application Timeline */}
+          {currentStage !== "accepted" && (
+            <ApplicationTimeline currentStage={currentStage} />
           )}
+          {/* Application Cards */}
+          <div className="grid grid-cols-1 gap-6">
+            {currentStage === "start" && (
+              <StartApplicationCard onNext={handleNextStage} />
+            )}
 
-          {currentStage === "upload" && (
-            <DocumentUploadCard
-              isUploaded={isUploaded}
-              onNext={handleNextStage}
-            />
-          )}
-
-          {currentStage === "review" && (
-            <ReviewApplicationCard
-              isProcessing={isReviewing}
-              progress={reviewProgress}
-              onNext={handleNextStage}
-              onPrevious={handlePreviousStage}
-            />
-          )}
-
-          {currentStage === "repayment" && (
-            <div className="p-8">
-              <RepaymentPlanDisplay
+            {currentStage === "upload" && (
+              <DocumentUploadCard
+                isUploaded={isUploaded}
                 onNext={handleNextStage}
-                application_id={application_id}
               />
-            </div>
-          )}
+            )}
 
-          {currentStage === "complete" && (
-            <Card className="border-green-200 bg-green-50 p-8 text-center dark:border-green-900 dark:bg-green-950/20">
-              <div className="flex flex-col items-center gap-4">
-                <div className="rounded-full bg-green-100 p-3 dark:bg-green-900/30">
-                  <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
+            {currentStage === "review" && (
+              <ReviewApplicationCard
+                isProcessing={isReviewing}
+                progress={reviewProgress}
+                onNext={handleNextStage}
+                onPrevious={handlePreviousStage}
+              />
+            )}
+
+            {currentStage === "repayment" && (
+              <div className="p-8">
+                <RepaymentPlanDisplay
+                  onNext={handleNextStage}
+                  application_id={application_id}
+                />
+              </div>
+            )}
+
+            {currentStage === "complete" && (
+              <Card className="border-green-200 bg-green-50 p-8 text-center dark:border-green-900 dark:bg-green-950/20">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="rounded-full bg-green-100 p-3 dark:bg-green-900/30">
+                    <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
+                  </div>
+                  <h2 className="text-2xl font-bold">Application Complete!</h2>
+                  <p className="text-muted-foreground max-w-md">
+                    Your loan application has been successfully submitted. You
+                    will receive a confirmation email shortly.
+                  </p>
+                  <Button onClick={handleNextStage} className="mt-4">
+                    View Details
+                  </Button>
                 </div>
-                <h2 className="text-2xl font-bold">Application Complete!</h2>
-                <p className="text-muted-foreground max-w-md">
-                  Your loan application has been successfully submitted. You
-                  will receive a confirmation email shortly.
-                </p>
-                <Button onClick={handleNextStage} className="mt-4">
-                  View Details
-                </Button>
-              </div>
-            </Card>
-          )}
-          {currentStage === "accepted" && (
-            <div className="container mx-auto p-4">
-              <h1 className="mb-6 text-2xl font-bold">Loan Sumamry</h1>
-              <div className="grid gap-6">
-                <LoanCard loan={loan || undefined} />
-              </div>
-            </div>
-          )}
+              </Card>
+            )}
+          </div>
         </div>
-      </div>
-    </Card>
-  );
+      </Card>
+    );
+  else return <LoanCard loan={loan || undefined} />;
 }

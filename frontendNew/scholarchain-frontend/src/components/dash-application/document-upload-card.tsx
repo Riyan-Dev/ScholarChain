@@ -52,7 +52,7 @@ export function DocumentUploadCard({
     return "Upload required documents for verification";
   };
 
-  if (isLoading || !isUploaded) {
+  if (isLoading && !isUploaded) {
     return (
       <div className="space-y-4 p-4">
         <div className="w-full">

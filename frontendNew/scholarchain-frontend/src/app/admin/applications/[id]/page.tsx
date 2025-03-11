@@ -567,7 +567,7 @@ export default function ApplicationReviewPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground text-sm">Installment</span>
-                <span className="font-medium">PKR {riskData.plan?.installment_amount.toLocaleString()}/month</span>
+                <span className="font-medium">PKR {riskData.plan?.installment_amount.toLocaleString()}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground text-sm">Start Date</span>

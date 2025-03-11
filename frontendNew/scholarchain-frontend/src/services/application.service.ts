@@ -50,6 +50,10 @@ export interface ApplicationDetails {
         proposed_repayment_period: string;
         preferred_repayment_frequency: string;
     };
+    documents: {
+        type: string;
+        url: string;
+    }[];
     references: {
         name: string;
         designation: string;

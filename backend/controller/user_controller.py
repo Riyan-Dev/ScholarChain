@@ -42,8 +42,14 @@ async def get_documents_status(token: TokenData = Depends(get_current_user)):
 
 @user_router.get("/get-dash")
 async def get_dash(token: TokenData = Depends(get_current_user)):
-    dash = await UserService.get_dash(token.username)
-    return dash
+
+    if token.role == "applicant":
+        dash = await UserService.get_applicant_dash(token.username)
+        return dash
+    elif token.role == "donator": 
+        pass
+    elif token.role == "admin":
+        pass
 
 @user_router.post("/set-upload")
 async def set_upload(token: TokenData = Depends(get_current_user)):

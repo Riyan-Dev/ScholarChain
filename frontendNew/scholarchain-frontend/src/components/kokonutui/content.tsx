@@ -6,6 +6,8 @@ import List02 from "./list-02";
 import { LoanApplicationFlow } from "../dash-application/loan-application-flow";
 import { fetchDash } from "@/services/user.service";
 import { useQuery } from "@tanstack/react-query";
+import { TransactionsCard } from "../crpto-dash/transactions-card";
+import { WalletCard } from "../crpto-dash/wallet-card";
 
 export default function Content() {
   // Get data, error, loading states DIRECTLY from useQuery
@@ -15,6 +17,11 @@ export default function Content() {
     refetchOnWindowFocus: false,
     staleTime: 0, // Or whatever staleTime is appropriate
   });
+
+  const handleViewAllTransactions = () => {
+    // This would typically navigate to a transactions page
+    console.log("View all transactions");
+  };
 
   // Handle loading state
   if (isLoading || isFetching) {
@@ -43,6 +50,13 @@ export default function Content() {
   // ONLY render the UI when data is available (and not loading/error)
   return (
     <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <WalletCard data={data.wallet_data} onBuyToken={() => {}} />
+        <TransactionsCard
+          transactions={data.wallet_data.transactions}
+          onViewAll={handleViewAllTransactions}
+        />
+      </div>
       <div className="w-full">
         {/* Correct conditional rendering: */}
         {data && (
@@ -54,7 +68,7 @@ export default function Content() {
           />
         )}
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      {/* <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-6 dark:border-[#1F1F23] dark:bg-[#0F0F12]">
           <h2 className="mb-4 flex items-center gap-2 text-left text-lg font-bold text-gray-900 dark:text-white">
             <Wallet className="h-3.5 w-3.5 text-zinc-900 dark:text-zinc-50" />
@@ -73,7 +87,7 @@ export default function Content() {
             <List02 className="h-full" />
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* <div className="flex flex-col items-start justify-start rounded-xl border border-gray-200 bg-white p-6 dark:border-[#1F1F23] dark:bg-[#0F0F12]">
         <h2 className="mb-4 flex items-center gap-2 text-left text-lg font-bold text-gray-900 dark:text-white">

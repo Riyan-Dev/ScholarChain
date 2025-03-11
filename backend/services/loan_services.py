@@ -132,7 +132,7 @@ class LoanService:
                         {
                             "_id": ObjectId(loan["_id"]),
                             "installments.installment_id": installment["installment_id"]
-                        },
+                    },
                         {
                             "$set": {"installments.$.installment_status": "overdue"}
                         }

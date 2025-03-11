@@ -200,3 +200,16 @@ export async function updateRepaymentPlan(updatedPlan: RepaymentPlan): Promise<a
 
     return await response.json(); // Return the response (which should be {message: ...})
 }
+
+export const acceptApplication = async (application_id: string) => {
+  const res = await fetch(`${API_BASE_URL}/application/accept-plan/?application_id=${application_id}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${AuthService.getToken()}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error(`HTTP error! Status: ${res.status}`);
+  }
+  return res.json();
+};

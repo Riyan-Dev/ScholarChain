@@ -34,9 +34,10 @@ class DocumentsList(BaseModel):
 
 class User(BaseModel):
     _id: str
+    name: str
     username: str
     email: str
     hashed_password: str
     role: UserRole
-    application_stage: str
-    documents: DocumentsList
+    application_stage: Optional[str] = ""
+    documents: Optional[DocumentsList] = None

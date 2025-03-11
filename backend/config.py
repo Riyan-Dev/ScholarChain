@@ -8,7 +8,7 @@ class Config:
     # Read from the environment, default to the provided values if the variables are not set
     mistral_api_key = os.getenv("MISTRAL_API_KEY", "")
     mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-    encrption_key = os.getenv("ENCRYPTION_KEY", "my_secret_key")
+    encryption_key = os.getenv("ENCRYPTION_KEY", "my_secret_key")
     factory_address = os.getenv("FACTORY_ADDRESS", "")
     rpc_url = os.getenv("RPC_URL", "http://localhost:8545")
     faucet_private_key = os.getenv("FAUCET_PRIVATE_KEY", "")

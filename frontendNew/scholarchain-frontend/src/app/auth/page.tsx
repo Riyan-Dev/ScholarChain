@@ -12,6 +12,9 @@ const LoginPage = () => {
   const router = useRouter(); // ✅ Used for navigation
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
+  const [role, setRole] = useState("");
   const [error, setError] = useState("");
 
   // ✅ Handle login
@@ -19,10 +22,31 @@ const LoginPage = () => {
     event.preventDefault();
     setError("");
 
-    const credentials: any = { username: email, password: password }; // Assuming username is email
+    const credentials: any = { username: username, password: password }; // Assuming username is email
 
     try {
       await AuthService.login(credentials);
+      window.location.href = "/dashboard";
+    } catch (error: any) {
+      console.log(error.message);
+      setError(error.message || "Login failed");
+    }
+  };
+
+  const handleSignup = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError("");
+
+    const details: any = {
+      name: name,
+      username: username,
+      email: email,
+      hashed_password: password,
+      role: role,
+    }; // Assuming username is email
+
+    try {
+      await AuthService.signup(details);
       window.location.href = "/dashboard";
     } catch (error: any) {
       console.log(error.message);
@@ -48,7 +72,7 @@ const LoginPage = () => {
           >
             <form
               className="flex h-full flex-col items-center justify-center bg-white px-10 dark:bg-gray-900"
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleSignup}
             >
               <h1 className="mb-4 text-2xl font-bold text-gray-800 dark:text-gray-200">
                 Create Account
@@ -85,19 +109,40 @@ const LoginPage = () => {
               </span>
               <input
                 type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200"
+              />
+              <input
+                type="text"
                 placeholder="Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200"
               />
               <input
                 type="email"
                 placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200"
               />
               <input
                 type="password"
                 placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200"
               />
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200">
+                <option value="">Select Role</option>
+                <option value="donator">Donator</option>
+                <option value="applicant">Applicant</option>
+              </select>
               <button className="mt-3 cursor-pointer rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-gray-500 dark:hover:bg-indigo-600">
                 Sign Up
               </button>
@@ -148,13 +193,13 @@ const LoginPage = () => {
                 </a>
               </div>
               <span className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                or use your email password
+                or use your username password
               </span>
               <input
                 type="string"
                 placeholder="Username"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200"
               />
               <input

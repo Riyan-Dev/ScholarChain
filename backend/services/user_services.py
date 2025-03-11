@@ -28,7 +28,7 @@ class UserService:
     @staticmethod
     async def register_user(user_data: User):
         if await UserService.user_exists(user_data.username, user_data.email):
-            raise ValueError("Username or email already exists.")
+            raise HTTPException(status_code=409, detail=f"User already Exists")
         return await UserService.create_user(user_data)
 
         # Function to check if a user already exists
@@ -41,42 +41,45 @@ class UserService:
     @staticmethod
     async def create_user(user_data: User):
 
+        try:
         
 
-        private_key, address = EncrptionServices.generate_key_pair()
-        hashed_password = get_password_hash(user_data.hashed_password)
+            private_key, address = EncrptionServices.generate_key_pair()
+            hashed_password = get_password_hash(user_data.hashed_password)
+            
+            new_user = {
+                "username": user_data.username,
+                "email": user_data.email,
+                "hashed_password": hashed_password,
+                "role": user_data.role,
+                "is_uploaded": False
+            }
+            print(private_key)
+            print(address)
         
-        new_user = {
-            "username": user_data.username,
-            "email": user_data.email,
-            "hashed_password": hashed_password,
-            "documents": user_data.documents.dict(),  # Convert the document list to dicts
-            "role": user_data.role
-        }
-        print(private_key)
-        print(address)
-       
-       
         
-        # Encrypt the private key
-        encrypted_private_key = EncrptionServices.encrypt_private_key(private_key)
-        # Save the wallet with an empty transaction list
-        # Send the signed transaction
-       
+            
+            # Encrypt the private key
+            encrypted_private_key = EncrptionServices.encrypt_private_key(private_key)
+            # Save the wallet with an empty transaction list
+            # Send the signed transaction
+        
 
-        new_wallet = Wallet(
-            username=user_data.username,
-            public_key=address,
-            encrypted_private_key=encrypted_private_key,
-            balance=0,
-            transactions=[]
-        )
+            new_wallet = Wallet(
+                username=user_data.username,
+                public_key=address,
+                encrypted_private_key=encrypted_private_key,
+                balance=0,
+                transactions=[]
+            )
+            
+            result = await user_collection.insert_one(new_user)
+            await wallet_collection.insert_one(new_wallet.dict())
+            
+            return str(result.inserted_id) 
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An error occured: {e}")
         
-        result = await user_collection.insert_one(new_user)
-        await wallet_collection.insert_one(new_wallet.dict())
-        
-        return str(result.inserted_id) 
-    
     @staticmethod
     async def authenticate_user(username: str, password: str):
         user = await user_collection.find_one({"username": username})
@@ -414,7 +417,8 @@ class UserService:
         result = await user_collection.aggregate(pipeline).to_list(length=1)
         dashData = result[0]
         application_data = await ApplicationService.application_overview(username);
-        dashData["app_id"] = str(application_data["_id"])
+        if (application_data):
+            dashData["app_id"] = str(application_data["_id"])
 
         loan = await LoanService.get_loan_summary(username)
 

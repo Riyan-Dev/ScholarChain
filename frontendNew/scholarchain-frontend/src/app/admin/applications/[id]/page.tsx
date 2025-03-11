@@ -235,6 +235,13 @@ export default function ApplicationReviewPage() {
             Rejected
           </Badge>
         )
+      case "accepted":
+        return (
+          <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200">
+            <XCircle className="mr-1 h-3 w-3" />
+            Accepted
+          </Badge>
+        )
       default:
         return (
           <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
@@ -398,6 +405,14 @@ export default function ApplicationReviewPage() {
                   textColor: "text-red-800",
                   mutedColor: "text-red-600",
                   borderColor: "border-red-200",
+                }
+                break
+              case "accepted":
+                colorClasses = {
+                  bgColor: "bg-purple-100",
+                  textColor: "text-purple-800",
+                  mutedColor: "text-purple-600",
+                  borderColor: "border-purple-200",
                 }
                 break
               case "pending":

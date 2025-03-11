@@ -1,9 +1,10 @@
+import os
+
 from fastapi import Depends, HTTPException, status, APIRouter, UploadFile, File, Form, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 
 from typing import List
-
 
 from middleware.JWT_authentication import create_access_token, TokenData, get_current_user
 from services.user_services import UserService
@@ -31,6 +32,7 @@ async def register(user: User):
 @user_router.post("/upload-documents")
 async def process_documents( background_tasks: BackgroundTasks, files: List[UploadFile] = File(...), ids: str = Form(...), token: TokenData = Depends(get_current_user)):
     ids_list = ids.split(",")
+    await UserService.store_documents(files, ids_list, token)
     print(f"Received ids: {ids_list}")  # Debugging
     ids_list = ['CNIC', 'gaurdian_CNIC', 'intermediate_result', 'bank_statements', 'salary_slips', 'gas_bills', 'electricity_bills', 'reference_letter']
     background_tasks.add_task(UserService.upload_documents, files, ids_list, token)

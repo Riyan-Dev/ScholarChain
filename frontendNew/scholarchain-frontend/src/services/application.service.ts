@@ -213,3 +213,16 @@ export const acceptApplication = async (application_id: string) => {
   }
   return res.json();
 };
+
+export const fetchRepay = async () => {
+  const res = await fetch(`${API_BASE_URL}/application/repay-details/`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${AuthService.getToken()}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error(`HTTP error! Status: ${res.status}`);
+  }
+  return res.json();
+};

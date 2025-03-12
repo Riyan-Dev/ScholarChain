@@ -55,19 +55,24 @@ interface LoanData {
 interface LoanCardProps {
   loan?: LoanData;
   isLoading?: boolean;
+  handlePayInstallment: () => void;
 }
 
-export function LoanCard({ loan, isLoading = false }: LoanCardProps) {
+export function LoanCard({
+  loan,
+  isLoading = false,
+  handlePayInstallment,
+}: LoanCardProps) {
   const router = useRouter();
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
 
-  const handlePayInstallment = () => {
-    setIsPaymentLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsPaymentLoading(false);
-    }, 2000);
-  };
+  // const handlePayInstallment = () => {
+  //   setIsPaymentLoading(true);
+  //   // Simulate API call
+  //   setTimeout(() => {
+  //     setIsPaymentLoading(false);
+  //   }, 2000);
+  // };
 
   if (isLoading) {
     return <LoanCardSkeleton />;

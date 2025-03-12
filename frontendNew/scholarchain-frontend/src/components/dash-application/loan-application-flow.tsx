@@ -29,6 +29,7 @@ interface ApplicationFlowProps {
   isUploaded: boolean;
   application_id: string;
   loan: LoanDashData;
+  handlePayInstallment: () => void;
 }
 
 export function LoanApplicationFlow({
@@ -36,6 +37,7 @@ export function LoanApplicationFlow({
   isUploaded,
   application_id,
   loan,
+  handlePayInstallment,
 }: ApplicationFlowProps) {
   const router = useRouter();
 
@@ -213,5 +215,11 @@ export function LoanApplicationFlow({
         </div>
       </Card>
     );
-  else return <LoanCard loan={loan || undefined} />;
+  else
+    return (
+      <LoanCard
+        loan={loan || undefined}
+        handlePayInstallment={handlePayInstallment}
+      />
+    );
 }

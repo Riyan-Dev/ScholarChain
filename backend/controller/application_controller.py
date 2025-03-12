@@ -64,6 +64,13 @@ async def application_overview(current_user: TokenData = Depends(get_current_use
     if result is None:
         raise HTTPException(status_code=404, detail="No Application Found")
     return result
+
+@application_router.get('/repay-details/')
+async def repay_details(current_user: TokenData = Depends(get_current_user)):
+    result = await LoanService.fetch_repay_details(current_user.username)
+    if result is None:
+        raise HTTPException(status_code=404, detail="No Loan Found")
+    return result
 # *************Strong case*****************
 # {
 #   "personal_info": {

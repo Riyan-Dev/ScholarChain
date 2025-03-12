@@ -72,22 +72,25 @@ class LoanService:
     async def repay_loan(username): 
         loan_data = await LoanService.get_loan_details(username)
         loan = Loan(**loan_data)
-        installments_remaining = loan.no_of_installments - loan.installments_completed
+        
         amount_remaining = loan.loan_amount - loan.loan_amount_repaid
+        
+        first_pending = next((inst for inst in loan.installments if inst.installment_status == "pending"), None)
+        installments_remaining = loan.no_of_installments - first_pending.installment_id - 1
         amount_to_pay = math.ceil(amount_remaining / installments_remaining)
 
-        
-        # await TransactionServices.transfer_token(amount_to_pay, username, "scholarchain")
-
-        # deploy_result = await BlockchainService.repay_loan(username, loan.contract_address, amount_to_pay)
-        # print(deploy_result)
-
-        first_pending = next((inst for inst in loan.installments if inst.installment_status == "pending"), None)
         first_pending.installment_status = "paid"
         first_pending.amount_paid = amount_to_pay
         first_pending.installment_paid_date = datetime.now()
         loan.installments_completed += 1
         loan.loan_amount_repaid += amount_to_pay
+        
+        await TransactionServices.transfer_token(amount_to_pay, username, "scholarchain")
+
+        # deploy_result = await BlockchainService.repay_loan(username, loan.contract_address, amount_to_pay)
+        # print(deploy_result)
+
+        
         
 
         return await LoanService.update_loan(username, loan.dict())
@@ -301,4 +304,53 @@ class LoanService:
 
         return loan
 
+    async def fetch_repay_details(username):
+
+        pipeline = [
+            {
+                "$match": {"username": username}
+            },
+            {
+                "$unwind": "$installments"
+            },
+            {
+                "$match": {"installments.installment_status": "pending"}
+            },
+            {
+                "$sort": {"installments.installment_date": 1}
+            },
+            {
+                "$group": {
+                    "_id": "$username",
+                    "loanDetails": {"$first": "$$ROOT"},
+                    "nextInstallment": {"$first": "$installments"}
+                }
+            },
+            {
+                "$addFields": {
+                    "nextInstallment.computedDue": {
+                        "$divide": [
+                            {"$subtract": ["$loanDetails.loan_amount", "$loanDetails.loan_amount_repaid"]},
+                            {
+                                "$subtract": [
+                                    "$loanDetails.no_of_installments",
+                                    {"$add": ["$nextInstallment.installment_id", 1]}
+                                ]
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+                "$project": {
+                    "loanDetails._id": 0,
+                    "loanDetails.installments": 0
+                    }
+            }
+        ]
+
+        result = await loan_collection.aggregate(pipeline).to_list(length=1)
+        result2 = await TransactionServices.get_balance(username)
+        print(result[0])
+        return result[0] | result2
 

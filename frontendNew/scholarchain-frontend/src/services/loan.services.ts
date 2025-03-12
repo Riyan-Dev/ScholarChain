@@ -17,3 +17,17 @@ export const getLoanData = async (): Promise<Loan> => {
   }
   return res.json();
 };
+
+export const makeRepayment = async () => {
+  const res = await fetch(`${API_BASE_URL}/application/repay/`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${AuthService.getToken()}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP error! Status: ${res.status}`);
+  }
+  return res.json();
+};

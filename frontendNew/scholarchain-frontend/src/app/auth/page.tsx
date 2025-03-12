@@ -17,6 +17,11 @@ const LoginPage = () => {
   const [role, setRole] = useState("");
   const [error, setError] = useState("");
 
+  const handleRouting = () => {
+    const userRole = AuthService.getUserRole();
+    if (userRole === "applicant") window.location.href = "/dashboard";
+    else if (userRole === "donator") window.location.href = "/donor";
+  };
   // ✅ Handle login
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -26,7 +31,7 @@ const LoginPage = () => {
 
     try {
       await AuthService.login(credentials);
-      window.location.href = "/dashboard";
+      handleRouting();
     } catch (error: any) {
       console.log(error.message);
       setError(error.message || "Login failed");
@@ -47,7 +52,7 @@ const LoginPage = () => {
 
     try {
       await AuthService.signup(details);
-      window.location.href = "/dashboard";
+      handleRouting();
     } catch (error: any) {
       console.log(error.message);
       setError(error.message || "Login failed");
@@ -138,7 +143,8 @@ const LoginPage = () => {
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200">
+                className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200"
+              >
                 <option value="">Select Role</option>
                 <option value="donator">Donator</option>
                 <option value="applicant">Applicant</option>

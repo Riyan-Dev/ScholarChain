@@ -69,18 +69,18 @@ class ApplicationService:
 
     @staticmethod
     async def accept_application(username: str, application_id: str):
-        # update_data = {
-        #     "updated_at": datetime.now(),
-        #     "status": "accepted"
-        # }
-        # results = await ApplicationService.update_application(username, update_data)
+        update_data = {
+            "updated_at": datetime.now(),
+            "status": "accepted"
+        }
+        results = await ApplicationService.update_application(username, update_data)
         # print(results)
         plan_data = await ApplicationService.get_plan_db(application_id)    
 
-        # await TransactionServices.transfer_token(plan_data["total_loan_amount"], "scholarchain", username)
+        await TransactionServices.transfer_token(plan_data["total_loan_amount"], "scholarchain", username)
 
-        # deploy_result = await BlockchainService.deploy_loan_contract(username, plan_data["total_loan_amount"])
-        # print(deploy_result)
+        deploy_result = await BlockchainService.deploy_loan_contract(username, plan_data["total_loan_amount"])
+        print(deploy_result)
         return await LoanService.create_loan(plan_data["total_loan_amount"], plan_data["start_date"], plan_data["end_date"], plan_data["repayment_frequency"], username, "")
 
 

@@ -97,3 +97,9 @@ class TransactionServices:
                     })
         
         return tranasctions
+
+    @staticmethod
+    async def get_balance(username):
+        wallet = await TransactionServices.get_wallet(username)
+
+        return { "balance": wallet["balance"] }

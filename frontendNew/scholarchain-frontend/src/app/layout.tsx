@@ -4,10 +4,12 @@ import Sidebar from "@/components/kokonutui//sidebar";
 import type React from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { headers } from "next/headers"; // ✅ Get current path on the server
+import { cookies, headers } from "next/headers"; // ✅ Get current path on the server
 import "./globals.css";
 import TopNav from "@/components/kokonutui/top-nav";
 import { Providers } from "./proviers";
+import { AuthService } from "@/services/auth.service";
+import config from "@/config/config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +32,10 @@ export default async function RootLayout({
   // // ✅ Get the current pathname from the request headers
   const headersList = await headers();
   const pathname = headersList.get("x-url");
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get(config.jwtSecret)?.value;
+  const userData = AuthService.getUserInfo(authToken as string);
+  const userRole = userData?.role;
   console.log(pathname);
   // // ✅ Fetch the auth token from cookies
   // const cookieStore = cookies();
@@ -52,7 +58,12 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {pathname && pathname.includes("donor") ? (
+            {pathname === "/auth" || pathname === "/" ? (
+              // Default layout
+              <main className="flex-1 overflow-auto bg-white dark:bg-[#0F0F12]">
+                {children}
+              </main>
+            ) : userRole && userRole === "donator" ? (
               // Layout for donor pages
               <div className="flex h-screen">
                 <div className="flex w-full flex-1 flex-col">
@@ -64,7 +75,7 @@ export default async function RootLayout({
                   </main>
                 </div>
               </div>
-            ) : pathname !== "/auth" && pathname !== "/" ? (
+            ) : (
               // Layout with Sidebar
               <div className="flex h-screen">
                 <Sidebar />
@@ -77,11 +88,6 @@ export default async function RootLayout({
                   </main>
                 </div>
               </div>
-            ) : (
-              // Default layout
-              <main className="flex-1 overflow-auto bg-white dark:bg-[#0F0F12]">
-                {children}
-              </main>
             )}
             <Toaster className="z-[9999]" />
           </ThemeProvider>

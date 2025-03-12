@@ -119,8 +119,9 @@ export const AuthService = {
   },
 
   // --- Get User Information (from the token) ---
-  getUserInfo: (): { username: string; role: string } | null => {
-    const token = AuthService.getToken();
+  getUserInfo: (tokenPara = null): { username: string; role: string } | null => {
+    const token = tokenPara || AuthService.getToken();
+
     if (!token) {
       return null;
     }
@@ -133,7 +134,7 @@ export const AuthService = {
         return null;
       }
 
-      return { username: decoded.username, role: decoded.role };
+      return { username: decoded.sub, role: decoded.role };
     } catch (error) {
       console.error("Token Decode Error", error);
       return null;

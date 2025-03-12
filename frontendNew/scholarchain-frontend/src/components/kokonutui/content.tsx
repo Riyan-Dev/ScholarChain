@@ -8,8 +8,43 @@ import { fetchDash } from "@/services/user.service";
 import { useQuery } from "@tanstack/react-query";
 import { TransactionsCard } from "../crpto-dash/transactions-card";
 import { WalletCard } from "../crpto-dash/wallet-card";
+import { useEffect, useState } from "react";
+import { RepaymentData } from "@/app/loan-details/repayment-types";
+import { PaymentReviewModal } from "@/app/loan-details/payment-review-modal";
+import { PaymentSuccessModal } from "@/app/loan-details/payment-success-modal";
+import { fetchRepay } from "@/services/application.service";
+import { makeRepayment } from "@/services/loan.services";
+import { useRouter } from "next/navigation";
+
+const mockRepaymentData: RepaymentData = {
+  _id: "riyan4",
+  loanDetails: {
+    id: "67cf6594b6e88e5e0c1b221c",
+    username: "riyan4",
+    loan_amount: 50000,
+    contract_address: "",
+    loan_amount_repaid: 5126,
+    no_of_installments: 24,
+    installments_completed: 6,
+    total_discounted_amount: null,
+    status: "ongoing",
+    created_at: "2025-03-10T22:20:04.089000",
+    updated_at: "2025-03-11T19:08:28.176000",
+  },
+  nextInstallment: {
+    installment_id: 7,
+    installment_date: "2025-05-01T00:00:00",
+    installment_paid_date: null,
+    installment_status: "pending",
+    amount_paid: 0,
+    computedDue: 2804.625,
+  },
+  balance: 20000,
+};
 
 export default function Content() {
+  const router = useRouter();
+
   // Get data, error, loading states DIRECTLY from useQuery
   const { data, error, isLoading, isFetching } = useQuery({
     queryKey: ["dashboardData"], // Good, unique key
@@ -18,11 +53,152 @@ export default function Content() {
     staleTime: 0, // Or whatever staleTime is appropriate
   });
 
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [repaymentData, setRepaymentData] =
+    useState<RepaymentData>(mockRepaymentData);
+  const [isLoadingg, setIsLoadingg] = useState(false);
+  const [paymentDetails, setPaymentDetails] = useState({
+    amount: 0,
+    installmentNumber: 0,
+    paymentDate: new Date().toISOString(),
+    remainingInstallments: 0,
+    totalInstallments: 0,
+    nextDueDate: undefined,
+  });
+
+  const fetchData = async () => {
+    setIsLoadingg(true);
+
+    try {
+      const repaymentData = await fetchRepay();
+
+      setRepaymentData(repaymentData);
+    } catch (error: any) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsLoadingg(false);
+    }
+  };
+
+  // Simulate fetching data
+  useEffect(() => {
+    fetchData();
+  }, [isReviewModalOpen]);
+
+  const handleMakePayment = () => {
+    setIsReviewModalOpen(true);
+  };
+
+  const getNextMonthDate = (dateString: string) => {
+    const date = new Date(dateString);
+    date.setMonth(date.getMonth() + 1);
+    return date.toISOString();
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const handleConfirmPayment = async () => {
+    // This would be your actual payment logic
+    // For example, calling a smart contract function
+    await makeRepayment();
+    return new Promise<void>((resolve) => {
+      setIsLoadingg(true);
+
+      // Simulate API call delay
+      setTimeout(() => {
+        const paymentDate = new Date().toISOString();
+
+        // Update the repayment data after successful payment
+        setRepaymentData((prev) => {
+          const updatedData = { ...prev };
+
+          // Mark the next installment as paid
+          updatedData.nextInstallment = {
+            ...updatedData.nextInstallment,
+            installment_status: "paid",
+            installment_paid_date: paymentDate,
+            amount_paid: updatedData.nextInstallment.computedDue,
+          };
+
+          // Update loan details
+          updatedData.loanDetails = {
+            ...updatedData.loanDetails,
+            installments_completed:
+              updatedData.loanDetails.installments_completed + 1,
+            loan_amount_repaid:
+              updatedData.loanDetails.loan_amount_repaid +
+              updatedData.nextInstallment.computedDue,
+          };
+
+          // Deduct the payment from the balance
+          updatedData.balance =
+            updatedData.balance - updatedData.nextInstallment.computedDue;
+
+          return updatedData;
+        });
+
+        // Set payment details for success modal
+        setPaymentDetails({
+          amount: repaymentData.nextInstallment.computedDue,
+          installmentNumber: repaymentData.nextInstallment.installment_id,
+          paymentDate: paymentDate,
+          remainingInstallments:
+            repaymentData.loanDetails.no_of_installments -
+            (repaymentData.loanDetails.installments_completed + 1),
+          totalInstallments: repaymentData.loanDetails.no_of_installments,
+          nextDueDate:
+            repaymentData.nextInstallment.installment_id <
+            repaymentData.loanDetails.no_of_installments
+              ? getNextMonthDate(repaymentData.nextInstallment.installment_date)
+              : undefined,
+        });
+
+        setIsReviewModalOpen(false);
+        setIsLoadingg(false);
+        setIsSuccessModalOpen(true);
+        resolve();
+      }, 2000);
+    });
+  };
+
+  const handlePurchaseTokens = () => {
+    // Close the review modal
+    setIsReviewModalOpen(false);
+
+    // Navigate to token purchase page or open token purchase modal
+    console.log("Navigating to token purchase page");
+
+    // For demo purposes, let's simulate adding tokens to the wallet
+    setTimeout(() => {
+      setRepaymentData((prev) => ({
+        ...prev,
+        balance: prev.balance + 5000,
+      }));
+    }, 1000);
+  };
+
   const handleViewAllTransactions = () => {
     // This would typically navigate to a transactions page
     console.log("View all transactions");
   };
 
+  // if (isLoadingg) {
+  //   return (
+  //     <div className="container mx-auto p-4 flex items-center justify-center h-64">
+  //       <div className="flex flex-col items-center gap-4">
+  //         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+  //         <p className="text-muted-foreground">Processing payment...</p>
+  //       </div>
+  //     </div>
+  //   )
   // Handle loading state
   if (isLoading || isFetching) {
     return (
@@ -65,37 +241,28 @@ export default function Content() {
             isUploaded={data.is_uploaded}
             application_id={data.app_id}
             loan={data.loan}
+            handlePayInstallment={handleMakePayment}
           />
         )}
       </div>
-      {/* <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-6 dark:border-[#1F1F23] dark:bg-[#0F0F12]">
-          <h2 className="mb-4 flex items-center gap-2 text-left text-lg font-bold text-gray-900 dark:text-white">
-            <Wallet className="h-3.5 w-3.5 text-zinc-900 dark:text-zinc-50" />
-            Accounts
-          </h2>
-          <div className="flex-1">
-            <List01 className="h-full" />
-          </div>
-        </div>
-        <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-6 dark:border-[#1F1F23] dark:bg-[#0F0F12]">
-          <h2 className="mb-4 flex items-center gap-2 text-left text-lg font-bold text-gray-900 dark:text-white">
-            <CreditCard className="h-3.5 w-3.5 text-zinc-900 dark:text-zinc-50" />
-            Recent Transactions
-          </h2>
-          <div className="flex-1">
-            <List02 className="h-full" />
-          </div>
-        </div>
-      </div> */}
+      {/* Payment Review Modal */}
+      <PaymentReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        repaymentData={repaymentData}
+        onConfirmPayment={handleConfirmPayment}
+        onPurchaseTokens={handlePurchaseTokens}
+      />
 
-      {/* <div className="flex flex-col items-start justify-start rounded-xl border border-gray-200 bg-white p-6 dark:border-[#1F1F23] dark:bg-[#0F0F12]">
-        <h2 className="mb-4 flex items-center gap-2 text-left text-lg font-bold text-gray-900 dark:text-white">
-          <Calendar className="h-3.5 w-3.5 text-zinc-900 dark:text-zinc-50" />
-          Upcoming Events
-        </h2>
-        <List03 />
-      </div> */}
+      {/* Payment Success Modal */}
+      <PaymentSuccessModal
+        isOpen={isSuccessModalOpen}
+        onClose={() => {
+          setIsSuccessModalOpen(false);
+          router.push('/dashboard')
+        }}
+        paymentDetails={paymentDetails}
+      />
     </div>
   );
 }

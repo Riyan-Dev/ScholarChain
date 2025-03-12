@@ -24,13 +24,26 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import AlertDialogBox from "../commons/alert-box";
 import { fetchDash, updateStage } from "@/services/user.service";
+import { AuthService } from "@/services/auth.service";
 
 export default function Sidebar() {
+  const userRole = AuthService.getUserRole() || "applicant";
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
 
-  const sidebarItems = {
+  type SidebarItemsType = {
+    [key: string]: {
+      overview: {
+        href: string;
+        icon: any;
+        label: string;
+        onClick: () => void;
+      }[];
+    };
+  };
+
+  const sidebarItems: SidebarItemsType = {
     applicant: {
       overview: [
         {
@@ -49,8 +62,25 @@ export default function Sidebar() {
         },
       ],
     },
-    donor: {},
-    admin: {},
+    admin: {
+      overview: [
+        {
+          href: "#",
+          icon: Home,
+          label: "Dashboard",
+          onClick: () => {
+            router.push("/dashboard");
+          },
+        },
+        {
+          href: "#",
+          icon: SquarePlus,
+          label: "Applications",
+          onClick: () => {
+            router.push("/admin/applications");
+          },
+        },
+      ],},
   };
 
   function handleNavigation() {
@@ -99,13 +129,13 @@ export default function Sidebar() {
     <>
       <button
         type="button"
-        className="fixed top-4 left-4 z-[70] rounded-lg bg-white p-2 shadow-md lg:hidden dark:bg-[#0F0F12]"
+        className="fixed top-4 left-4 rounded-lg bg-white p-2 shadow-md lg:hidden dark:bg-[#0F0F12]"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
       >
         <Menu className="h-5 w-5 text-gray-600 dark:text-gray-300" />
       </button>
       <nav
-        className={`fixed inset-y-0 left-0 z-[70] w-64 transform border-r border-gray-200 bg-white transition-transform duration-200 ease-in-out lg:static lg:w-64 lg:translate-x-0 dark:border-[#1F1F23] dark:bg-[#0F0F12] ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"} `}
+        className={`fixed inset-y-0 left-0 w-64 transform border-r border-gray-200 bg-white transition-transform duration-200 ease-in-out lg:static lg:w-64 lg:translate-x-0 dark:border-[#1F1F23] dark:bg-[#0F0F12] ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"} `}
       >
         <div className="flex h-full flex-col">
           <Link
@@ -134,14 +164,14 @@ export default function Sidebar() {
                 <div className="mb-2 px-3 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
                   Overview
                 </div>
-                {sidebarItems.applicant.overview.map((item, index) => (
+                {sidebarItems[userRole].overview.map((item, index) => (
                   <NavItem key={index} href={item.href} icon={item.icon}>
                     {item.label}
                   </NavItem>
                 ))}
               </div>
 
-              <div>
+              {/* <div>
                 <div className="mb-2 px-3 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
                   Finance
                 </div>
@@ -176,7 +206,7 @@ export default function Sidebar() {
                     Meetings
                   </NavItem>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -195,7 +225,7 @@ export default function Sidebar() {
 
       {isMobileMenuOpen && (
         <div
-          className="bg-opacity-50 fixed inset-0 z-[65] bg-black lg:hidden"
+          className="bg-opacity-50 fixed inset-0 z-[10] bg-black lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}

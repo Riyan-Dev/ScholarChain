@@ -41,6 +41,10 @@ class Reference(BaseModel):
     contact_details: str
     comments: str
 
+class Document(BaseModel):
+    type: str
+    url: str
+
 class Application(BaseModel):
     personal_info: PersonalInfo
     financial_info: FinancialInfo
@@ -53,6 +57,7 @@ class Application(BaseModel):
     signature: str
     username: str
     id: Optional[str] = Field(None, alias="_id") 
+    documents: List[Document]
 
     class Config:
         allow_population_by_field_name = True

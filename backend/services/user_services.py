@@ -6,6 +6,7 @@ import time
 
 import asyncio
 
+from typing import List
 from fastapi import HTTPException
 from web3 import Web3
 
@@ -13,6 +14,7 @@ from middleware.JWT_authentication import get_password_hash, verify_password
 from db import user_collection, wallet_collection
 from utility import transform_user_document
 
+from models.application import Document
 from models.user import User, DocumentsList
 from models.wallet import Wallet
 
@@ -26,6 +28,30 @@ from services.transaction_services import TransactionServices
 
 
 class UserService:
+    @staticmethod
+    async def store_documents(files, ids, token):
+        from services.application_services import ApplicationService
+        STATIC_DIR = os.path.join(os.path.dirname(__file__), "../static")
+        os.makedirs(STATIC_DIR, exist_ok=True)
+        documents: List[Document] = []
+        
+        for idx, file in enumerate(files):
+            # print(f"Processing file: {file.filename}, Type: {type(file)}")
+            file_name = token.username + "_" + ids[idx] + ".pdf"
+            file_path = os.path.join(STATIC_DIR, file_name)
+            with open(file_path, "wb") as f:
+                while True:
+                    chunk = await file.read(1024 * 1024)  # 1MB       
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                file_url = f"/pdfs/{file_name}"
+                documents.append({"type": ids[idx], "url": file_url})
+        
+        return await ApplicationService.update_application(token.username, {"documents": documents})
+
+    
+
     @staticmethod
     async def register_user(user_data: User):
         if await UserService.user_exists(user_data.username, user_data.email):

@@ -51,6 +51,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner"
 import {
   Sheet,
@@ -62,6 +63,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -81,6 +88,7 @@ import {
   verifyApplication,
   updateRepaymentPlan,
 } from "@/services/application.service"
+import config from "@/config/config"
 
 interface RiskData {
   risk_assessment: RiskAssessment | null
@@ -152,7 +160,7 @@ const handleUpdatePlan = async (
       updated_at: new Date().toISOString(),
       installment_amount: calculateInstallmentAmount(values as any), // Pass the values directly
     };
-    
+
     await updateRepaymentPlan(updatedPlan);
     toast.success("Repayment plan updated successfully!");
 
@@ -171,6 +179,13 @@ const handleUpdatePlan = async (
   }
 };
 
+type UserDocument = {
+  id: string;
+  label: string;
+  description: string;
+  url?: string | null; // Optional url property
+};
+
 export default function ApplicationReviewPage() {
   const params = useParams()
   const applicationId = params.id as string
@@ -183,6 +198,51 @@ export default function ApplicationReviewPage() {
   })
   const [error, setError] = useState<string | null>(null)
   const [isUpdatingPlan, setIsUpdatingPlan] = useState(false)
+
+
+  const USER_DOCUMENTS: UserDocument[] = [
+    { id: "CNIC", label: "CNIC", description: "National Identity Card" },
+    {
+      id: "gaurdian_CNIC",
+      label: "Guardian CNIC",
+      description: "Guardian's National Identity Card",
+    },
+    {
+      id: "intermediate_result",
+      label: "Intermediate Result",
+      description: "Intermediate education certificate",
+    },
+    {
+      id: "bank_statements",
+      label: "Bank Statements",
+      description: "Last 3 months bank statements",
+    },
+    {
+      id: "salary_slips",
+      label: "Salary Slips",
+      description: "Last 3 months salary slips",
+    },
+    {
+      id: "gas_bills",
+      label: "Gas Bills",
+      description: "Recent gas utility bills",
+    },
+    {
+      id: "electricity_bills",
+      label: "Electricity Bills",
+      description: "Recent electricity utility bills",
+    },
+    {
+      id: "reference_letter",
+      label: "Reference Letter",
+      description: "Letter of recommendation",
+    },
+  ];
+
+  USER_DOCUMENTS.forEach(doc => {
+    const matchingDoc = applicationData?.documents.find(d => d.type === doc.id);
+    doc.url = matchingDoc ? config.fastApi.baseUrl + matchingDoc.url : null; // Add url directly
+  });
 
   // Moved useCallback BEFORE any conditional returns
   const boundHandleUpdatePlan = useCallback(
@@ -790,26 +850,30 @@ export default function ApplicationReviewPage() {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="personal">
-                <TabsList className="mb-4 grid w-full grid-cols-5">
+                <TabsList className="mb-4 grid w-full grid-cols-6">
                   <TabsTrigger value="personal">
-                    <User className="mr-2 h-4 w-4" />
+                    <User className="h-4 w-3" />
                     Personal
                   </TabsTrigger>
                   <TabsTrigger value="financial">
-                    <DollarSign className="mr-2 h-4 w-4" />
+                    <DollarSign className="h-4 w-3" />
                     Financial
                   </TabsTrigger>
                   <TabsTrigger value="academic">
-                    <Layers className="mr-2 h-4 w-4" />
+                    <Layers className="h-4 w-3" />
                     Academic
                   </TabsTrigger>
                   <TabsTrigger value="loan">
-                    <CreditCard className="mr-2 h-4 w-4" />
+                    <CreditCard className="h-4 w-3" />
                     Loan
                   </TabsTrigger>
                   <TabsTrigger value="references">
-                    <User className="mr-2 h-4 w-4" />
+                    <User className="h-4 w-3" />
                     References
+                  </TabsTrigger>
+                  <TabsTrigger value="documents">
+                    <User className="h-4 w-3" />
+                    Documents
                   </TabsTrigger>
                 </TabsList>
 
@@ -959,6 +1023,58 @@ export default function ApplicationReviewPage() {
                       ))}
                     </div>
                   </div>
+                </TabsContent>
+
+                <TabsContent value="documents" className="space-y-4">
+                  <ScrollArea className="h-[calc(88vh-15rem)] rounded-lg border">
+                    <div className="space-y-4 p-4">
+                      {USER_DOCUMENTS.map((document) => {
+                        return (
+                          <Card
+                            key={document.id}
+                            className={`transition-colors`}
+                          >
+                            <CardHeader className="pb-2">
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <CardTitle className="text-base">
+                                    {document.label}
+                                  </CardTitle>
+                                  <CardDescription className="mt-1 text-xs">
+                                    {document.description}
+                                  </CardDescription>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <Dialog>
+                                <DialogTrigger disabled={document.url ? false : true}>
+                                  <Button
+                                    variant="outline"
+                                    className="w-full"
+                                    disabled={document.url ? false : true}
+                                  >
+                                    {document.url ? "Show Document" : "No Document Uploaded"}
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogTitle>{document.label}</DialogTitle>
+                                  {document.url &&
+                                    <object
+                                      data={`${document.url}#toolbar=0&navpanes=0&scrollbar=0`}
+                                      type="application/pdf"
+                                      className="w-full h-[600px] border"
+                                    >
+                                      <p>Unable to display PDF. <a href={document.url} target="_blank" rel="noopener noreferrer">Download it instead.</a></p>
+                                    </object>}
+                                </DialogContent>
+                              </Dialog>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
                 </TabsContent>
               </Tabs>
             </CardContent>

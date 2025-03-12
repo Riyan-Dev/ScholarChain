@@ -19,6 +19,8 @@ app.include_router(application_router, prefix="/application", tags=["application
 app.include_router(admin_router, prefix="/admin", tags=["admin"])
 app.include_router(donator_router, prefix="/donator", tags=["donator"])
 
+app.mount("/pdfs", StaticFiles(directory="static"), name="pdfs")
+
 origins = [
     "http://localhost:3000",
     # "http://localhost:5173",  # Add other origins as needed
@@ -49,4 +51,3 @@ async def health_check():
 # To run locally
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8000)
-

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 "use client"
 
 import { useState } from "react"
@@ -95,10 +96,6 @@ export function TransactionHistory({ transactions }: TransactionHistoryProps) {
             <Button variant="outline" onClick={toggleSortOrder} className="flex items-center gap-1">
               <ArrowUpDown className="h-4 w-4" />
               {sortOrder === "desc" ? "Newest" : "Oldest"}
-            </Button>
-            <Button variant="outline" className="flex items-center gap-1">
-              <Download className="h-4 w-4" />
-              Export
             </Button>
           </div>
         </div>

@@ -89,7 +89,7 @@ class EncrptionServices:
 
     @staticmethod
     def decrypt_private_key(encrypted_private_key: str) -> bytes:
-        base64_key = Config.encrption_key
+        base64_key = Config.encryption_key
         encryption_key = base64.b64decode(base64_key)
         # Ensure the encryption key length is 32 bytes (for AES-256)
         if len(encryption_key) not in [16, 24, 32]:

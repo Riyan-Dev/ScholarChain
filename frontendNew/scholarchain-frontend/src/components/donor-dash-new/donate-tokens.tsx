@@ -1,5 +1,4 @@
-"use client";
-
+/* eslint-disable prettier/prettier */
 import { useState } from "react";
 import { BookOpen, GraduationCap, HeartHandshake, School } from "lucide-react";
 
@@ -17,6 +16,8 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { donateTokens, DonateTokensResponse } from "@/services/donor.service"; // Import the donateTokens function
+
 
 interface DonateTokensProps {
   balance: number;
@@ -28,22 +29,43 @@ export function DonateTokens({ balance, onDonate }: DonateTokensProps) {
   const [donationPurpose, setDonationPurpose] = useState("education");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null); // State for error messages
 
-  const handleDonate = () => {
-    if (amount <= 0 || amount > balance) return;
+
+  const handleDonate = async () => {
+    if (amount <= 0 || amount > balance) {
+      setError("Invalid donation amount."); // Set error for invalid amount
+      return;
+    }
 
     setIsSubmitting(true);
+    setError(null); // Clear any previous errors
+    setSuccess(false); // Clear any previous success messages
 
-    // Simulate API call
-    setTimeout(() => {
-      onDonate(amount);
-      setIsSubmitting(false);
-      setSuccess(true);
+    try {
+      // Call the donateTokens function from the service
+      const response: DonateTokensResponse = await donateTokens(amount, "dummy_hash");
 
-      // Reset success message after 3 seconds
-      setTimeout(() => setSuccess(false), 3000);
-    }, 1000);
+      if (response.error) {
+        setError(response.error); // Set the error state from the API response
+      } else {
+        onDonate(amount); // Call the onDonate callback
+        setSuccess(true);   // Set success to true
+      }
+
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred."); // Set a generic error message
+    } finally {
+      setIsSubmitting(false); // Set isSubmitting to false regardless of success or failure
+      // Reset success and error message after 3 seconds (optional for error, useful for success)
+      setTimeout(() => {
+        setSuccess(false);
+        if (error) setError(null); //consider to clear the error or not
+      }, 3000);
+
+    }
   };
+
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -63,6 +85,13 @@ export function DonateTokens({ balance, onDonate }: DonateTokensProps) {
                 Thank you for your generous donation of{" "}
                 {amount.toLocaleString()} tokens.
               </AlertDescription>
+            </Alert>
+          )}
+          {error && (
+            <Alert className="border-red-500 bg-red-100 text-red-800">
+              <HeartHandshake className="h-4 w-4" />
+              <AlertTitle>Donation Failed!</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
@@ -115,7 +144,7 @@ export function DonateTokens({ balance, onDonate }: DonateTokensProps) {
                 <div className="space-y-1 text-center">
                   <h3 className="font-medium">Education Fund</h3>
                   <p className="text-muted-foreground text-sm">
-                    Support students' educational expenses
+                    Support students&apos; educational expenses
                   </p>
                 </div>
               </Label>
@@ -188,42 +217,6 @@ export function DonateTokens({ balance, onDonate }: DonateTokensProps) {
               Every token you donate helps students achieve their educational
               goals and dreams.
             </p>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="font-medium">What Your Donation Provides:</h3>
-            <div className="grid gap-2">
-              <div className="flex items-center gap-2">
-                <div className="bg-primary h-2 w-2 rounded-full"></div>
-                <p className="text-sm">
-                  100 Tokens = Educational materials for one student
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="bg-primary h-2 w-2 rounded-full"></div>
-                <p className="text-sm">
-                  500 Tokens = One month of online course access
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="bg-primary h-2 w-2 rounded-full"></div>
-                <p className="text-sm">
-                  1,000 Tokens = Partial scholarship for one semester
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="bg-primary h-2 w-2 rounded-full"></div>
-                <p className="text-sm">
-                  5,000 Tokens = Full scholarship for one semester
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="bg-primary h-2 w-2 rounded-full"></div>
-                <p className="text-sm">
-                  10,000 Tokens = Research grant for innovative projects
-                </p>
-              </div>
-            </div>
           </div>
 
           <div className="bg-muted/50 rounded-lg border p-4">

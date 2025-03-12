@@ -1,78 +1,42 @@
+/* eslint-disable prettier/prettier */
 "use client";
 
 import { CreditCard, DollarSign, TrendingUp, Wallet } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { useState } from "react";
-import { TransactionsCard } from "../crpto-dash/transactions-card";
-import { WalletCard } from "../crpto-dash/wallet-card";
+import { TransactionsCard } from "@/components/crpto-dash/transactions-card";
+import { WalletCard } from "@/components/crpto-dash/wallet-card";
+// No need to import fetchDash here anymore
+//import { fetchDash } from "@/services/user.service";
+
+interface Transaction {  // Define the Transaction type
+  username: string;
+  amount: number;
+  action: string;
+  timestamp: string;
+}
+
 
 interface TokenOverviewProps {
   userData: {
     username: string;
     public_key: string;
     balance: number;
-    transactions: Array<{
-      username: string;
-      amount: number;
-      action: string;
-      timestamp: string;
-    }>;
+    transactions: Transaction[];  // Use the Transaction type
+    totalCredit?: number;
+    totalDebit?: number;
+    loan?: any; //  Use a more specific type if you have one
+    wallet_data?: any;  // Use a more specific type if you have one
   };
 }
 
-const mockWalletData: WalletData = {
-  username: "meowl",
-  public_key:
-    "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQE-----",
-  encrypted_private_key:
-    "aYxjJHqyBNcX8sPs7/ShCVzsgVWr56GneNx/0IUQrdBChQu6p3cpftEIUHsTDD%jmdKd...",
-  balance: 350,
-  transactions: [
-    {
-      username: "",
-      amount: 1000,
-      action: "buy",
-      timestamp: "2024-12-10 11:06:52",
-      description: "Initial token purchase",
-    },
-    {
-      username: "",
-      amount: 1000,
-      action: "buy",
-      timestamp: "2024-12-11 03:42:43",
-      description: "Token purchase",
-    },
-    {
-      username: "scholarchain",
-      amount: 1500,
-      action: "debit",
-      timestamp: "2024-12-11 03:42:43",
-      description: "Transfer to scholarchain",
-    },
-    {
-      username: "scholarchain",
-      amount: 150,
-      action: "debit",
-      timestamp: "2024-12-11 03:42:43",
-      description: "Transfer to scholarchain",
-    },
-  ],
-};
 
 export function TokenOverview({ userData }: TokenOverviewProps) {
-  const [walletData, setWalletData] = useState<WalletData>(mockWalletData);
 
-  // Calculate total donated
-  const totalDonated = userData.transactions
-    .filter((tx) => tx.action === "debit" && tx.username === "scholarchain")
-    .reduce((sum, tx) => sum + tx.amount, 0);
+  // No need for local state, we're receiving data via props
+  const { totalCredit = 0, totalDebit = 0 } = userData;
 
-  // Calculate total purchased
-  const totalPurchased = userData.transactions
-    .filter((tx) => tx.action === "buy")
-    .reduce((sum, tx) => sum + tx.amount, 0);
 
   return (
     <div>
@@ -93,14 +57,12 @@ export function TokenOverview({ userData }: TokenOverviewProps) {
             </p>
             <div className="mt-4">
               <Progress
-                value={
-                  (userData.balance / (userData.balance + totalDonated)) * 100
-                }
+                value={totalDebit === 0 && userData.balance === 0 ? 0 : (userData.balance / (userData.balance + totalDebit)) * 100}
                 className="h-2"
               />
               <p className="text-muted-foreground mt-1 text-xs">
-                {Math.round(
-                  (userData.balance / (userData.balance + totalDonated)) * 100
+                {totalDebit === 0 && userData.balance === 0 ? 0 : Math.round(
+                  (userData.balance / (userData.balance + totalDebit)) * 100
                 )}
                 % of your total tokens
               </p>
@@ -114,19 +76,19 @@ export function TokenOverview({ userData }: TokenOverviewProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {totalDonated.toLocaleString()} Tokens
+              {totalDebit.toLocaleString()} Tokens
             </div>
             <p className="text-muted-foreground text-xs">
               Thank you for your generosity!
             </p>
             <div className="mt-4">
               <Progress
-                value={(totalDonated / (userData.balance + totalDonated)) * 100}
+                value={totalDebit === 0 && userData.balance === 0 ? 0 : (totalDebit / (userData.balance + totalDebit)) * 100}
                 className="h-2"
               />
               <p className="text-muted-foreground mt-1 text-xs">
-                {Math.round(
-                  (totalDonated / (userData.balance + totalDonated)) * 100
+                {totalDebit === 0 && userData.balance === 0 ? 0 : Math.round(
+                  (totalDebit / (userData.balance + totalDebit)) * 100
                 )}
                 % of your total tokens
               </p>
@@ -142,7 +104,7 @@ export function TokenOverview({ userData }: TokenOverviewProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {totalPurchased.toLocaleString()} Tokens
+              {totalCredit.toLocaleString()} Tokens
             </div>
             <p className="text-muted-foreground text-xs">
               Lifetime token purchases
@@ -156,29 +118,29 @@ export function TokenOverview({ userData }: TokenOverviewProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round(totalDonated / 100)}
+              {Math.round(totalDebit / 100)}
             </div>
             <p className="text-muted-foreground text-xs">
               Your contribution is making a difference
             </p>
             <div className="mt-4">
               <Progress
-                value={Math.min((totalDonated / 5000) * 100, 100)}
+                value={Math.min((totalDebit / 5000) * 100, 100)}
                 className="h-2"
               />
               <p className="text-muted-foreground mt-1 text-xs">
-                {Math.min(Math.round((totalDonated / 5000) * 100), 100)}% to
+                {Math.min(Math.round((totalDebit / 5000) * 100), 100)}% to
                 next level
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
-      <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <WalletCard data={walletData} onBuyToken={() => {}} />
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mt-4">
+        <WalletCard data={userData.wallet_data} onBuyToken={() => { }} />
         <TransactionsCard
-          transactions={walletData.transactions}
-          onViewAll={() => {}}
+          transactions={userData.transactions}
+          onViewAll={() => { }}
         />
       </div>
     </div>

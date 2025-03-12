@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 "use client";
 
 import { Clock } from "lucide-react";
@@ -12,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { Transaction } from "@/types";
 import { TransactionItem } from "./transaction-item";
+import { useMemo } from "react"; // Import useMemo
 
 interface TransactionsCardProps {
   transactions: Transaction[];
@@ -22,8 +24,20 @@ export function TransactionsCard({
   transactions,
   onViewAll,
 }: TransactionsCardProps) {
+
+  // Sort transactions by timestamp in descending order (most recent first)
+  // Use useMemo to avoid re-sorting on every render
+  const sortedTransactions = useMemo(() => {
+    return [...transactions].sort((a, b) => {
+      // Convert timestamps to Date objects for comparison
+      const dateA = new Date(a.timestamp);
+      const dateB = new Date(b.timestamp);
+      return dateB.getTime() - dateA.getTime(); // Descending order
+    });
+  }, [transactions]);  // Dependency array: re-sort only when transactions change
+
   // Show only the 5 most recent transactions
-  const recentTransactions = transactions.slice(0, 5);
+  const recentTransactions = sortedTransactions.slice(0, 5);
 
   return (
     <Card className="h-full">

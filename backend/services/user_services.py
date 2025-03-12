@@ -430,3 +430,88 @@ class UserService:
             dashData["wallet_data"] = wallet
 
         return dashData
+    
+    @staticmethod
+    async def get_donator_dash(username):
+        from services.loan_services import LoanService
+        from services.transaction_services import TransactionServices
+
+        pipeline = [
+            {
+                "$match": {"username": username}
+            },
+            {
+                "$unwind": "$transactions"
+            },
+            {
+                "$group": {
+                    "_id": None,
+                    "totalCredit": {
+                        "$sum": {
+                            "$cond": [
+                                {"$eq": ["$transactions.action", "buy"]},
+                                "$transactions.amount",
+                                0
+                            ]
+                        }
+                    },
+                    "totalDebit": {
+                        "$sum": {
+                            "$cond": [
+                                {"$eq": ["$transactions.action", "debit"]},
+                                "$transactions.amount",
+                                0
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "totalCredit": 1,
+                    "totalDebit": 1
+                }
+            }
+        ]
+
+        # Fetch from the 'wallet' collection
+        user_doc_future = wallet_collection.find_one({"username": username})  # Changed to wallet_collection
+        aggregation_future = wallet_collection.aggregate(pipeline).to_list(length=1) # also use wallet collection
+
+        user_doc, aggregation_result = await asyncio.gather(user_doc_future, aggregation_future)
+
+        if not user_doc:
+            return None
+
+        dashData = {
+            "username": user_doc["username"],
+            "balance": user_doc["balance"],
+            "transactions": [
+                {
+                    "username": trans["username"] if trans["username"] else user_doc["username"],
+                    "amount": trans["amount"],
+                    "action": trans["action"],
+                    "timestamp": trans["timestamp"]
+                } for trans in user_doc["transactions"]
+            ],
+            "public_key": user_doc["public_key"],
+        }
+
+        if aggregation_result:
+            dashData["totalCredit"] = aggregation_result[0]["totalCredit"]
+            dashData["totalDebit"] = aggregation_result[0]["totalDebit"]
+        else:
+            dashData["totalCredit"] = 0
+            dashData["totalDebit"] = 0
+
+        loan_future = LoanService.get_loan_summary(username)
+        wallet_future = TransactionServices.get_wallet(username)  # This might need adjustment if it's not using wallet_collection
+        loan, wallet = await asyncio.gather(loan_future, wallet_future)
+
+        if loan:
+            dashData["loan"] = loan
+        if wallet:
+            dashData["wallet_data"] = wallet  #Consider removing, as we already have balance and transactions
+
+        return dashData

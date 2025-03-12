@@ -239,10 +239,10 @@ export default function ApplicationReviewPage() {
     },
   ];
 
-  USER_DOCUMENTS.forEach(doc => {
-    const matchingDoc = applicationData?.documents.find(d => d.type === doc.id);
-    doc.url = matchingDoc ? config.fastApi.baseUrl + matchingDoc.url : null; // Add url directly
-  });
+  // USER_DOCUMENTS.forEach(doc => {
+  //   const matchingDoc = applicationData?.documents.find(d => d.type === doc.id);
+  //   doc.url = matchingDoc ? config.fastApi.baseUrl + matchingDoc.url : null; // Add url directly
+  // });
 
   // Moved useCallback BEFORE any conditional returns
   const boundHandleUpdatePlan = useCallback(

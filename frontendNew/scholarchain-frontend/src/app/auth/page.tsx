@@ -19,8 +19,10 @@ const LoginPage = () => {
 
   const handleRouting = () => {
     const userRole = AuthService.getUserRole();
+    console.log(userRole);
     if (userRole === "applicant") window.location.href = "/dashboard";
     else if (userRole === "donator") window.location.href = "/donor";
+    else if (userRole === "admin") window.location.href = "/admin";
   };
   // ✅ Handle login
   const handleLogin = async (event: React.FormEvent) => {

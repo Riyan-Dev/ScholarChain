@@ -1,6 +1,7 @@
 export interface Installment {
   installment_id: number;
   installment_date: string;
+  installment_paid_date: string | null;
   installment_status: "pending" | "paid" | "overdue";
   amount_paid: number;
   amount_due: number;

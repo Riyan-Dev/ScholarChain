@@ -58,7 +58,9 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {pathname === "/auth" || pathname === "/" ? (
+            {pathname === "/auth" ||
+            pathname === "/" ||
+            pathname === "/payment" ? (
               // Default layout
               <main className="flex-1 overflow-auto bg-white dark:bg-[#0F0F12]">
                 {children}

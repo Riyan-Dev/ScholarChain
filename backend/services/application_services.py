@@ -81,8 +81,8 @@ class ApplicationService:
 
         deploy_result = await BlockchainService.deploy_loan_contract(username, plan_data["total_loan_amount"])
         print(deploy_result)
-        return await LoanService.create_loan(plan_data["total_loan_amount"], plan_data["start_date"], plan_data["end_date"], plan_data["repayment_frequency"], username, "")
-
+        await LoanService.create_loan(plan_data["total_loan_amount"], plan_data["start_date"], plan_data["end_date"], plan_data["repayment_frequency"], username, deploy_result["contract_address"])
+        return {"transaction_id": deploy_result["transaction_hash"]}
 
     @staticmethod
     async def update_stage(username: str, stage: str):

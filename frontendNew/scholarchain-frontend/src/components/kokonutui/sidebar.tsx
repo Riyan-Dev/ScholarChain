@@ -161,10 +161,10 @@ export default function Sidebar() {
           <div className="flex-1 overflow-y-auto px-4 py-4">
             <div className="space-y-6">
               <div>
-                <div className="mb-2 px-3 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                <div className="z-[10] mb-2 px-3 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
                   Overview
                 </div>
-                {sidebarItems[userRole].overview.map((item, index) => (
+                {sidebarItems.applicant.overview.map((item, index) => (
                   <NavItem key={index} href={item.href} icon={item.icon}>
                     {item.label}
                   </NavItem>

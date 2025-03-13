@@ -57,7 +57,7 @@ class Application(BaseModel):
     signature: str
     username: str
     id: Optional[str] = Field(None, alias="_id") 
-    documents: List[Document]
+    documents: Optional[List[Document]] = []
 
     class Config:
         allow_population_by_field_name = True

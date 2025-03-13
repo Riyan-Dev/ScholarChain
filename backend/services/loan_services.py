@@ -24,7 +24,6 @@ class LoanService:
                                               repayment_frequency=repayement_frequecy, 
                                               username=username, 
                                               contract_address=address)
-        print(loan.dict())
         try:
             result = await loan_collection.insert_one(loan.dict())
             print(result)
@@ -87,13 +86,14 @@ class LoanService:
         
         await TransactionServices.transfer_token(amount_to_pay, username, "scholarchain")
 
-        # deploy_result = await BlockchainService.repay_loan(username, loan.contract_address, amount_to_pay)
-        # print(deploy_result)
+        deploy_result = await BlockchainService.repay_loan(username, loan.contract_address, amount_to_pay)
+        first_pending.transaction_id = deploy_result["transaction_hash"]
 
         
         
 
-        return await LoanService.update_loan(username, loan.dict())
+        await LoanService.update_loan(username, loan.dict())
+        return {"transaction_id": deploy_result["transaction_hash"]}
     
     @staticmethod
     async def get_all_loans():
@@ -350,6 +350,7 @@ class LoanService:
         ]
 
         result = await loan_collection.aggregate(pipeline).to_list(length=1)
+        print(result)
         result2 = await TransactionServices.get_balance(username)
         print(result[0])
         return result[0] | result2

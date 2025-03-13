@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import datetime
 
 class Installment(BaseModel):
+    transaction_id: str = ""
     installment_id: int
     installment_date: datetime
     installment_paid_date: Optional[datetime] = None

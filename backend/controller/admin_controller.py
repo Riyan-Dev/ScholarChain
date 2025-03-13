@@ -87,6 +87,6 @@ async def application_details(application_id: str, current_user: TokenData = Dep
                 return {"Status": "Processing"}
         else:
 
-            return {"Status": "Completed", "risk_assessment": risk_assessment, "plan": "NA", "total_score": total_score}
+            return {"Status": "Completed", "risk_assessment": risk_assessment, "plan": plan, "total_score": total_score}
 
     return {"Status": "Processing"}

@@ -77,7 +77,7 @@ class ApplicationService:
         # print(results)
         plan_data = await ApplicationService.get_plan_db(application_id)    
 
-        await TransactionServices.transfer_token(plan_data["total_loan_amount"], "scholarchain", username)
+        await TransactionServices.transfer_token(plan_data["total_loan_amount"], "scholarchain", username, "Loan Payment")
 
         deploy_result = await BlockchainService.deploy_loan_contract(username, plan_data["total_loan_amount"])
         print(deploy_result)

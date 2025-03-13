@@ -84,7 +84,7 @@ class LoanService:
         loan.installments_completed += 1
         loan.loan_amount_repaid += amount_to_pay
         
-        await TransactionServices.transfer_token(amount_to_pay, username, "scholarchain")
+        await TransactionServices.transfer_token(amount_to_pay, username, "scholarchain", "Loan Repayment")
 
         deploy_result = await BlockchainService.repay_loan(username, loan.contract_address, amount_to_pay)
         first_pending.transaction_id = deploy_result["transaction_hash"]

@@ -5,6 +5,7 @@ import { useTheme } from "next-themes"; // Import useTheme
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AuthService } from "@/services/auth.service";
 import { redirect } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 const LoginPage = () => {
   const [isActive, setIsActive] = useState(false);
@@ -16,6 +17,8 @@ const LoginPage = () => {
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // <-- Loader State
+
 
   const handleRouting = () => {
     const userRole = AuthService.getUserRole();
@@ -28,6 +31,7 @@ const LoginPage = () => {
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
+    setLoading(true);
 
     const credentials: any = { username: username, password: password }; // Assuming username is email
 
@@ -37,12 +41,15 @@ const LoginPage = () => {
     } catch (error: any) {
       console.log(error.message);
       setError(error.message || "Login failed");
+    } finally {
+      setLoading(false); // Stop loading state
     }
   };
 
   const handleSignup = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
+    setLoading(true);
 
     const details: any = {
       name: name,
@@ -58,6 +65,8 @@ const LoginPage = () => {
     } catch (error: any) {
       console.log(error.message);
       setError(error.message || "Login failed");
+    } finally {
+      setLoading(false); // Stop loading state
     }
   };
 
@@ -151,8 +160,14 @@ const LoginPage = () => {
                 <option value="donator">Donator</option>
                 <option value="applicant">Applicant</option>
               </select>
-              <button className="mt-3 cursor-pointer rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-gray-500 dark:hover:bg-indigo-600">
-                Sign Up
+              <button type="submit" disabled={loading} className="mt-3 flex items-center justify-center gap-2 cursor-pointer rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-gray-500 dark:hover:bg-indigo-600 disabled:opacity-50">
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Processing...
+                  </>
+                ) : (
+                  "Sign Up"
+                )}
               </button>
             </form>
           </div>
@@ -221,10 +236,16 @@ const LoginPage = () => {
                 href="#"
                 className="my-4 text-sm text-gray-700 dark:text-gray-400"
               >
-                Forget Your Password?
+                Forgot Your Password ?
               </a>
-              <button className="mt-3 cursor-pointer rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-gray-500 dark:hover:bg-indigo-600">
-                Sign In
+              <button type="submit" disabled={loading} className="mt-3 flex items-center justify-center gap-2 cursor-pointer rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-gray-500 dark:hover:bg-indigo-600 disabled:opacity-50">
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Processing...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
               </button>
             </form>
           </div>

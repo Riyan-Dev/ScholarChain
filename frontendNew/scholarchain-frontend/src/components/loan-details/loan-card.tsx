@@ -231,17 +231,18 @@ export function LoanCard({
           onClick={handlePayInstallment}
           disabled={isPaymentLoading || loan.pending === 0}
           size="sm"
+          className="w-full sm:w-auto flex items-center justify-center"
         >
           {isPaymentLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing
-            </>
+            <span className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Processing...
+            </span>
           ) : (
-            <>
+            <span className="flex items-center gap-2">
               Pay Next Installment
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
+              <ArrowRight className="h-4 w-4" />
+            </span>
           )}
         </Button>
       </CardFooter>

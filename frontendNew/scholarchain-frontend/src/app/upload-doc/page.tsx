@@ -31,6 +31,12 @@ const REQUIRED_DOCUMENTS = [
     description: "Intermediate education certificate",
   },
   {
+    id: "undergrad_transcript",
+    label: "Undergrad Transcript or Enrollment Letter",
+    description:
+      "Provide with the latest transcript or enrollment letter (incase of first semester)",
+  },
+  {
     id: "bank_statements",
     label: "Bank Statements",
     description: "Last 3 months bank statements",

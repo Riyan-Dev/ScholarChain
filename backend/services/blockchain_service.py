@@ -1,5 +1,5 @@
 
-from config import Config
+from config.config import Config
 from fastapi import HTTPException
 import json
 import os

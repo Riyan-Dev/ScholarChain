@@ -1,6 +1,12 @@
 "use client";
 
-import { ClipboardCheck, User, Mail, Phone, Calendar } from "lucide-react";
+import {
+  ClipboardCheck,
+  User,
+  GraduationCap,
+  University,
+  Calendar,
+} from "lucide-react";
 import { ApplicationCard } from "./ui/application-card";
 import { CardFooterActions } from "./ui/card-footer-actions";
 import { ProcessingIndicator } from "./ui/processing-indicator";
@@ -135,16 +141,20 @@ export function ReviewApplicationCard({ onNext }: ReviewApplicationCardProps) {
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <InfoItem icon={User} label="Full Name" value={data.name} />
-              <InfoItem icon={Mail} label="Email Address" value={data.email} />
               <InfoItem
-                icon={Phone}
-                label="Phone Number"
-                value={data.phoneNo}
+                icon={GraduationCap}
+                label="Current Education Level"
+                value={data.current_education}
+              />
+              <InfoItem
+                icon={University}
+                label="Institute"
+                value={data.institute}
               />
               <InfoItem
                 icon={Calendar}
-                label="Start Date"
-                value={data.created_at}
+                label="Application Date"
+                value={data.application_date}
               />
             </div>
 

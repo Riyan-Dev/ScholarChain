@@ -1,5 +1,6 @@
 # services/user_service.py
 import os
+import pathlib
 import base64
 import json
 import time
@@ -18,6 +19,8 @@ from models.application import Document
 from models.user import User, DocumentsList
 from models.wallet import Wallet
 
+from google.genai import types
+from services.gemini_services import GeminiServices
 
 
 from services.encrption_services import EncrptionServices
@@ -34,9 +37,12 @@ class UserService:
         STATIC_DIR = os.path.join(os.path.dirname(__file__), "../static")
         os.makedirs(STATIC_DIR, exist_ok=True)
         documents: List[Document] = []
-        
+        file_paths=[]
         for idx, file in enumerate(files):
             # print(f"Processing file: {file.filename}, Type: {type(file)}")
+            if file.content_type != 'application/pdf':
+                raise HTTPException(status_code=404, detail=f"Files should be PDFs only")
+            
             file_name = token.username + "_" + ids[idx] + ".pdf"
             file_path = os.path.join(STATIC_DIR, file_name)
             with open(file_path, "wb") as f:
@@ -47,8 +53,9 @@ class UserService:
                     f.write(chunk)
                 file_url = f"/pdfs/{file_name}"
                 documents.append({"type": ids[idx], "url": file_url})
-        
-        return await ApplicationService.update_application(token.username, {"documents": documents})
+            file_paths.append(file_path)
+        return documents, file_paths
+        # return await ApplicationService.update_application(token.username, {"documents": documents})
 
     
 
@@ -128,7 +135,7 @@ class UserService:
                 "modified_count": result.modified_count,
                 "message": "Documents have been added successfully."
             }
-
+        print("user documents updated")
         return {"status": "error", "message": "No documents were added."}
     
     @staticmethod 
@@ -159,172 +166,92 @@ class UserService:
         )
         return {"status": "success", "message": "Documents have been added successfully."}
     @staticmethod
-    async def upload_documents(files, ids, token): 
+    async def upload_documents(token, file_paths, ids, documents): 
         from services.application_services import ApplicationService
+        from services.langchain_services import LangChainService
+
         new_documents = {
             "CNIC": [],
             "gaurdian_CNIC": [],
             "electricity_bills": [],
             "gas_bills": [],
             "intermediate_result": [],
-            "undergrad_transacript": [],
+            "undergrad_transcript": [],
             "salary_slips": [],
             "bank_statements": [],
             "income_tax_certificate": [],
             "reference_letter": []
         }
 
-        extract_fields = {
-            "CNIC": f"""
-                    {{
-                    "full_name": " name of the applicant",
-                    "dob": "date of the birthd in the format of YYYY-MM-DD",
-                    "gender": "Male or Female",
-                    "nationality": "American etc etc"
-                    }}
-                    """,
-            "gaurdian_CNIC": "",
-            "electricity_bills": f"""
-                    {{
-                    "address": "Address of the Electricity Bill house",
-                    }}
-                    """,
-            "gas_bills": f"""
-                    {{
-                    "address": "Address of the Gas Bill house",
-                    }},
-                    """,
-            "intermediate_result": [],
-            "undergrad_transacript":  f"""
-                    {{
-                    "gpa": "CGPA of the student",
-                    "year_or_semester": "Year  or semester",
-                    "program_name_degree": "Bachelors of computer science etc",
-                    "student_id": "student id as provided in the transcript",
-                    "college_or_university": "XYZ University",
-                    "current_education_level": "Undergraduate / Postgraduate"
-                    }},
-                    """,
-            "salary_slips":  f"""
-                    {{
-                    "total_family_income": "based on the salary slips give me annualy salary of the applicant (return an integer)",
-                    }},
-                    """,
-            "bank_statements": [],
-            "income_tax_certificate": [],
-            "reference_letter": f"""
-                    {{
-                    "name": "source for this information is reference letter as mention in some metadata for documents",
-                    "designation": "Professor",
-                    "contact_details": "+987654321",
-                    "comments": "John is a diligent student."
-                    }},
-                    """
-        }
+        
         # user = await UserService.get_user_doc_by_username(token.username)
         # user_documents = user["documents"]
 
-        for i, id in enumerate(ids):
-            if ids[i] in document:
-                await asyncio.sleep(3)
-                print("hello")
-                new_documents[ids[i]].extend(document[ids[i]])
-                await UserService.add_documents(token.username, new_documents)
-                continue
-        
-        # await ApplicationServices.auto_fill_field(token)
-
-        await ApplicationService.auto_fill_fields(token)
-
-        # for i, file in enumerate(files):
-        #     if ids[i] in user_documents:
-        #         return {"Messsage": "Documents Uploaded"}
-            
-        #     image_paths = await pdf_to_images(file)            
-            
+        # for i, id in enumerate(ids):
         #     if ids[i] in document:
-        #         time.sleep(10)
+        #         await asyncio.sleep(3)
+        #         print("hello")
         #         new_documents[ids[i]].extend(document[ids[i]])
+        #         await UserService.add_documents(token.username, new_documents)
         #         continue
-
-        #     image_contents = []
-        #     for image_path in image_paths:
-        #         if os.path.exists(image_path):
-        #             # Load and encode the local image
-        #             with open(image_path, "rb") as image_file:
-        #                 image_bytes = image_file.read()
-
-        #             # Convert image bytes to base64
-        #             image_base64 = base64.b64encode(image_bytes).decode("utf-8")
-
-        #             # Append the base64 image content to the list
-        #             image_contents.append(
-        #                 {
-        #                     "type": "image_url",
-        #                     "image_url": f"data:image/jpeg;base64,{image_base64}"
-        #                 }
-        #             )
-
-        #             os.remove(image_path)
-
-        #     # Define the messages, with multiple images
-        #     messages = [
-        #         {
-        #             "role": "user",
-        #             "content": [
-        #                 {
-        #                     "type": "text",
-        #                     "text": f"""Give me exact detail of these images in the response of following format (create json object for each page
-        #                                 and return a json_object of list of documents as shown in the response format below)
-        #                                 Note: page content must contain the extracted text and tables for each image
-        #                                 Note: The length of the returned list of documetns should equals the number of images in the input
-        #                                 Final_note: I have already provided the source of Data use it as given in the response format
-        #                                 response format:
-        #                                 {{
-        #                                     "documents": [
-        #                                         {{
-        #                                             "page_content": "all the text and table related data extracted from each image should be returned in this field",
-        #                                             "metadata": {{
-        #                                                 "source": {ids[i]},
-        #                                                 "author": "author of the source if any such as bank name or electricity company or Nadra etc,
-        #                                                 "section": "what is the section",
-        #                                                 "document_type": "academic or financial",
-        #                                                 "date": "date of the document if available"
-        #                                             }}
-        #                                         }}
-        #                                     ],
-        #                                     "extracted_fields": {extract_fields[ids[i]]}
-        #                                 }}
-        #                             """
-        #                 },
-        #                 *image_contents  # Add the list of images to the message content
-        #             ]
-        #         }
-        #     ]
-
-        #     response = await vision_model(messages)
+        
+        system_isntruction = "You are an AI assistant designed to extract detailed information from documents, including text, tables, and visual elements. For each document provided, process every page individually and return a JSON object with the following structure: {\"documents\": [{\"page_content\": \"[Extracted text and tables in JSON format]\", \"metadata\": {\"source\": \"[Unique identifier for the document]\", \"author\": \"[Author or issuing entity, e.g., bank name, electricity company, NADRA]\", \"section\": \"[Specific section of the document, if applicable]\", \"document_type\": \"[Type of document, e.g., academic, financial]\", \"date\": \"[Publication or issue date, if available]\"}}]} Ensure that each page's content is accurately extracted and structured as specified, maintaining the integrity of tables and textual data. The length of the returned list of documents should equal the number of images provided. The 'page_content' field should contain all extracted text and tables for each page. Note: Use the provided data sources as specified in the response format."
+        prompt = f"""Give me exact detail of these images in the response of following format (create json object for each page
+                                        and return a json_object of list of documents as shown in the response format below)
+                                        Note: page content must contain the extracted text and tables for each image
+                                        Note: The length of the returned list of documetns should equals the number of images in the input
+                                        Final_note: I have already provided the source of Data use it as given in the response format
+                                        response format:
+                                        {{
+                                            "documents": [
+                                                {{
+                                                    "page_content": "all the text and table related data extracted from each image should be returned in this field",
+                                                    "metadata": {{
+                                                        "source": "source of this document (keep this 2 - 3 words max)",
+                                                        "author": "author of the source if any such as bank name or electricity company or Nadra etc,
+                                                        "section": "what is the section",
+                                                        "document_type": "academic or financial",
+                                                        "date": "date of the document else return empty string"
+                                                    }}
+                                                }}
+                                            ],
+                                        }}
+                                    """
+        for i, file_path in enumerate(file_paths):
+            filepath = pathlib.Path(file_path)
+            contents = [types.Part.from_bytes(
+                            data=filepath.read_bytes(),
+                            mime_type='application/pdf',
+                        ),
+                        prompt]
+            config = types.GenerateContentConfig(
+                    system_instruction=[system_isntruction],
+                    response_mime_type='application/json',            
+                )
             
-        #     # Parse and validate the response
-        #     try:
-        #         parsed_response = json.loads(response) if isinstance(response, str) else response
 
-        #         if "documents" in parsed_response and isinstance(parsed_response["documents"], list):
-        #             for doc in parsed_response["documents"]:
-        #                 doc["page_content"] = json.dumps(doc["page_content"], indent=None)
+            response = await GeminiServices.gemini_chat(contents, config)
+            print(response.text)
+            print(f"processed {file_path}")
+
+       
+            try:
+                parsed_response = json.loads(response.text) if isinstance(response.text, str) else response
+
+                if "documents" in parsed_response and isinstance(parsed_response["documents"], list):
+                    for doc in parsed_response["documents"]:
+                        doc["page_content"] = json.dumps(doc["page_content"], indent=None)
                     
-        #             print(parsed_response)
-        #             extract_fields[ids[i]] = parsed_response["extracted_fields"]
-        #             new_documents[ids[i]].extend(parsed_response["documents"])
-        #         else:
-        #             raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
-        #     except json.JSONDecodeError:
-        #         raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
+                    print(parsed_response)
+                    new_documents[ids[i]].extend(parsed_response["documents"])
+                else:
+                    raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
+            
 
-        # # Check if username is None, and raise an HTTPException if it is
-        # if token.username is None:
-        #     raise HTTPException(status_code=400, detail="Username is missing in the token")
-
-        # Now safely call add_documents, assuming username is always a valid string
+        await LangChainService.store_user_documents(token.username, new_documents, ids)
+        await ApplicationService.auto_fill_fields(token,  documents)
         return await UserService.add_documents(token.username, new_documents)
 
     async def check_all_document_types_present(username: str):

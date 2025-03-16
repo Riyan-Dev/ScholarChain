@@ -32,9 +32,11 @@ async def get_loan_details(current_user: TokenData = Depends(get_current_user)):
 async def get_plan(application_id: str, current_user: TokenData = Depends(get_current_user)):
     return await ApplicationService.get_plan_db(application_id)
 
-# @application_router.get('/risk-assessment/')
-# async def get_risk_assessment(application_id: str, current_user: TokenData = Depends(get_current_user)):
-#     return await RiskScoreCalCulations.get_riskscore(application_id);
+@application_router.get('/risk-assessment/')
+async def get_risk_assessment(application_id: str, current_user: TokenData = Depends(get_current_user)):
+    application_dict = await ApplicationService.get_application(current_user.username)
+    application_dict["_id"] = str(application_dict["_id"])
+    return await RiskScoreCalCulations.generate_risk_scores(application_dict, current_user)
 
 @application_router.get('/get-by-id/')
 async def get_application_by_id(application_id: str, current_user: TokenData = Depends(get_current_user)):
@@ -125,3 +127,4 @@ async def repay_details(current_user: TokenData = Depends(get_current_user)):
 #   "signature": "Riyan Ahmed",
 #   "username": "r.dev1"
 # }
+

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Sidebar from "@/components/kokonutui//sidebar";
 import type React from "react";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ChatDock } from "@/components/chat-dock";
 import { Toaster } from "@/components/ui/sonner";
 import { cookies, headers } from "next/headers"; // ✅ Get current path on the server
 import "./globals.css";
@@ -59,8 +60,8 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             {pathname === "/auth" ||
-            pathname === "/" ||
-            pathname === "/payment" ? (
+              pathname === "/" ||
+              pathname === "/payment" ? (
               // Default layout
               <main className="flex-1 overflow-auto bg-white dark:bg-[#0F0F12]">
                 {children}
@@ -92,6 +93,7 @@ export default async function RootLayout({
               </div>
             )}
             <Toaster className="z-[9999]" />
+            <ChatDock />
           </ThemeProvider>
         </Providers>
       </body>

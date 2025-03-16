@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import { Bell, ChevronRight } from "lucide-react";
+import { ChatBubbleIcon } from "@radix-ui/react-icons";
 import Profile01 from "./profile-01";
 import Link from "next/link";
 import { ThemeToggle } from "../theme-toggle";
@@ -47,6 +48,12 @@ export default function TopNav() {
       </div>
 
       <div className="ml-auto flex items-center gap-2 sm:ml-0 sm:gap-4">
+        <button
+          type="button"
+          className="rounded-full p-1.5 transition-colors hover:bg-gray-100 sm:p-2 dark:hover:bg-[#1F1F23]"
+        >
+          <ChatBubbleIcon className="h-4 w-4 text-gray-600 sm:h-5 sm:w-5 dark:text-gray-300" />
+        </button>
         <button
           type="button"
           className="rounded-full p-1.5 transition-colors hover:bg-gray-100 sm:p-2 dark:hover:bg-[#1F1F23]"

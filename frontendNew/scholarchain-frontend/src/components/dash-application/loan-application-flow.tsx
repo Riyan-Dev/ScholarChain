@@ -8,7 +8,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentUploadCard } from "./document-upload-card";
 import { ApplicationTimeline } from "./application-timeline";
 import { ReviewApplicationCard } from "./review-application-card";
-import { RepaymentPlanCard } from "./repayment-plan-card";
 import { StartApplicationCard } from "./start-application-card";
 import { updateStage } from "@/services/user.service";
 import { LoanDashData } from "@/lib/types";

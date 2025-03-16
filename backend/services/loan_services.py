@@ -334,7 +334,7 @@ class LoanService:
                             {
                                 "$subtract": [
                                     "$loanDetails.no_of_installments",
-                                    {"$add": ["$nextInstallment.installment_id", 1]}
+                                    {"$subtract": ["$nextInstallment.installment_id", 1]}
                                 ]
                             }
                         ]

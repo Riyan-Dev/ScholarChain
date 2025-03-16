@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+import os
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from controller.rag_controller import router as rag_router
@@ -11,6 +12,11 @@ from controller.application_controller import application_router
 from controller.admin_controller import admin_router
 from controller.donator_controller import donator_router
 
+from config.init_EM import get_embedding_model
+from config.init_gemini import get_gemini_client
+
+# get_embedding_model()
+get_gemini_client()
 app = FastAPI()
 
 app.include_router(rag_router, prefix="/rag", tags=["rag"])
@@ -18,6 +24,9 @@ app.include_router(user_router, prefix="/user", tags=["user"])
 app.include_router(application_router, prefix="/application", tags=["application"])
 app.include_router(admin_router, prefix="/admin", tags=["admin"])
 app.include_router(donator_router, prefix="/donator", tags=["donator"])
+
+os.makedirs("static", exist_ok=True)
+app.mount("/pdfs", StaticFiles(directory="static"), name="pdfs")
 
 origins = [
     "http://localhost:3000",
@@ -49,29 +58,3 @@ async def health_check():
 # To run locally
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8000)
-
-
-
-# app.mount("/static", StaticFiles(directory="static"), name="static")
-# templates = Jinja2Templates(directory="templates")
-
-
-# @app.get("/", response_class=HTMLResponse)
-# async def index(request: Request):
-#     return templates.TemplateResponse("index.html", {"request": request})
-
-# @app.get("/personal-info", response_class=HTMLResponse)
-# async def personal_info(request: Request):
-#     return templates.TemplateResponse("personal_info.html", {"request": request})
-
-# @app.get("/financial-info", response_class=HTMLResponse)
-# async def financial_info(request: Request):
-#     return templates.TemplateResponse("financial_info.html", {"request": request})
-
-# @app.get("/academic-info", response_class=HTMLResponse)
-# async def academic_info(request: Request):
-#     return templates.TemplateResponse("academic_info.html", {"request": request})
-
-# @app.get("/document-upload", response_class=HTMLResponse)
-# async def document_upload(request: Request):
-#     return templates.TemplateResponse("document_upload.html", {"request": request})

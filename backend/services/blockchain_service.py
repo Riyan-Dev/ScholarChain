@@ -1,14 +1,15 @@
 
+from services.transaction_services import TransactionServices
+from config.config import Config
 from fastapi import HTTPException
 import json
 import os
 
 from dotenv import load_dotenv
 
-from config import web3
-from web3._utils.events import get_event_data
 
-from services.transaction_services import TransactionServices
+from config import web3
+
 from services.encrption_services import EncrptionServices
 from models.wallet import Wallet
 
@@ -42,15 +43,11 @@ class BlockchainService:
 
         random_salt = os.urandom(32)
         salt = int.from_bytes(random_salt, byteorder='big')
-        factory_address = os.getenv("factory_address")
+        factory_address = Config.factory_address
         factory_contract_abi = await BlockchainService.get_abi("./contracts/Create2Factory.json")
 
         loan_factory_contract = web3.eth.contract(address=factory_address, abi=factory_contract_abi)
         
-        wallet_data = await TransactionServices.get_wallet(username)
-        wallet = Wallet(**wallet_data)
-        
-        bytecode = loan_factory_contract.functions.getBytecode(wallet.public_key, int(loan_amount)).call()
         new_contract_address = loan_factory_contract.functions.getAddress(bytecode, salt).call()
         
         # Build the transaction for deploying the loan
@@ -119,7 +116,7 @@ class BlockchainService:
     async def make_donation(username, amount):
         load_dotenv()
         
-        donation_contract_address = os.getenv("donation_contract_address")
+        donation_contract_address = Config.donation_contract_address
         donation_contract_abi = await BlockchainService.get_abi("./contracts/DonationTracker.json") 
 
         donation_contract = web3.eth.contract(address = donation_contract_address, abi=donation_contract_abi)

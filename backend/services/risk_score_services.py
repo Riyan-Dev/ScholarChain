@@ -1,5 +1,6 @@
 import time
 import asyncio
+import json
 
 from bson import ObjectId
 from fastapi import HTTPException
@@ -9,8 +10,8 @@ from datetime import date
 from db import risk_assessment_collection
 from services.application_services import ApplicationService
 
+from services.gemini_services import GeminiServices
 from utility import run_mistral
-
 class RiskScoreCalCulations:
 
     @staticmethod
@@ -82,23 +83,28 @@ class RiskScoreCalCulations:
 
     async def get_personal_information_score(personal_info: PersonalInfo, risk_assesment: RiskAssessment) -> float :
         score = 0.0
+        age_score = 0.0
+        marital_status = 0.0
+
         age = (date.today() - personal_info.dob).days / 365.25
         if age > 18 and age < 35:
-            score += 5
+            age_score = 5
         else:
-            score += 2.5
+            age_score = 2.5
 
         if personal_info.marital_status == "Single":
-            score += 5
+            marital_status = 5
         elif personal_info.marital_status == "Divorced":
-            score += 3.5
+            marital_status = 3.5
         else:
-            score += 2
+            marital_status = 2
 
         prompt = f"""
 
                     considering the personal information for a loan applicant is below:
                     {personal_info.dict()}
+                    Score based on age: {age_score}/5
+                    Score based on marital status: {marital_status}/5
 
                     on the factors of address give me a risk score out of 5.
 
@@ -108,8 +114,12 @@ class RiskScoreCalCulations:
                     3. If residential and Permanent addresses are same city give median score.
 
                     Restriction: the calculations reasoning in response should only be a string and no extra key should be added in JSON response
-                    Note: Make sure you add / subtract the scores based twice to remove any ambiguity or calculation errors
-
+                    Note: 
+                    1. Make sure you add / subtract the scores based twice to remove any ambiguity or calculation errors (use python interpreter for the addition on calculations as it should be consistent with the reasoning
+                    2. In calculations also add the reasoning for the score I have manually assignment. 
+                    
+                    Total Score = (age score + marital Score + score you calculate the factors mentioned above) out of 15
+                    
                     Example Json Object Response:
                     {{
                         "risk_score": 5.0
@@ -117,11 +127,11 @@ class RiskScoreCalCulations:
                     }}
                 """
 
-        response = await run_mistral(prompt)
-        print(response)
-        response["risk_score"] += score
-        risk_assesment.personal_risk = RiskScoreReasoning(**response)
-        return response["risk_score"]
+        response = await GeminiServices.gemini_chat(prompt)
+        parsed_response = json.loads(response.text)
+        print(parsed_response)
+        risk_assesment.personal_risk = RiskScoreReasoning(**parsed_response)
+        return parsed_response["risk_score"]
 
 
     async def get_academic_risk_score(academic_info: AcademicInfo, risk_assesment: RiskAssessment):
@@ -137,7 +147,8 @@ class RiskScoreCalCulations:
                     3. Field of study should have higher potential in the future so the applicant easily payback loan (7 - 10 points)
 
                     Restriction: the calculations reasoning in response should only be a string and no extra key should be added in JSON response
-                    Note: Make sure you add / subtract the scores based twice to remove any ambiguity or calculation errors
+                    Note: 
+                    1. Make sure you add / subtract the scores based twice to remove any ambiguity or calculation errors (use python interpreter for the addition on calculations as it should be consistent with the reasoning
 
                     Give JSON Object Response as exactly as exmaple Response below:
                     {{
@@ -146,27 +157,30 @@ class RiskScoreCalCulations:
                     }}
                 """
 
-        response = await run_mistral(prompt)
-        print(response)
-        risk_assesment.academic_risk = RiskScoreReasoning(**response)
-        score = response["risk_score"]
-        return score
+        response = await GeminiServices.gemini_chat(prompt)
+        parsed_response = json.loads(response.text)
+        print(parsed_response)
+        risk_assesment.academic_risk = RiskScoreReasoning(**parsed_response)
+        return parsed_response["risk_score"]
 
     async def get_financial_risk_score(financial_info: FinancialInfo, loan_details: LoanDetails, risk_assesment: RiskAssessment):
         TFI = financial_info.total_family_income//12
         score = 0
+        TFI_score = 0
         if TFI < 100000:
-            score = 2
+            TFI_score = 2
         elif TFI > 250000:
-            score = 8
+            TFI_score = 8
         else:
-            score = 15
+            TFI_score = 15
+
         prompt = f"""
 
                     considering the Financial information and loan requested for a loan applicant is below:
                     {financial_info.dict()}
                     {loan_details.dict()}
 
+                    Score based on Total Family Income per Month: {TFI_score}
 
                     On the follwoing factors give me a risk score out of 20:
                     1. Calculate DTI (debt to income Ratio)
@@ -174,7 +188,11 @@ class RiskScoreCalCulations:
                     3. If the applicant Have other loans add 1 point otherwise add 5 points
 
                     Restriction: the calculations reasoning in response should only be a string and no extra key should be added in JSON response
-                    Note: Make sure you add / subtract the scores based twice to remove any ambiguity or calculation errors
+                    Note: 
+                    1. Make sure you add / subtract the scores based twice to remove any ambiguity or calculation errors (use python interpreter for the addition on calculations as it should be consistent with the reasoning
+                    2. In calculations also add the reasoning for the score I have manually assignment. 
+                    
+                    Total Score = (Total Family Score + score you calculate the factors mentioned above) out of 35
 
                     Give JSON Object Response as exactly as exmaple Response below:
                     {{
@@ -183,11 +201,11 @@ class RiskScoreCalCulations:
                     }}
                 """
 
-        response = await run_mistral(prompt)
-        print(response)
-        response["risk_score"] += score
-        risk_assesment.financial_risk = RiskScoreReasoning(**response)
-        return response["risk_score"]
+        response = await GeminiServices.gemini_chat(prompt)
+        parsed_response = json.loads(response.text)
+        print(parsed_response)
+        risk_assesment.financial_risk = RiskScoreReasoning(**parsed_response)
+        return parsed_response["risk_score"]
     async def get_reference_risk_score(references: list[Reference], risk_assesment: RiskAssessment):
         score = 0
         prompt = f"""
@@ -202,7 +220,7 @@ class RiskScoreCalCulations:
                     3. if no reference found than give 0
 
                     Restriction: the calculations reasoning in response should only be a string and no extra key should be added in JSON response
-                    Note: Make sure you add / subtract the scores based twice to remove any ambiguity or calculation errors
+                    Note: Make sure you add / subtract the scores based twice to remove any ambiguity or calculation errors (use python interpreter for the addition on calculations as it should be consistent with the reasoning
                     Give JSON Object Response as exactly as exmaple Response below:
                     {{
                         "risk_score": 5.0
@@ -210,11 +228,11 @@ class RiskScoreCalCulations:
                     }}
                 """
 
-        response = await run_mistral(prompt)
-        print(response)
-        risk_assesment.reference_risk = RiskScoreReasoning(**response)
-        score += response["risk_score"]
-        return score
+        response = await GeminiServices.gemini_chat(prompt)
+        parsed_response = json.loads(response.text)
+        print(parsed_response)
+        risk_assesment.reference_risk = RiskScoreReasoning(**parsed_response)
+        return parsed_response["risk_score"]
 
 
     async def repayment_potential_score(application: Application, risk_assesment: RiskAssessment):
@@ -231,7 +249,7 @@ class RiskScoreCalCulations:
                     3. Predict future salary for the applicant and its affect on repayment.
 
                     Restriction: the calculations reasoning in response should only be a string and no extra key should be added in JSON response
-                    Note: Make sure you add / subtract the scores based twice to remove any ambiguity or calculation errors
+                    Note: Make sure you add / subtract the scores based twice to remove any ambiguity or calculation errors (use python interpreter for the addition on calculations as it should be consistent with the reasoning)
                     Give JSON Object Response as exactly as exmaple Response below:
                     {{
                         "risk_score": 5.0
@@ -239,11 +257,11 @@ class RiskScoreCalCulations:
                     }}
                 """
 
-        response = await run_mistral(prompt)
-        print(response)
-        risk_assesment.repayment_potential = RiskScoreReasoning(**response)
-        score += response["risk_score"]
-        return score
+        response = await GeminiServices.gemini_chat(prompt)
+        parsed_response = json.loads(response.text)
+        print(parsed_response)
+        risk_assesment.repayment_potential = RiskScoreReasoning(**parsed_response)
+        return parsed_response["risk_score"]
     
     async def calculate_total_score(risk_assessment):
         total_score = 0

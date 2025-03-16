@@ -1,5 +1,6 @@
 
 ScholarChainEnv/
+ScholarChainEnv/
 newv/
 __pycache__/
 controller/__pycache__/
@@ -8,5 +9,6 @@ services/__pycache__/
 middleware/__pycache__/
 output_images/
 .env
+scholarchain/
 static/
 chromaDB/

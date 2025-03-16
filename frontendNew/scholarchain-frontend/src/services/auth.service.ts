@@ -17,6 +17,7 @@ export const AuthService = {
     if (!credentials.username || !credentials.password) {
       throw new Error("Username and password are required");
     }
+    console.log(credentials);
 
     const formBody = new URLSearchParams();
     formBody.append("username", credentials.username);
@@ -27,7 +28,7 @@ export const AuthService = {
     formBody.append("client_secret", ""); // Optional
 
     try {
-      const response = await fetch("http://localhost:8000/user/login", {
+      const response = await fetch(`${API_BASE_URL}/user/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -41,7 +42,7 @@ export const AuthService = {
       }
 
       const data = await response.json();
-      console.log("Login Successful:", data);
+      AuthService.setToken(data.access_token);
       return data;
     } catch (error: any) {
       console.error("Login Error:", error.message);
@@ -63,7 +64,13 @@ export const AuthService = {
         const errorData = await response.json();
         throw new Error(errorData.message || "Signup failed");
       }
+      const credentials: any = {
+        username: userData.username,
+        password: userData.hashed_password,
+      };
+      console.log(credentials);
 
+      await AuthService.login(credentials);
       const data = await response.json();
       return data; // Return any data from the signup (e.g., success message)
     } catch (error: any) {
@@ -114,8 +121,11 @@ export const AuthService = {
   },
 
   // --- Get User Information (from the token) ---
-  getUserInfo: (): { username: string; role: string } | null => {
-    const token = AuthService.getToken();
+  getUserInfo: (
+    tokenPara = null
+  ): { username: string; role: string } | null => {
+    const token = tokenPara || AuthService.getToken();
+
     if (!token) {
       return null;
     }
@@ -128,7 +138,7 @@ export const AuthService = {
         return null;
       }
 
-      return { username: decoded.username, role: decoded.role };
+      return { username: decoded.sub, role: decoded.role };
     } catch (error) {
       console.error("Token Decode Error", error);
       return null;

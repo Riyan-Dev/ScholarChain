@@ -13,7 +13,7 @@ class TransactionServices:
     
 
     @staticmethod
-    async def transfer_token(amount: float, sender_username: str, reciever_username):
+    async def transfer_token(amount: float, sender_username: str, reciever_username, description: str):
         sender_wallet = await TransactionServices.get_wallet_for_update(sender_username)
         reciever_wallet = await TransactionServices.get_wallet_for_update(reciever_username) 
 
@@ -23,8 +23,8 @@ class TransactionServices:
         sender_wallet["balance"] -= amount
         reciever_wallet["balance"] += amount
 
-        credit_transaction = TokenTransaction(username=sender_username, amount=amount, action="credit")
-        debit_transaction = TokenTransaction(username=reciever_username, amount=amount, action="debit")
+        credit_transaction = TokenTransaction(username=sender_username, amount=amount, action="credit", description=description)
+        debit_transaction = TokenTransaction(username=reciever_username, amount=amount, action="debit", description=description)
 
         sender_wallet["transactions"].append(debit_transaction.dict())
         reciever_wallet["transactions"].append(credit_transaction.dict())
@@ -39,7 +39,7 @@ class TransactionServices:
         wallet = await TransactionServices.get_wallet_for_update(username)
 
         wallet["balance"] += amount
-        transaction = TokenTransaction(username="", amount=amount, action="buy")
+        transaction = TokenTransaction(username="", amount=amount, action="buy", description="Minted")
         wallet["transactions"].append(transaction.dict())
         await TransactionServices.update_wallet(wallet)
 
@@ -97,3 +97,9 @@ class TransactionServices:
                     })
         
         return tranasctions
+
+    @staticmethod
+    async def get_balance(username):
+        wallet = await TransactionServices.get_wallet(username)
+
+        return { "balance": wallet["balance"] }

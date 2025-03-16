@@ -1,9 +1,10 @@
+import os
+
 from fastapi import Depends, HTTPException, status, APIRouter, UploadFile, File, Form, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 
 from typing import List
-
 
 from middleware.JWT_authentication import create_access_token, TokenData, get_current_user
 from services.user_services import UserService
@@ -31,11 +32,31 @@ async def register(user: User):
 @user_router.post("/upload-documents")
 async def process_documents( background_tasks: BackgroundTasks, files: List[UploadFile] = File(...), ids: str = Form(...), token: TokenData = Depends(get_current_user)):
     ids_list = ids.split(",")
-    print(f"Received ids: {ids_list}")  # Debugging
-    ids_list = ['CNIC', 'gaurdian_CNIC', 'intermediate_result', 'bank_statements', 'salary_slips', 'gas_bills', 'electricity_bills', 'reference_letter']
-    background_tasks.add_task(UserService.upload_documents, [], ids_list, token)
+    documents, file_paths = await UserService.store_documents(files, ids_list, token)
+    print(f"Files Paths: {file_paths}")  # Debugging
+    # ids_list = ['CNIC', 'gaurdian_CNIC', 'intermediate_result', 'bank_statements', 'salary_slips', 'gas_bills', 'electricity_bills', 'reference_letter', 'undergrad_transcript']
+    background_tasks.add_task(UserService.upload_documents, token, file_paths, ids_list,documents)
     return {"Message": f"Docuemnt Uploading in process"}
 
+@user_router.get("/documents-status")
+async def get_documents_status(token: TokenData = Depends(get_current_user)):
+    return await UserService.check_all_document_types_present(token.username)
+
+@user_router.get("/get-dash")
+async def get_dash(token: TokenData = Depends(get_current_user)):
+
+    if token.role == "applicant":
+        dash = await UserService.get_applicant_dash(token.username)
+        return dash
+    elif token.role == "donator": 
+        dash = await UserService.get_donator_dash(token.username)
+        return dash
+    elif token.role == "admin":
+        pass
+
+@user_router.post("/set-upload")
+async def set_upload(token: TokenData = Depends(get_current_user)):
+    return await UserService.set_upload(token.username)
 
 
 

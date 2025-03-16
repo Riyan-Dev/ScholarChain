@@ -16,14 +16,27 @@ application_router = APIRouter()
 async def accept_plan(application_id: str, current_user: TokenData = Depends(get_current_user)):
     return await ApplicationService.accept_application(current_user.username, application_id)
 
+@application_router.put('/update-stage/{stage}')
+async def accept_plan(stage: str, current_user: TokenData = Depends(get_current_user)):
+    return await ApplicationService.update_stage(current_user.username, stage)
 
 @application_router.get('/repay/')
 async def repay_loan(current_user: TokenData = Depends(get_current_user)):
     return await LoanService.repay_loan(current_user.username)
 
-# @application_router.get('/risk-assessment/')
-# async def get_risk_assessment(application_id: str, current_user: TokenData = Depends(get_current_user)):
-#     return await RiskScoreCalCulations.get_riskscore(application_id);
+@application_router.get('/get-loan-details/')
+async def get_loan_details(current_user: TokenData = Depends(get_current_user)):
+    return await LoanService.get_loan_details(current_user.username)
+
+@application_router.get('/get-plan')
+async def get_plan(application_id: str, current_user: TokenData = Depends(get_current_user)):
+    return await ApplicationService.get_plan_db(application_id)
+
+@application_router.get('/risk-assessment/')
+async def get_risk_assessment(application_id: str, current_user: TokenData = Depends(get_current_user)):
+    application_dict = await ApplicationService.get_application(current_user.username)
+    application_dict["_id"] = str(application_dict["_id"])
+    return await RiskScoreCalCulations.generate_risk_scores(application_dict, current_user)
 
 @application_router.get('/get-by-id/')
 async def get_application_by_id(application_id: str, current_user: TokenData = Depends(get_current_user)):
@@ -38,7 +51,7 @@ async def update_application(updated_data:Application, background_tasks: Backgro
     if result:
         background_tasks.add_task(RiskScoreCalCulations.generate_risk_scores, updated_data.dict(), current_user)
     
-    return {'message': 'Application Added Successfully, Risk Assessment and personalised Plan Under Construction'}
+    return {'message': 'Application Added Successfully, Risk Assessment and personalised Plan Under Construction', 'success': True}
 
 @application_router.get('/auto-fill-fields/')
 async def auto_fill_fields(background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
@@ -47,8 +60,19 @@ async def auto_fill_fields(background_tasks: BackgroundTasks, current_user: Toke
     return {'message': 'Documents Under Analysis, Fields will updated soon poll the application'}
 
 
+@application_router.get('/application-overview/')
+async def application_overview(current_user: TokenData = Depends(get_current_user)):
+    result = await ApplicationService.application_overview(current_user.username)
+    if result is None:
+        raise HTTPException(status_code=404, detail="No Application Found")
+    return result
 
-
+@application_router.get('/repay-details/')
+async def repay_details(current_user: TokenData = Depends(get_current_user)):
+    result = await LoanService.fetch_repay_details(current_user.username)
+    if result is None:
+        raise HTTPException(status_code=404, detail="No Loan Found")
+    return result
 # *************Strong case*****************
 # {
 #   "personal_info": {
@@ -103,3 +127,4 @@ async def auto_fill_fields(background_tasks: BackgroundTasks, current_user: Toke
 #   "signature": "Riyan Ahmed",
 #   "username": "r.dev1"
 # }
+

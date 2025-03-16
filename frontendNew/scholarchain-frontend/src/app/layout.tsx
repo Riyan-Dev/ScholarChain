@@ -4,9 +4,12 @@ import Sidebar from "@/components/kokonutui//sidebar";
 import type React from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { headers } from "next/headers"; // ✅ Get current path on the server
+import { cookies, headers } from "next/headers"; // ✅ Get current path on the server
 import "./globals.css";
 import TopNav from "@/components/kokonutui/top-nav";
+import { Providers } from "./proviers";
+import { AuthService } from "@/services/auth.service";
+import config from "@/config/config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +32,10 @@ export default async function RootLayout({
   // // ✅ Get the current pathname from the request headers
   const headersList = await headers();
   const pathname = headersList.get("x-url");
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get(config.jwtSecret)?.value;
+  const userData = AuthService.getUserInfo(authToken as string);
+  const userRole = userData?.role;
   console.log(pathname);
   // // ✅ Fetch the auth token from cookies
   // const cookieStore = cookies();
@@ -44,31 +51,49 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {pathname !== "/auth" ? (
-            <div className="flex h-screen">
-              <Sidebar />
-              <div className="flex w-full flex-1 flex-col">
-                <header className="h-16 border-b border-gray-200 dark:border-[#1F1F23]">
-                  <TopNav />
-                </header>
-                <main className="flex-1 overflow-auto bg-white p-6 dark:bg-[#0F0F12]">
-                  {children}
-                </main>
+        <Providers>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {pathname === "/auth" ||
+            pathname === "/" ||
+            pathname === "/payment" ? (
+              // Default layout
+              <main className="flex-1 overflow-auto bg-white dark:bg-[#0F0F12]">
+                {children}
+              </main>
+            ) : userRole && userRole === "donator" ? (
+              // Layout for donor pages
+              <div className="flex h-screen">
+                <div className="flex w-full flex-1 flex-col">
+                  <header className="h-16 border-b border-gray-200 dark:border-[#1F1F23]">
+                    <TopNav />
+                  </header>
+                  <main className="flex-1 overflow-auto bg-white p-6 dark:bg-[#0F0F12]">
+                    {children}
+                  </main>
+                </div>
               </div>
-            </div>
-          ) : (
-            <main className="flex-1 overflow-auto bg-white dark:bg-[#0F0F12]">
-              {children}
-            </main>
-          )}
-          <Toaster />
-        </ThemeProvider>
+            ) : (
+              // Layout with Sidebar
+              <div className="flex h-screen">
+                <Sidebar />
+                <div className="flex w-full flex-1 flex-col">
+                  <header className="h-16 border-b border-gray-200 dark:border-[#1F1F23]">
+                    <TopNav />
+                  </header>
+                  <main className="flex-1 overflow-auto bg-white p-6 dark:bg-[#0F0F12]">
+                    {children}
+                  </main>
+                </div>
+              </div>
+            )}
+            <Toaster className="z-[9999]" />
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

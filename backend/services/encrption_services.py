@@ -1,9 +1,10 @@
+from config.config import Config
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import padding
 
-from config import web3
+from RPC_server import web3
 
 from cryptography.hazmat.backends import default_backend
 from hashlib import sha256
@@ -42,7 +43,7 @@ class EncrptionServices:
         # receiver_address = EncrptionServices.get_ethereum_address(public_key)
         amount_to_send = web3.to_wei(1, 'ether')  # 1 Ether in Wei
         # Private key (example, don't use this in production)
-        private_key = "0xe57100f5adbe4c545568fed64d3f697fca2503189e810004aa585482209f4446"
+        private_key = Config.faucet_private_key
 
         # Create the transaction
         transaction = {
@@ -65,7 +66,7 @@ class EncrptionServices:
     
     @staticmethod
     def encrypt_private_key(private_key_bytes: bytes) -> str:
-        base64_key = os.getenv("ENCRYPTION_KEY")
+        base64_key = Config.encryption_key
         encryption_key = base64.b64decode(base64_key)
         # Ensure the encryption key length is 32 bytes (for AES-256)
         if len(encryption_key) not in [16, 24, 32]:
@@ -88,7 +89,7 @@ class EncrptionServices:
 
     @staticmethod
     def decrypt_private_key(encrypted_private_key: str) -> bytes:
-        base64_key = os.getenv("ENCRYPTION_KEY")
+        base64_key = Config.encryption_key
         encryption_key = base64.b64decode(base64_key)
         # Ensure the encryption key length is 32 bytes (for AES-256)
         if len(encryption_key) not in [16, 24, 32]:

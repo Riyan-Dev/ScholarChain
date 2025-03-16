@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { PlusCircle, Trash2, Loader2, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -29,11 +29,14 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator"; // Import Separator
+import { Separator } from "@/components/ui/separator";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
+import { fetchApplication, submitApplication } from "@/services/user.service";
+import { useQuery } from "@tanstack/react-query";
 
 interface Reference {
   name: string;
-  designation: string;
   contact_details: string;
   comments: string;
 }
@@ -119,11 +122,93 @@ export default function ApplicationFormComponent({
   initialData,
   onSubmit,
 }: ApplicationFormComponentProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const id = searchParams.get("id");
   const [formData, setFormData] = useState<FormData>(
     initialData || defaultFormData
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  const { data, error, isLoading } = useQuery({
+    queryKey: ["application_form", id], // Corrected: Query key is an array
+    queryFn: fetchApplication, // Make sure this function is defined
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    if (data) {
+      setFormData(data);
+    }
+    console.log(data);
+  }, [data]);
+
+  // Function to check if all required fields are filled
+  const checkFormValidity = useCallback(() => {
+    const {
+      personal_info,
+      financial_info,
+      academic_info,
+      loan_details,
+      references,
+    } = formData;
+
+    const isPersonalInfoValid =
+      personal_info.full_name !== "" &&
+      personal_info.dob !== undefined &&
+      personal_info.gender !== "" &&
+      // personal_info.nationality !== "" && // Optional fields
+      // personal_info.marital_status !== "" &&
+      personal_info.phone_number !== "" &&
+      personal_info.email_address !== "" &&
+      personal_info.residential_address !== "" && // Added back residential_address
+      personal_info.permanent_address !== ""; // Added back permanent_address
+
+    const isFinancialInfoValid =
+      financial_info.total_family_income !== "" && // Added back total_family_income
+      financial_info.other_income_sources !== "" && // Added back other_income_sources
+      financial_info.outstanding_loans_or_debts !== "";
+
+    const isAcademicInfoValid =
+      academic_info.current_education_level !== "" && // Added back current_education_level
+      academic_info.college_or_university !== "" && // Added back college_or_university
+      academic_info.student_id !== "" && // Added back student_id
+      academic_info.program_name_degree !== "" && // Added back program_name_degree
+      academic_info.duration_of_course !== "" && // Added back duration_of_course
+      academic_info.year_or_semester !== "" && // Added back year_or_semester
+      academic_info.gpa !== "";
+    // academic_info.achievements_or_awards !== ""; // Optional
+
+    const isLoanDetailsValid =
+      loan_details.loan_amount_requested !== "" && // Added back loan_amount_requested
+      loan_details.purpose_of_loan !== "" && // Added back purpose_of_loan
+      loan_details.proposed_repayment_period !== "" && // Added back proposed_repayment_period
+      loan_details.preferred_repayment_frequency !== "";
+
+    //make references optional
+    // const areReferencesValid = references.every(
+    //   (ref) =>
+    //     ref.name !== "" &&
+    //     ref.designation !== "" &&
+    //     ref.contact_details !== ""
+    // ref.comments !== ""
+    // );
+
+    const isValid =
+      isPersonalInfoValid &&
+      isFinancialInfoValid &&
+      isAcademicInfoValid &&
+      isLoanDetailsValid; // && areReferencesValid;
+    setIsFormValid(isValid);
+  }, [formData]);
+
+  // Use useEffect to check form validity whenever formData changes
+  useEffect(() => {
+    checkFormValidity();
+  }, [checkFormValidity, formData]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -221,10 +306,11 @@ export default function ApplicationFormComponent({
     setIsSubmitting(true);
 
     try {
-      const result = await onSubmit(formData);
+      const result = await submitApplication(formData);
 
       if (result.success) {
         toast.success(result.message);
+        router.push("/dashboard");
       } else {
         toast.error(result.message);
       }
@@ -236,9 +322,17 @@ export default function ApplicationFormComponent({
       setIsSubmitting(false);
     }
   };
-
+  if (isLoading) {
+    return (
+      <div className="space-y-4 p-4">
+        <div className="w-full">
+          <Skeleton className="h-48 w-full" />{" "}
+        </div>
+      </div>
+    );
+  }
   return (
-    <>
+    <div className="space-y-8">
       <div className="text-left">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
           Application Form
@@ -247,9 +341,19 @@ export default function ApplicationFormComponent({
           Please fill out the form below to apply.
         </p>
       </div>
-      <Separator className="my-6" /> {/* Separator after the header */}
+      <Separator className="my-6" />
       <form onSubmit={handleSubmit} className="space-y-8">
-        <Accordion type="multiple" className="w-full">
+        <Accordion
+          type="multiple"
+          defaultValue={[
+            "personal",
+            "financial",
+            "academic",
+            "loan",
+            "references",
+          ]}
+          className="w-full"
+        >
           <AccordionItem value="personal">
             <AccordionTrigger className="text-lg font-semibold text-indigo-700">
               Personal Information
@@ -338,6 +442,7 @@ export default function ApplicationFormComponent({
                     value={formData.personal_info.nationality}
                     onChange={handleChange}
                     placeholder="Nationality"
+                    required
                   />
                 </div>
 
@@ -369,6 +474,7 @@ export default function ApplicationFormComponent({
                     value={formData.personal_info.phone_number}
                     onChange={handleChange}
                     placeholder="Phone Number"
+                    required
                   />
                 </div>
 
@@ -381,6 +487,7 @@ export default function ApplicationFormComponent({
                     value={formData.personal_info.email_address}
                     onChange={handleChange}
                     placeholder="Email Address"
+                    required
                   />
                 </div>
 
@@ -395,6 +502,7 @@ export default function ApplicationFormComponent({
                     onChange={handleChange}
                     placeholder="Residential Address"
                     rows={3}
+                    required
                   />
                 </div>
 
@@ -407,6 +515,7 @@ export default function ApplicationFormComponent({
                     onChange={handleChange}
                     placeholder="Permanent Address"
                     rows={3}
+                    required
                   />
                 </div>
               </div>
@@ -427,12 +536,13 @@ export default function ApplicationFormComponent({
                     value={formData.financial_info.total_family_income}
                     onChange={handleChange}
                     placeholder="Total Family Income"
+                    required
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="otherIncomeSources">
-                    Other Income Sources
+                    Other Income Sources (eg: source1, source2)
                   </Label>
                   <Input
                     id="otherIncomeSources"
@@ -440,12 +550,10 @@ export default function ApplicationFormComponent({
                     value={formData.financial_info.other_income_sources}
                     onChange={handleChange}
                     placeholder="Other Income Sources"
+                    required
                   />
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="outstandingLoansOrDebts">
-                    Outstanding Loans or Debts
+                    Outstanding Loans or Debts (eg: loan1, loan2)
                   </Label>
                   <Textarea
                     id="outstandingLoansOrDebts"
@@ -454,6 +562,7 @@ export default function ApplicationFormComponent({
                     onChange={handleChange}
                     placeholder="Outstanding Loans or Debts"
                     rows={3}
+                    required
                   />
                 </div>
               </div>
@@ -508,6 +617,7 @@ export default function ApplicationFormComponent({
                     value={formData.academic_info.college_or_university}
                     onChange={handleChange}
                     placeholder="College or University"
+                    required
                   />
                 </div>
 
@@ -519,6 +629,7 @@ export default function ApplicationFormComponent({
                     value={formData.academic_info.student_id}
                     onChange={handleChange}
                     placeholder="Student ID"
+                    required
                   />
                 </div>
 
@@ -530,6 +641,7 @@ export default function ApplicationFormComponent({
                     value={formData.academic_info.program_name_degree}
                     onChange={handleChange}
                     placeholder="Program Name/Degree"
+                    required
                   />
                 </div>
 
@@ -541,6 +653,7 @@ export default function ApplicationFormComponent({
                     value={formData.academic_info.duration_of_course}
                     onChange={handleChange}
                     placeholder="Duration Of Course"
+                    required
                   />
                 </div>
 
@@ -552,6 +665,7 @@ export default function ApplicationFormComponent({
                     value={formData.academic_info.year_or_semester}
                     onChange={handleChange}
                     placeholder="Year Or Semester"
+                    required
                   />
                 </div>
 
@@ -563,6 +677,7 @@ export default function ApplicationFormComponent({
                     value={formData.academic_info.gpa}
                     onChange={handleChange}
                     placeholder="GPA"
+                    required
                   />
                 </div>
 
@@ -599,6 +714,7 @@ export default function ApplicationFormComponent({
                     value={formData.loan_details.loan_amount_requested}
                     onChange={handleChange}
                     placeholder="Loan Amount Requested"
+                    required
                   />
                 </div>
 
@@ -610,6 +726,7 @@ export default function ApplicationFormComponent({
                     value={formData.loan_details.purpose_of_loan}
                     onChange={handleChange}
                     placeholder="Purpose Of Loan"
+                    required
                   />
                 </div>
 
@@ -623,6 +740,7 @@ export default function ApplicationFormComponent({
                     value={formData.loan_details.proposed_repayment_period}
                     onChange={handleChange}
                     placeholder="Proposed Repayment Period"
+                    required
                   />
                 </div>
 
@@ -751,7 +869,7 @@ export default function ApplicationFormComponent({
           <Button
             type="submit"
             className="bg-indigo-700 px-8 text-white hover:bg-indigo-800"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isFormValid} // Disable if submitting or form is invalid
           >
             {isSubmitting ? (
               <>
@@ -764,6 +882,6 @@ export default function ApplicationFormComponent({
           </Button>
         </div>
       </form>
-    </>
+    </div>
   );
 }

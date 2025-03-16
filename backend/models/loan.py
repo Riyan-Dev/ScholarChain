@@ -2,6 +2,16 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
+class Installment(BaseModel):
+    transaction_id: str = ""
+    installment_id: int
+    installment_date: datetime
+    installment_paid_date: Optional[datetime] = None
+    installment_status: str = "pending"
+    amount_paid: float = 0
+    class Config:
+        orm_mode = True
+
 class Loan(BaseModel):
     id: Optional[str] = Field(None, alias="_id")  # Unique identifier for the loan
     username: str
@@ -13,6 +23,6 @@ class Loan(BaseModel):
     total_discounted_amount: Optional[float] = None  # Total amount after discounts, if applicable
     status: str = "ongoing"  # Status of the loan: ongoing, completed, defaulted, etc.
     created_at: datetime = Field(default_factory=datetime.utcnow)  # Loan creation timestamp
-
+    installments:  list[Installment] = None
     class Config:
         orm_mode = True

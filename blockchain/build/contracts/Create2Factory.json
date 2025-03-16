@@ -54,8 +54,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -79,8 +78,7 @@
         }
       ],
       "stateMutability": "pure",
-      "type": "function",
-      "constant": true
+      "type": "function"
     }
   ],
   "metadata": "{\"compiler\":{\"version\":\"0.8.0+commit.c7dfd78e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"Deploy\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_loanAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_salt\",\"type\":\"uint256\"}],\"name\":\"deploy\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"bytecode\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"_salt\",\"type\":\"uint256\"}],\"name\":\"getAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_student\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_loanAmount\",\"type\":\"uint256\"}],\"name\":\"getBytecode\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/contracts/FactoryContract.sol\":\"Create2Factory\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/contracts/FactoryContract.sol\":{\"keccak256\":\"0xb874644f20e35157374d0e559195afe20234b5f55e04a6cc791e73e8aa1cc979\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://1c6925df11c9bf768295f808bcf9c34f25923c1016de0c722d2bfd519a53fa96\",\"dweb:/ipfs/Qmf2yj5VbN8bCXsKLiXSoNdRSrzdNPuKjDQAoWB34oi27b\"]}},\"version\":1}",
@@ -7419,12 +7417,12 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0x5B56fa1AeCAfBA685f23670D28F466a9Ce242CB8",
-      "transactionHash": "0x4f9be66ef57ba06cad24f79c6386bad6b958183d53e58f7c73a0302edf491506"
+      "address": "0x38a703Ce9a4bd04b11825a20289C1ee1FD018F88",
+      "transactionHash": "0x7dbe9ec23bd075b36993315fc035e2faf01edcf7cdc49254132e8ff7a2015b0e"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2024-12-23T05:54:58.454Z",
+  "updatedAt": "2025-03-13T18:19:53.137Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",

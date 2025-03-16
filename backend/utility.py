@@ -1,4 +1,5 @@
 
+from config.config import Config
 from mistralai import Mistral
 from fastapi import HTTPException
 from datetime import datetime, date
@@ -82,8 +83,7 @@ def convert_date_fields(data: dict):
 
 async def run_mistral(user_message, model="mistral-small-latest"):
     load_dotenv()
-    api_key = os.getenv("api_key")
-    client = Mistral(api_key=api_key)
+    client = Mistral(api_key=Config.mistral_api_key)
 
     messages = [
         {

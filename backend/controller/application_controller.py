@@ -48,8 +48,10 @@ async def get_application_by_id(application_id: str, current_user: TokenData = D
 @application_router.put('/submit/')
 async def update_application(updated_data:Application, background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
     result = await ApplicationService.update_application(current_user.username, updated_data.dict())
+    application_data = await ApplicationService.get_application_by_id(updated_data.id)
+    application_data["_id"] = str(application_data["_id"])
     if result:
-        background_tasks.add_task(RiskScoreCalCulations.generate_risk_scores, updated_data.dict(), current_user)
+        background_tasks.add_task(RiskScoreCalCulations.generate_risk_scores, application_data, current_user)
     
     return {'message': 'Application Added Successfully, Risk Assessment and personalised Plan Under Construction', 'success': True}
 
@@ -81,10 +83,13 @@ async def application_overview(current_user: TokenData = Depends(get_current_use
 
 @application_router.get('/repay-details/')
 async def repay_details(current_user: TokenData = Depends(get_current_user)):
-    result = await LoanService.fetch_repay_details(current_user.username)
-    if result is None:
+    try:
+        result = await LoanService.fetch_repay_details(current_user.username)
+        if result is None:
+            raise HTTPException(status_code=404, detail="No Loan Found")
+        return result
+    except Exception as e:
         raise HTTPException(status_code=404, detail="No Loan Found")
-    return result
 # *************Strong case*****************
 # {
 #   "personal_info": {

@@ -7,6 +7,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
 from langchain_mistralai import ChatMistralAI
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_community.vectorstores.utils import filter_complex_metadata
 
 from config.init_EM import get_embedding_model
 
@@ -90,9 +91,13 @@ class LangChainService:
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200, add_start_index=True)
         all_splits = text_splitter.split_documents(docs_as_documents)
 
-        vectorstore.add_documents(documents=all_splits) # use add_documents
-        print("Documents added to vector store")
-        return {"Message": "Docuemts stored successfully"}
+        try:
+            vectorstore.add_documents(documents=all_splits) # use add_documents
+            print("Documents added to vector store")
+            return {"Message": "Docuemts stored successfully"}
+        except Exception as e:
+            print(f"Error adding documents to vector store: {e}")
+            return {"Message": "Error storing documents", "error": str(e)}
     
     @staticmethod
     async def overwrite_vector_store_from_mongo(username: str, mongo_data: dict, keys_to_update=['application', 'wallet', 'users', 'loan']):

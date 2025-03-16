@@ -8,7 +8,7 @@ import { fetchDash } from "@/services/user.service";
 import { useQuery } from "@tanstack/react-query";
 import { TransactionsCard } from "../crpto-dash/transactions-card";
 import { WalletCard } from "../crpto-dash/wallet-card";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RepaymentData } from "@/app/loan-details/repayment-types";
 import { PaymentReviewModal } from "@/app/loan-details/payment-review-modal";
 import { PaymentSuccessModal } from "@/app/loan-details/payment-success-modal";
@@ -58,6 +58,7 @@ export default function Content() {
   const [repaymentData, setRepaymentData] =
     useState<RepaymentData>(mockRepaymentData);
   const [isLoadingg, setIsLoadingg] = useState(false);
+  const isFirstRender = useRef(true);
   const [paymentDetails, setPaymentDetails] = useState({
     amount: 0,
     installmentNumber: 0,
@@ -83,6 +84,10 @@ export default function Content() {
 
   // Simulate fetching data
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false; // Set to false after the first render
+      return; // Skip the first render
+    }
     fetchData();
   }, [isReviewModalOpen]);
 
@@ -259,7 +264,7 @@ export default function Content() {
           isOpen={isSuccessModalOpen}
           onClose={() => {
             setIsSuccessModalOpen(false);
-            router.push("/dashboard");
+            window.location.reload();
           }}
           paymentDetails={paymentDetails}
         />

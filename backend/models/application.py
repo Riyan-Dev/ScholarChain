@@ -53,7 +53,7 @@ class Application(BaseModel):
     academic_info: AcademicInfo = AcademicInfo()
     loan_details: LoanDetails = LoanDetails()
     references: List[Reference] = []
-    status: str = "pending"  # Default status
+    status: str = "inprogress"  # Default status
     application_date: date = date.today()
     declaration: str = ""
     signature: str = ""

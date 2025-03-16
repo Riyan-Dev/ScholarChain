@@ -201,6 +201,9 @@ class UserService:
                                         Note: page content must contain the extracted text and tables for each image
                                         Note: The length of the returned list of documetns should equals the number of images in the input
                                         Final_note: I have already provided the source of Data use it as given in the response format
+
+                                        Restriction: If you cannot infer data for the metadata return empty strings instead on None 
+
                                         response format:
                                         {{
                                             "documents": [
@@ -244,6 +247,7 @@ class UserService:
                     
                     print(parsed_response)
                     new_documents[ids[i]].extend(parsed_response["documents"])
+                    await UserService.add_documents(token.username, new_documents)
                 else:
                     raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
             except json.JSONDecodeError:
@@ -252,7 +256,7 @@ class UserService:
 
         await LangChainService.store_user_documents(token.username, new_documents, ids)
         await ApplicationService.auto_fill_fields(token,  documents)
-        return await UserService.add_documents(token.username, new_documents)
+        # return await UserService.add_documents(token.username, new_documents)
 
     async def check_all_document_types_present(username: str):
         """
@@ -288,6 +292,9 @@ class UserService:
                 "electricity_bills_present": {
                     "$gt": [{ "$size": { "$ifNull": ["$documents.electricity_bills", []] } }, 0]
                 },
+                "transcript_present": {
+                    "$gt": [{ "$size": { "$ifNull": ["$documents.undergrad_transcript", []] } }, 0]
+                },
                 "gas_bills_present": {
                     "$gt": [{ "$size": { "$ifNull": ["$documents.gas_bills", []] } }, 0]
                 },
@@ -312,6 +319,7 @@ class UserService:
                     { "$cond": [{ "$eq": ["$CNIC_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$guardian_CNIC_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$electricity_bills_present", True] }, 1, 0] },
+                    { "$cond": [{ "$eq": ["$transcript_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$gas_bills_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$intermediate_result_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$salary_slips_present", True] }, 1, 0] },
@@ -319,7 +327,7 @@ class UserService:
                     { "$cond": [{ "$eq": ["$reference_letter_present", True] }, 1, 0] }
                     ]
                 },
-                "total_arrays": 8 
+                "total_arrays": 9 
                 },
             },
                 {
@@ -375,7 +383,7 @@ class UserService:
         from services.application_services import ApplicationService
         from services.loan_services import LoanService
 
-        await UserService.update_mongo_vector_store(username)
+        # await UserService.update_mongo_vector_store(username)
 
         pipeline = [
             {

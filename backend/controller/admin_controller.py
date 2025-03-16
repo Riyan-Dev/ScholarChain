@@ -77,7 +77,7 @@ async def application_details(application_id: str, current_user: TokenData = Dep
 
         total_score = await RiskScoreCalCulations.calculate_total_score(risk_assessment)
 
-        if total_score > 70:
+        if total_score > 0:
         
             plan = await ApplicationService.get_plan_db(application_id)
             if plan:

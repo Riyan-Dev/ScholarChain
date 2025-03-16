@@ -75,9 +75,9 @@ class LoanService:
         amount_remaining = loan.loan_amount - loan.loan_amount_repaid
         
         first_pending = next((inst for inst in loan.installments if inst.installment_status == "pending"), None)
-        installments_remaining = loan.no_of_installments - first_pending.installment_id - 1
-        amount_to_pay = math.ceil(amount_remaining / installments_remaining)
+        installments_remaining = loan.no_of_installments - (first_pending.installment_id - 1)
 
+        amount_to_pay = math.ceil(amount_remaining / installments_remaining)
         first_pending.installment_status = "paid"
         first_pending.amount_paid = amount_to_pay
         first_pending.installment_paid_date = datetime.now()
@@ -91,7 +91,6 @@ class LoanService:
 
         
         
-
         await LoanService.update_loan(username, loan.dict())
         return {"transaction_id": deploy_result["transaction_hash"]}
     

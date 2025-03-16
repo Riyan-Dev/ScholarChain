@@ -224,7 +224,7 @@ class ApplicationService:
             if result.modified_count == 0:
                 raise HTTPException(status_code=404, detail="Application not found or no fields to update.")
             
-            return {"message": "Application successfully updated."}
+            return {"message": "Application successfully updated.", "result": result}
         
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
@@ -243,7 +243,7 @@ class ApplicationService:
 
     @staticmethod
     async def generate_personalised_plan(application_dict, current_user):
-        existing_plan = await ApplicationService.get_plan_db(str(application_dict["_id"]))
+        existing_plan = await ApplicationService.get_plan_db(str(application_dict["id"]))
 
         if existing_plan:
             existing_plan["_id"] = str(existing_plan["_id"])
@@ -285,7 +285,6 @@ class ApplicationService:
                 """
         
         
-        # response = await LangChainService.rag_bot(query, temp_dir)
         response = await LangChainService.rag_bot(query, current_user)
         processed_response = await post_processing_response(response["response"])
         print(processed_response)
@@ -293,7 +292,7 @@ class ApplicationService:
             import json
             response_json = json.loads(processed_response)
             response_json["application_id"] = application_dict["id"]
-            # result = await ApplicationService.save_plan_db(response_json)
+            result = await ApplicationService.save_plan_db(response_json)
         except (json.JSONDecodeError, KeyError, TypeError) as e:
             print(f"Error parsing JSON: {e}")
             print("Raw response text:")
@@ -305,8 +304,8 @@ class ApplicationService:
             { "$project": {
                 "_id": 1,
                 "name": "$personal_info.full_name",
-                "current_education": "$personal_info.current_education_level",
-                "institute": "$personal_info.college_or_university",
+                "current_education": "$academic_info.current_education_level",
+                "institute": "$academic_info.college_or_university",
                 "status": 1,
                 "application_date": 1
             }}

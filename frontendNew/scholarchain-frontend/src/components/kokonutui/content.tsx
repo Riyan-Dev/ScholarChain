@@ -246,23 +246,24 @@ export default function Content() {
         )}
       </div>
       {/* Payment Review Modal */}
-      <PaymentReviewModal
-        isOpen={isReviewModalOpen}
-        onClose={() => setIsReviewModalOpen(false)}
-        repaymentData={repaymentData}
-        onConfirmPayment={handleConfirmPayment}
-        onPurchaseTokens={handlePurchaseTokens}
-      />
+      <>
+        <PaymentReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          repaymentData={repaymentData}
+          onConfirmPayment={handleConfirmPayment}
+          onPurchaseTokens={handlePurchaseTokens}
+        />
 
-      {/* Payment Success Modal */}
-      <PaymentSuccessModal
-        isOpen={isSuccessModalOpen}
-        onClose={() => {
-          setIsSuccessModalOpen(false);
-          router.push('/dashboard')
-        }}
-        paymentDetails={paymentDetails}
-      />
+        <PaymentSuccessModal
+          isOpen={isSuccessModalOpen}
+          onClose={() => {
+            setIsSuccessModalOpen(false);
+            router.push("/dashboard");
+          }}
+          paymentDetails={paymentDetails}
+        />
+      </>
     </div>
   );
 }

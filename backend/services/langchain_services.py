@@ -93,57 +93,42 @@ class LangChainService:
         vectorstore.add_documents(documents=all_splits) # use add_documents
         print("Documents added to vector store")
         return {"Message": "Docuemts stored successfully"}
+    
+    @staticmethod
+    async def overwrite_vector_store_from_mongo(username: str, mongo_data: dict, keys_to_update=['application', 'wallet', 'users', 'loan']):
+        """Overwrites the user's vector store with data from MongoDB for specified collections."""
 
-    # @staticmethod
-    # async def create_vector_Store(username: str, newDoc: bool, keys =  ['CNIC', 'gaurdian_CNIC', 'intermediate_result', 'bank_statements', 'salary_slips', 'gas_bills', 'electricity_bills', 'reference_letter']):
-    #     global vector_stores
+        vectorstore = await LangChainService.get_user_vector_store(username)
 
-    #     if username in vector_stores:
-    #         return vector_stores[username]["vectorstore_dir"]
-         
-    #     user = await UserService.get_user_doc_by_username(username)
+        if vectorstore is None:
+            await LangChainService.create_user_vector_store(username)
+            vectorstore = await LangChainService.get_user_vector_store(username)
 
-    #     print(username)
-    #     if newDoc and username in vector_stores:
-    #         # Get the path to the temporary directory
-    #         temp_dir = vector_stores[username]["vectorstore_dir"]
+        vectorstore.delete(where={"source": "mongodb"})
 
-    #         # Delete the directory and its contents
-    #         shutil.rmtree(temp_dir)
+        document_list = []
+        for key in keys_to_update:
+            if key in mongo_data:  # Check if key exists and is a list
+                
+                page_content = mongo_data[key]
+                metadata = {
+                    "source": "mongodb",
+                    "collection": key,
+                }
+                document_list.append(Document(page_content=page_content, metadata=metadata))
+            else:
+                print(f"Collection '{key}' not found or empty in MongoDB data for user '{username}'.")
 
-    #         # Remove from session store
-    #         del vector_stores[username]
+        if document_list:
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200, add_start_index=True)
+            all_splits = text_splitter.split_documents(document_list)
 
-    #     user_documents = user["documents"]
-    #     document_list = []
-    #     for key in keys:
-    #         if key in user_documents:
-    #             for doc in user_documents[key]:
-    #                 document_list.append(doc)
-    #     if not user_documents:
-    #         raise HTTPException(status_code=400, detail=f"No documents found for user {username}.")
-
-    #     # Convert documents into Document objects
-    #     docs_as_documents = [
-    #         Document(page_content=doc["page_content"], metadata=doc["metadata"]) for doc in document_list
-    #     ]
-        
-    #     # Create temporary directory for this session
-    #     temp_dir = tempfile.mkdtemp(prefix=f"user_{username}_session_")
-
-    #     # Split documents and create vector store
-    #     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200, add_start_index=True)
-    #     all_splits = text_splitter.split_documents(docs_as_documents)
-
-    #     embeddings_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    #     vectorstore = Chroma.from_documents(documents=all_splits, embedding=embeddings_model, persist_directory=temp_dir)
-
-    #     # Save the vector store in the temporary directory
-
-    #     # Store the path of the temporary directory for the session
-    #     vector_stores[username] = {"vectorstore_dir": temp_dir}
-        
-    #     return temp_dir
+            vectorstore.add_documents(documents=all_splits)
+            print(f"Overwrote vector store with {len(all_splits)} documents from MongoDB for collections: {keys_to_update}")
+            return {"Message": "Vector store overwritten successfully from MongoDB"}
+        else:
+            print("No valid data found in MongoDB for the specified collections.")
+            return {"Message": "No valid data found in MongoDB for the specified collections."}
 
 
 
@@ -179,7 +164,7 @@ class LangChainService:
 
         response = []
         for chunk in rag_chain.stream(query):
-            # print(chunk)
+            print(chunk)
             response.append(chunk)
 
         return {"response": ''.join(response)}

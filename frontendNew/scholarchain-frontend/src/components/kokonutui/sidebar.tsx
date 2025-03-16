@@ -47,7 +47,7 @@ export default function Sidebar() {
     applicant: {
       overview: [
         {
-          href: "#",
+          href: "/dashboard",
           icon: Home,
           label: "Dashboard",
           onClick: () => {
@@ -55,7 +55,7 @@ export default function Sidebar() {
           },
         },
         {
-          href: "#",
+          href: "/application-form",
           icon: SquarePlus,
           label: "New Application",
           onClick: () => {},
@@ -65,7 +65,7 @@ export default function Sidebar() {
     admin: {
       overview: [
         {
-          href: "#",
+          href: "/admin",
           icon: Home,
           label: "Dashboard",
           onClick: () => {
@@ -73,14 +73,15 @@ export default function Sidebar() {
           },
         },
         {
-          href: "#",
+          href: "/admin/applications",
           icon: SquarePlus,
           label: "Applications",
           onClick: () => {
             router.push("/admin/applications");
           },
         },
-      ],},
+      ],
+    },
   };
 
   function handleNavigation() {

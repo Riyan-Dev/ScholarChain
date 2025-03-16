@@ -18,7 +18,6 @@ from services.transaction_services import TransactionServices
 from utility import post_processing_response, validate_application_object
 
 from models.plan import Plan
-from models.gemini_response import PlanResponse
 from google.genai import types
 
 class ApplicationService:
@@ -70,6 +69,14 @@ class ApplicationService:
                 continue
 
         return filtered_data
+
+    @staticmethod
+    async def update_status(username, status):
+        update_data = {
+            "updated_at": datetime.now(),
+            "status": status
+        }
+        return await ApplicationService.update_application(username, update_data)
 
     @staticmethod
     async def accept_application(username: str, application_id: str):
@@ -232,11 +239,11 @@ class ApplicationService:
         application = await application_collection.find_one({"_id": ObjectId(application_id)})
         # print(application)
         return application
-    
+
 
     @staticmethod
     async def generate_personalised_plan(application_dict, current_user):
-        existing_plan = await ApplicationService.get_plan_db(str(application_dict["id"]))
+        existing_plan = await ApplicationService.get_plan_db(str(application_dict["_id"]))
 
         if existing_plan:
             existing_plan["_id"] = str(existing_plan["_id"])

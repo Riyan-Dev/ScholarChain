@@ -77,6 +77,14 @@ def convert_date_fields(data: dict):
                     convert_date_fields(item)
     return data
 
+import json
+
+def convert_mongo_to_json_string(user_document):
+    try:
+        return json.dumps(user_document, indent=4, default=str)  # indent for readability
+    except TypeError as e:
+        print(f"Error converting document to JSON: {e}")
+        return ""  # Return empty string in case of error
 
 
 

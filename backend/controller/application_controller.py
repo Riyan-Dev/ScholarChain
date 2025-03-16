@@ -53,6 +53,18 @@ async def update_application(updated_data:Application, background_tasks: Backgro
     
     return {'message': 'Application Added Successfully, Risk Assessment and personalised Plan Under Construction', 'success': True}
 
+@application_router.put('/retrigger-ai-flow/')
+async def update_application(application_id: str, background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=401, detail="Only admin access allowed")
+    
+    application_data = await ApplicationService.get_application_by_id(application_id)
+    application_data["_id"] = str(application_data["_id"])
+    if application_data:
+        background_tasks.add_task(RiskScoreCalCulations.generate_risk_scores, application_data, current_user)
+    
+    return {'message': 'AI Workflow retriggered, Risk Assessment and personalised Plan Under Construction', 'success': True}
+
 @application_router.get('/auto-fill-fields/')
 async def auto_fill_fields(background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
     # background_tasks.add_task(ApplicationService.auto_fill_fields, current_user)

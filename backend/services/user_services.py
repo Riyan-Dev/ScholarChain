@@ -13,7 +13,7 @@ from web3 import Web3
 
 from middleware.JWT_authentication import get_password_hash, verify_password
 from db import user_collection, wallet_collection
-from utility import transform_user_document
+from utility import transform_user_document, convert_mongo_to_json_string
 
 from models.application import Document
 from models.user import User, DocumentsList
@@ -55,7 +55,6 @@ class UserService:
                 documents.append({"type": ids[idx], "url": file_url})
             file_paths.append(file_path)
         return documents, file_paths
-        # return await ApplicationService.update_application(token.username, {"documents": documents})
 
     
 
@@ -82,6 +81,7 @@ class UserService:
             hashed_password = get_password_hash(user_data.hashed_password)
             
             new_user = {
+                "name": user_data.name,
                 "username": user_data.username,
                 "email": user_data.email,
                 "hashed_password": hashed_password,
@@ -348,11 +348,35 @@ class UserService:
             return result[0]
         else:
             return {"status": False, "progress": 0}  # User not found or no documents field
-        
+    
+    @staticmethod
+    async def update_mongo_vector_store(username):
+        from services.application_services import ApplicationService
+        from services.loan_services import LoanService
+        from services.langchain_services import LangChainService
+
+        user_data = await UserService.get_user_by_username(username)
+        application_data = await ApplicationService.get_application(username)
+        loan_data = await LoanService.get_loan(username)
+        wallet_data = await TransactionServices.get_wallet(username)
+
+        mongo_data = {
+            "users": convert_mongo_to_json_string(user_data.dict()),
+            "application": convert_mongo_to_json_string(application_data),
+            "loan": convert_mongo_to_json_string(loan_data),
+            "wallet": convert_mongo_to_json_string(wallet_data)
+        }
+
+         
+        await LangChainService.overwrite_vector_store_from_mongo(username, mongo_data)
+
     @staticmethod
     async def get_applicant_dash(username): 
         from services.application_services import ApplicationService
         from services.loan_services import LoanService
+
+        await UserService.update_mongo_vector_store(username)
+
         pipeline = [
             {
                 "$match": {

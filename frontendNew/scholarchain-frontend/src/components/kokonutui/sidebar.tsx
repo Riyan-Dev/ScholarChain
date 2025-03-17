@@ -34,7 +34,8 @@ export default function Sidebar() {
 
   type SidebarItemsType = {
     [key: string]: {
-      overview: {
+      [section: string]: {
+        // Allow multiple sections
         href: string;
         icon: any;
         label: string;
@@ -61,6 +62,24 @@ export default function Sidebar() {
           onClick: () => {},
         },
       ],
+      finance: [
+        {
+          href: "/purchase",
+          icon: CreditCard,
+          label: "Purchase Token",
+          onClick: () => {
+            router.push("/purchase");
+          },
+        },
+        {
+          href: "/transactions",
+          icon: Wallet,
+          label: "Transactions",
+          onClick: () => {
+            router.push("/transactions");
+          },
+        },
+      ],
     },
     admin: {
       overview: [
@@ -81,6 +100,7 @@ export default function Sidebar() {
           },
         },
       ],
+      finance: [],
     },
   };
 
@@ -172,24 +192,20 @@ export default function Sidebar() {
                 ))}
               </div>
 
-              {/* <div>
+              <div>
                 <div className="mb-2 px-3 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
                   Finance
                 </div>
                 <div className="space-y-1">
-                  <NavItem href="#" icon={Wallet}>
-                    Transactions
+                 {sidebarItems[userRole].finance.map((item, index) => (
+                  <NavItem key={index} href={item.href} icon={item.icon}>
+                    {item.label}
                   </NavItem>
-                  <NavItem href="#" icon={Receipt}>
-                    Invoices
-                  </NavItem>
-                  <NavItem href="#" icon={CreditCard}>
-                    Payments
-                  </NavItem>
+                ))}
                 </div>
               </div>
 
-              <div>
+              {/* <div>
                 <div className="mb-2 px-3 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
                   Team
                 </div>

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
@@ -67,7 +68,7 @@ interface FormData {
     duration_of_course: string;
     year_or_semester: string;
     gpa: string;
-    achievements_or_awards: string;
+    achievements_or_awards: string[];
   };
   loan_details: {
     loan_amount_requested: string;
@@ -76,6 +77,8 @@ interface FormData {
     preferred_repayment_frequency: string;
   };
   references: Reference[];
+  declaration: string;
+  signature: string;
 }
 
 interface ApplicationFormComponentProps {
@@ -108,7 +111,7 @@ const defaultFormData: FormData = {
     duration_of_course: "",
     year_or_semester: "",
     gpa: "",
-    achievements_or_awards: "",
+    achievements_or_awards: [],
   },
   loan_details: {
     loan_amount_requested: "",
@@ -117,6 +120,8 @@ const defaultFormData: FormData = {
     preferred_repayment_frequency: "",
   },
   references: [],
+  declaration: "",
+  signature: "",
 };
 
 export default function ApplicationFormComponent({
@@ -140,12 +145,137 @@ export default function ApplicationFormComponent({
     refetchOnWindowFocus: false,
   });
 
+  const [incomeSources, setIncomeSources] = useState<
+    { source: string; amount: string }[]
+  >([{ source: "", amount: "" }]);
+  const [debts, setDebts] = useState<{ description: string; amount: string }[]>(
+    [{ description: "", amount: "" }]
+  );
+  const [achievements, setAchievements] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (data && data.academic_info.achievements_or_awards) {
+      setAchievements(data.academic_info.achievements_or_awards);
+    } else {
+      setAchievements(defaultFormData.academic_info.achievements_or_awards);
+    }
+  }, [data]);
+
   useEffect(() => {
     if (data) {
-      setFormData(data);
+      const formattedIncomeSources =
+        data.financial_info.other_income_sources.map((item: string) => {
+          const [source, amountStr] = item.split(":");
+
+          let sourceCleaned = "";
+          let amount = "";
+
+          if (source && amountStr) {
+            sourceCleaned = source.trim();
+            const amountRegex = /(\d+(,\d+)*(\.\d+)?)/;
+            const amountMatch = amountStr.match(amountRegex);
+            amount = amountMatch ? amountMatch[0] : "";
+          }
+
+          return { source: sourceCleaned, amount: amount };
+        });
+
+      const formattedDebts = data.financial_info.outstanding_loans_or_debts.map(
+        (item: string) => {
+          const [description, amountStr] = item.split(": ");
+          const amount = amountStr ? amountStr.replace(/[^\d.]/g, "") : ""; // Extract only number and dot
+          return {
+            description: description ? description.trim() : "",
+            amount: amount,
+          };
+        }
+      );
+
+      setIncomeSources(formattedIncomeSources);
+      setDebts(formattedDebts);
+      setAchievements(data.academic_info.achievements_or_awards);
+      setFormData({
+        ...data,
+        financial_info: {
+          ...data.financial_info,
+          other_income_sources: [], // Clear the array
+          outstanding_loans_or_debts: [], // Clear the array
+        },
+      });
     }
     console.log(data);
   }, [data]);
+
+  const handleAddIncomeSource = useCallback(() => {
+    setIncomeSources((prevSources) => [
+      ...prevSources,
+      { source: "", amount: "" },
+    ]);
+  }, [setIncomeSources]);
+
+  const handleRemoveIncomeSource = useCallback(
+    (index: number) => {
+      setIncomeSources((prevSources) =>
+        prevSources.filter((_, i) => i !== index)
+      );
+    },
+    [setIncomeSources]
+  );
+
+  const handleAddDebt = useCallback(() => {
+    setDebts((prevDebts) => [...prevDebts, { description: "", amount: "" }]);
+  }, [setDebts]);
+
+  const handleRemoveDebt = useCallback(
+    (index: number) => {
+      setDebts((prevDebts) => prevDebts.filter((_, i) => i !== index));
+    },
+    [setDebts]
+  );
+
+  const handleIncomeSourceChange = useCallback(
+    (index: number, field: "source" | "amount", value: string) => {
+      setIncomeSources((prevSources) => {
+        const newSources = [...prevSources];
+        newSources[index][field] = value;
+        return newSources;
+      });
+    },
+    [setIncomeSources]
+  );
+
+  const handleDebtChange = useCallback(
+    (index: number, field: "description" | "amount", value: string) => {
+      setDebts((prevDebts) => {
+        const newDebts = [...prevDebts];
+        newDebts[index][field] = value;
+        return newDebts;
+      });
+    },
+    [setDebts]
+  );
+
+  const handleAddAchievement = useCallback(() => {
+    setAchievements((prev) => [...prev, ""]);
+  }, [setAchievements]);
+
+  const handleRemoveAchievement = useCallback(
+    (index: number) => {
+      setAchievements((prev) => prev.filter((_, i) => i !== index));
+    },
+    [setAchievements]
+  );
+
+  const handleAchievementChange = useCallback(
+    (index: number, value: string) => {
+      setAchievements((prev) => {
+        const newAchievements = [...prev];
+        newAchievements[index] = value;
+        return newAchievements;
+      });
+    },
+    [setAchievements]
+  );
 
   // Function to check if all required fields are filled
   const checkFormValidity = useCallback(() => {
@@ -154,7 +284,8 @@ export default function ApplicationFormComponent({
       financial_info,
       academic_info,
       loan_details,
-      references,
+      declaration,
+      signature,
     } = formData;
 
     const isPersonalInfoValid =
@@ -169,9 +300,8 @@ export default function ApplicationFormComponent({
       personal_info.permanent_address !== ""; // Added back permanent_address
 
     const isFinancialInfoValid =
-      financial_info.total_family_income !== "" && // Added back total_family_income
-      financial_info.other_income_sources !== "" && // Added back other_income_sources
-      financial_info.outstanding_loans_or_debts !== "";
+      incomeSources.some((item) => item.source !== "" && item.amount !== "") &&
+      debts.some((item) => item.description !== "" && item.amount !== "");
 
     const isAcademicInfoValid =
       academic_info.current_education_level !== "" && // Added back current_education_level
@@ -181,7 +311,6 @@ export default function ApplicationFormComponent({
       academic_info.duration_of_course !== "" && // Added back duration_of_course
       academic_info.year_or_semester !== "" && // Added back year_or_semester
       academic_info.gpa !== "";
-    // academic_info.achievements_or_awards !== ""; // Optional
 
     const isLoanDetailsValid =
       loan_details.loan_amount_requested !== "" && // Added back loan_amount_requested
@@ -189,22 +318,20 @@ export default function ApplicationFormComponent({
       loan_details.proposed_repayment_period !== "" && // Added back proposed_repayment_period
       loan_details.preferred_repayment_frequency !== "";
 
-    //make references optional
-    // const areReferencesValid = references.every(
-    //   (ref) =>
-    //     ref.name !== "" &&
-    //     ref.designation !== "" &&
-    //     ref.contact_details !== ""
-    // ref.comments !== ""
-    // );
+    const isDeclarationValid = declaration !== "";
+
+    const isSignatureValid = signature !== "";
 
     const isValid =
       isPersonalInfoValid &&
       isFinancialInfoValid &&
       isAcademicInfoValid &&
-      isLoanDetailsValid; // && areReferencesValid;
+      isLoanDetailsValid &&
+      isDeclarationValid &&
+      isSignatureValid &&
+      achievements.some((item) => item !== "");
     setIsFormValid(isValid);
-  }, [formData]);
+  }, [formData, incomeSources, debts, achievements]);
 
   // Use useEffect to check form validity whenever formData changes
   useEffect(() => {
@@ -306,8 +433,31 @@ export default function ApplicationFormComponent({
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Format income sources
+    const formattedIncomeSources = incomeSources.map(
+      (source) => `${source.source}: ${source.amount} PKR per year`
+    );
+
+    // Format debts
+    const formattedDebts = debts.map(
+      (debt) => `${debt.description}: ${debt.amount}`
+    );
+
+    const updatedFormData = {
+      ...formData,
+      financial_info: {
+        ...formData.financial_info,
+        other_income_sources: formattedIncomeSources,
+        outstanding_loans_or_debts: formattedDebts,
+      },
+      academic_info: {
+        ...formData.academic_info,
+        achievements_or_awards: achievements,
+      },
+    };
+
     try {
-      const result = await submitApplication(formData);
+      const result = await submitApplication(updatedFormData);
 
       if (result.success) {
         toast.success(result.message);
@@ -352,6 +502,7 @@ export default function ApplicationFormComponent({
             "academic",
             "loan",
             "references",
+            "declaration",
           ]}
           className="w-full"
         >
@@ -359,7 +510,7 @@ export default function ApplicationFormComponent({
             <AccordionTrigger className="text-lg font-semibold text-indigo-700">
               Personal Information
             </AccordionTrigger>
-            <AccordionContent>
+            <AccordionContent style={{ overflow: "auto" }}>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
@@ -527,7 +678,7 @@ export default function ApplicationFormComponent({
             <AccordionTrigger className="text-lg font-semibold text-indigo-700">
               Financial Information
             </AccordionTrigger>
-            <AccordionContent>
+            <AccordionContent style={{ overflow: "auto" }}>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="totalFamilyIncome">Total Family Income</Label>
@@ -541,33 +692,152 @@ export default function ApplicationFormComponent({
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="otherIncomeSources">
-                    Other Income Sources (eg: source1, source2)
-                  </Label>
-                  <Input
-                    id="otherIncomeSources"
-                    name="financial_info.other_income_sources"
-                    value={formData.financial_info.other_income_sources}
-                    onChange={handleChange}
-                    placeholder="Other Income Sources"
-                    required
-                  />
+                <div className="md:col-span-2">
+                  <Label className="mb-2">Other Income Sources</Label>
+                  {incomeSources.map((source, index) => (
+                    <Card key={index} className="mb-4 border border-gray-200">
+                      <CardContent className="pt-6">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                          <div>
+                            <Label
+                              className="mb-2"
+                              htmlFor={`incomeSource-${index}`}
+                            >
+                              Source
+                            </Label>
+                            <Input
+                              type="text"
+                              id={`incomeSource-${index}`}
+                              value={source.source}
+                              onChange={(e) =>
+                                handleIncomeSourceChange(
+                                  index,
+                                  "source",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Source of Income"
+                            />
+                          </div>
+                          <div>
+                            <Label
+                              className="mb-2"
+                              htmlFor={`incomeAmount-${index}`}
+                            >
+                              Amount (PKR)
+                            </Label>
+                            <Input
+                              type="number"
+                              id={`incomeAmount-${index}`}
+                              value={source.amount}
+                              onChange={(e) =>
+                                handleIncomeSourceChange(
+                                  index,
+                                  "amount",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </div>
+                        <div className="mt-4 flex justify-end">
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleRemoveIncomeSource(index)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Remove Source
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddIncomeSource}
+                    className="w-full"
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Income Source
+                  </Button>
                 </div>
 
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="outstandingLoansOrDebts">
-                    Outstanding Loans or Debts (eg: loan1, loan2)
-                  </Label>
-                  <Textarea
-                    id="outstandingLoansOrDebts"
-                    name="financial_info.outstanding_loans_or_debts"
-                    value={formData.financial_info.outstanding_loans_or_debts}
-                    onChange={handleChange}
-                    placeholder="Outstanding Loans or Debts"
-                    rows={3}
-                    required
-                  />
+                <div className="md:col-span-2">
+                  <Label className="mb-2">Outstanding Loans or Debts</Label>
+                  {debts.map((debt, index) => (
+                    <Card key={index} className="mb-4 border border-gray-200">
+                      <CardContent className="pt-6">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                          <div>
+                            <Label
+                              className="mb-2"
+                              htmlFor={`debtDescription-${index}`}
+                            >
+                              Description
+                            </Label>
+                            <Input
+                              type="text"
+                              id={`debtDescription-${index}`}
+                              value={debt.description}
+                              onChange={(e) =>
+                                handleDebtChange(
+                                  index,
+                                  "description",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Description of Debt"
+                            />
+                          </div>
+                          <div>
+                            <Label
+                              className="mb-2"
+                              htmlFor={`debtAmount-${index}`}
+                            >
+                              Amount (PKR)
+                            </Label>
+                            <Input
+                              type="number"
+                              id={`debtAmount-${index}`}
+                              value={debt.amount}
+                              onChange={(e) =>
+                                handleDebtChange(
+                                  index,
+                                  "amount",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Amount"
+                            />
+                          </div>
+                        </div>
+                        <div className="mt-4 flex justify-end">
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleRemoveDebt(index)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Remove Debt
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddDebt}
+                    className="w-full"
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Debt
+                  </Button>
                 </div>
               </div>
             </AccordionContent>
@@ -577,7 +847,7 @@ export default function ApplicationFormComponent({
             <AccordionTrigger className="text-lg font-semibold text-indigo-700">
               Academic Information
             </AccordionTrigger>
-            <AccordionContent>
+            <AccordionContent style={{ overflow: "auto" }}>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="currentEducationLevel">
@@ -602,9 +872,7 @@ export default function ApplicationFormComponent({
                       <SelectItem value="bachelors">
                         Bachelor&apos;s Degree
                       </SelectItem>
-                      <SelectItem value="masters">
-                        Master&apos;s Degree
-                      </SelectItem>
+                      <SelectItem value="masters">Master&apos;s Degree</SelectItem>
                       <SelectItem value="phd">PhD</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
@@ -689,14 +957,49 @@ export default function ApplicationFormComponent({
                   <Label htmlFor="achievementsOrAwards">
                     Achievements or Awards
                   </Label>
-                  <Textarea
-                    id="achievementsOrAwards"
-                    name="academic_info.achievements_or_awards"
-                    value={formData.academic_info.achievements_or_awards}
-                    onChange={handleChange}
-                    placeholder="Achievements or Awards"
-                    rows={3}
-                  />
+                  {achievements.map((achievement, index) => (
+                    <Card key={index} className="mb-4 border border-gray-200">
+                      <CardContent className="pt-6">
+                        <div>
+                          <Label
+                            className="mb-2"
+                            htmlFor={`achievement-${index}`}
+                          >
+                            Achievement {index + 1}
+                          </Label>
+                          <Textarea
+                            id={`achievement-${index}`}
+                            value={achievement}
+                            onChange={(e) =>
+                              handleAchievementChange(index, e.target.value)
+                            }
+                            placeholder="Achievement or Award"
+                            rows={3}
+                          />
+                        </div>
+                        <div className="mt-4 flex justify-end">
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleRemoveAchievement(index)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Remove Achievement
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddAchievement}
+                    className="w-full"
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Achievement
+                  </Button>
                 </div>
               </div>
             </AccordionContent>
@@ -706,7 +1009,7 @@ export default function ApplicationFormComponent({
             <AccordionTrigger className="text-lg font-semibold text-indigo-700">
               Loan Details
             </AccordionTrigger>
-            <AccordionContent>
+            <AccordionContent style={{ overflow: "auto" }}>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="loanAmountRequested">
@@ -777,12 +1080,11 @@ export default function ApplicationFormComponent({
               </div>
             </AccordionContent>
           </AccordionItem>
-
           <AccordionItem value="references">
             <AccordionTrigger className="text-lg font-semibold text-indigo-700">
               References
             </AccordionTrigger>
-            <AccordionContent>
+            <AccordionContent style={{ overflow: "auto" }}>
               <div className="space-y-6">
                 {formData.references.map((reference, index) => (
                   <Card key={index} className="border border-gray-200">
@@ -798,7 +1100,6 @@ export default function ApplicationFormComponent({
                             placeholder="Name"
                           />
                         </div>
-
                         <div className="space-y-2">
                           <Label htmlFor={`referenceDesignation-${index}`}>
                             Designation
@@ -864,6 +1165,38 @@ export default function ApplicationFormComponent({
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Add Reference
                 </Button>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="declaration">
+            <AccordionTrigger className="text-lg font-semibold text-indigo-700">
+              Declaration and Signature
+            </AccordionTrigger>
+            <AccordionContent style={{ overflow: "auto" }}>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="declaration">Declaration</Label>
+                  <Textarea
+                    id="declaration"
+                    name="declaration"
+                    value={formData.declaration}
+                    onChange={handleChange}
+                    placeholder="I hereby declare that all the information provided is true."
+                    rows={3}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signature">Signature</Label>
+                  <Input
+                    id="signature"
+                    name="signature"
+                    value={formData.signature}
+                    onChange={handleChange}
+                    placeholder="Signature"
+                    required
+                  />
+                </div>
               </div>
             </AccordionContent>
           </AccordionItem>

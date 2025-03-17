@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast, Toaster } from "sonner";
 import { buyTokens } from "@/services/donor.service";
+import { useRouter } from "next/navigation";
 
 export default function PurchasePage() {
   const [selectedPackage, setSelectedPackage] = useState("popular");
@@ -37,6 +38,7 @@ export default function PurchasePage() {
   const [cvc, setCvc] = useState("");
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false); // New state for loading
+  const router = useRouter();
 
   const packages = useMemo(
     () => [
@@ -235,7 +237,7 @@ export default function PurchasePage() {
             </Tabs>
           </CardContent>
           <CardFooter>
-            <Button className="w-full" onClick={() => setIsDialogOpen(true)}>
+            <Button className="w-full" onClick={() => router.push("/payment")}>
               Continue to Payment
             </Button>
           </CardFooter>

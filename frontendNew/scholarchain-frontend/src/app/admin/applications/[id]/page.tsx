@@ -245,10 +245,10 @@ export default function ApplicationReviewPage() {
     },
   ];
 
-  USER_DOCUMENTS.forEach(doc => {
-    const matchingDoc = applicationData?.documents.find(d => d.type === doc.id);
-    doc.url = matchingDoc ? config.fastApi.baseUrl + matchingDoc.url : null; // Add url directly
-  });
+  // USER_DOCUMENTS.forEach(doc => {
+  //   const matchingDoc = applicationData?.documents.find(d => d.type === doc.id);
+  //   doc.url = matchingDoc ? config.fastApi.baseUrl + matchingDoc.url : null; // Add url directly
+  // });
 
   // Moved useCallback BEFORE any conditional returns
   const boundHandleUpdatePlan = useCallback(
@@ -257,32 +257,64 @@ export default function ApplicationReviewPage() {
     [applicationId, riskData, setRiskData, setIsUpdatingPlan]
   )
 
-  const fetchData = async () => {
-    setIsLoading(true)
-    try {
-      if (applicationId) {
-        const [appDetails, fetchedRiskData] = await Promise.all([
-          getApplicationDetailsById(applicationId),
-          fetchApplicationDetails(applicationId),
-        ])
-        setApplicationData(appDetails)
-        setRiskData({
-          risk_assessment: fetchedRiskData.risk_assessment,
-          plan: fetchedRiskData.plan,
-          total_score: fetchedRiskData.total_score,
-        })
-      }
-    } catch (error: any) {
-      console.error("Error fetching data:", error)
-      setError(error.message || "Failed to load data.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // const fetchData = async () => {
+  //   setIsLoading(true)
+  //   try {
+  //     if (applicationId) {
+  //       const [appDetails, fetchedRiskData] = await Promise.all([
+  //         getApplicationDetailsById(applicationId),
+  //         fetchApplicationDetails(applicationId),
+  //       ])
+  //       setApplicationData(appDetails)
+  //       setRiskData({
+  //         risk_assessment: fetchedRiskData.risk_assessment,
+  //         plan: fetchedRiskData.plan,
+  //         total_score: fetchedRiskData.total_score,
+  //       })
+  //     }
+  //   } catch (error: any) {
+  //     console.error("Error fetching data:", error)
+  //     setError(error.message || "Failed to load data.")
+  //   } finally {
+  //     setIsLoading(false)
+  //   }
+  // }
 
   useEffect(() => {
-    fetchData()
-  }, [applicationId])
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        if (applicationId) {
+          const [appDetails, fetchedRiskData] = await Promise.all([
+            getApplicationDetailsById(applicationId),
+            fetchApplicationDetails(applicationId),
+          ]);
+          setApplicationData(appDetails);
+          setRiskData({
+            risk_assessment: fetchedRiskData.risk_assessment,
+            plan: fetchedRiskData.plan,
+            total_score: fetchedRiskData.total_score,
+          });
+  
+          // ADD THIS BLOCK HERE
+          if (appDetails?.documents) { //Check that appDetails AND documents exist
+            USER_DOCUMENTS.forEach(doc => {
+              const matchingDoc = appDetails.documents.find(d => d.type === doc.id); //No need for optional chaining
+              doc.url = matchingDoc ? config.fastApi.baseUrl + matchingDoc.url : null; // Add url directly
+            });
+          }
+  
+        }
+      } catch (error: any) {
+        console.error("Error fetching data:", error);
+        setError(error.message || "Failed to load data.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchData();
+  }, [applicationId]);
 
   // Helper functions moved after hooks
   const getStatusBadge = (status: string) => {

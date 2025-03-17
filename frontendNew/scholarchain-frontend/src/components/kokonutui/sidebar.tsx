@@ -161,7 +161,6 @@ export default function Sidebar() {
         <div className="flex h-full flex-col">
           <Link
             href="/dashboard"
-            // target="_blank"
             rel="noopener noreferrer"
             className="flex h-16 items-center border-b border-gray-200 px-6 dark:border-[#1F1F23]"
           >
@@ -197,11 +196,11 @@ export default function Sidebar() {
                   Finance
                 </div>
                 <div className="space-y-1">
-                 {sidebarItems[userRole].finance.map((item, index) => (
-                  <NavItem key={index} href={item.href} icon={item.icon}>
-                    {item.label}
-                  </NavItem>
-                ))}
+                  {sidebarItems[userRole].finance.map((item, index) => (
+                    <NavItem key={index} href={item.href} icon={item.icon}>
+                      {item.label}
+                    </NavItem>
+                  ))}
                 </div>
               </div>
 

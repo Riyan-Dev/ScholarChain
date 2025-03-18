@@ -8,7 +8,7 @@ import os
 from dotenv import load_dotenv
 
 
-from config import web3
+from RPC_server import web3
 
 from services.encrption_services import EncrptionServices
 from models.wallet import Wallet

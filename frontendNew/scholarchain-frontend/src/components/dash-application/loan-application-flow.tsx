@@ -99,22 +99,22 @@ export function LoanApplicationFlow({
     return () => clearInterval(interval);
   };
   // Handle next stage navigation
-  const handleNextStage = () => {
+  const handleNextStage = async() => {
     setPreviousStage(currentStage);
 
     if (currentStage === "start") {
-      updateStage("upload");
+      await updateStage("upload"); 
     } else if (currentStage === "upload") {
       setCurrentStage("review");
-      updateStage("review");
+      await updateStage("review"); 
     } else if (currentStage === "review") {
       setCurrentStage("repayment");
-      updateStage("repayment");
+      await updateStage("repayment"); // and await here
     } else if (currentStage === "repayment") {
       setCurrentStage("complete");
-      updateStage("complete");
+      await updateStage("complete"); // and await here
     } else if (currentStage === "complete") {
-      updateStage("accepted");
+      await updateStage("accepted"); // and await here
       router.push("/loan-details");
     }
   };

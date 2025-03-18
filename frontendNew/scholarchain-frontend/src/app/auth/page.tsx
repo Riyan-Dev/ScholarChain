@@ -28,6 +28,7 @@ const LoginPage = () => {
     if (userRole === "applicant") window.location.href = "/dashboard";
     else if (userRole === "donator") window.location.href = "/donor";
     else if (userRole === "admin") window.location.href = "/admin";
+
   };
   // ✅ Handle login
   const handleLogin = async (event: React.FormEvent) => {
@@ -35,16 +36,18 @@ const LoginPage = () => {
     setError("");
     setLoading(true);
 
-    const credentials: any = { username: email, password: password }; // Assuming username is email
+    const credentials: any = { username: username, password: password }; // Assuming username is email
 
     try {
       await AuthService.login(credentials);
+      handleRouting();
     } catch (error: any) {
       console.log(error.message);
       setError(error.message || "Login failed");
     } finally {
       setLoading(false); // Stop loading state
     }
+
   };
 
   const handleSignup = async (event: React.FormEvent) => {

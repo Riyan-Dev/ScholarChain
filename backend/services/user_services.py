@@ -13,7 +13,7 @@ from web3 import Web3
 
 from middleware.JWT_authentication import get_password_hash, verify_password
 from db import user_collection, wallet_collection
-from utility import transform_user_document
+from utility import transform_user_document, convert_mongo_to_json_string
 
 from models.application import Document
 from models.user import User, DocumentsList
@@ -55,7 +55,6 @@ class UserService:
                 documents.append({"type": ids[idx], "url": file_url})
             file_paths.append(file_path)
         return documents, file_paths
-        # return await ApplicationService.update_application(token.username, {"documents": documents})
 
     
 
@@ -82,6 +81,7 @@ class UserService:
             hashed_password = get_password_hash(user_data.hashed_password)
             
             new_user = {
+                "name": user_data.name,
                 "username": user_data.username,
                 "email": user_data.email,
                 "hashed_password": hashed_password,
@@ -201,6 +201,9 @@ class UserService:
                                         Note: page content must contain the extracted text and tables for each image
                                         Note: The length of the returned list of documetns should equals the number of images in the input
                                         Final_note: I have already provided the source of Data use it as given in the response format
+
+                                        Restriction: If you cannot infer data for the metadata return empty strings instead on None 
+
                                         response format:
                                         {{
                                             "documents": [
@@ -244,6 +247,7 @@ class UserService:
                     
                     print(parsed_response)
                     new_documents[ids[i]].extend(parsed_response["documents"])
+                    await UserService.add_documents(token.username, new_documents)
                 else:
                     raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
             except json.JSONDecodeError:
@@ -252,7 +256,7 @@ class UserService:
 
         await LangChainService.store_user_documents(token.username, new_documents, ids)
         await ApplicationService.auto_fill_fields(token,  documents)
-        return await UserService.add_documents(token.username, new_documents)
+        # return await UserService.add_documents(token.username, new_documents)
 
     async def check_all_document_types_present(username: str):
         """
@@ -288,6 +292,9 @@ class UserService:
                 "electricity_bills_present": {
                     "$gt": [{ "$size": { "$ifNull": ["$documents.electricity_bills", []] } }, 0]
                 },
+                "transcript_present": {
+                    "$gt": [{ "$size": { "$ifNull": ["$documents.undergrad_transcript", []] } }, 0]
+                },
                 "gas_bills_present": {
                     "$gt": [{ "$size": { "$ifNull": ["$documents.gas_bills", []] } }, 0]
                 },
@@ -312,6 +319,7 @@ class UserService:
                     { "$cond": [{ "$eq": ["$CNIC_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$guardian_CNIC_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$electricity_bills_present", True] }, 1, 0] },
+                    { "$cond": [{ "$eq": ["$transcript_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$gas_bills_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$intermediate_result_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$salary_slips_present", True] }, 1, 0] },
@@ -319,7 +327,7 @@ class UserService:
                     { "$cond": [{ "$eq": ["$reference_letter_present", True] }, 1, 0] }
                     ]
                 },
-                "total_arrays": 8 
+                "total_arrays": 9 
                 },
             },
                 {
@@ -348,11 +356,35 @@ class UserService:
             return result[0]
         else:
             return {"status": False, "progress": 0}  # User not found or no documents field
-        
+    
+    @staticmethod
+    async def update_mongo_vector_store(username):
+        from services.application_services import ApplicationService
+        from services.loan_services import LoanService
+        from services.langchain_services import LangChainService
+
+        user_data = await UserService.get_user_by_username(username)
+        application_data = await ApplicationService.get_application(username)
+        loan_data = await LoanService.get_loan(username)
+        wallet_data = await TransactionServices.get_wallet(username)
+
+        mongo_data = {
+            "users": convert_mongo_to_json_string(user_data.dict()),
+            "application": convert_mongo_to_json_string(application_data),
+            "loan": convert_mongo_to_json_string(loan_data),
+            "wallet": convert_mongo_to_json_string(wallet_data)
+        }
+
+         
+        await LangChainService.overwrite_vector_store_from_mongo(username, mongo_data)
+
     @staticmethod
     async def get_applicant_dash(username): 
         from services.application_services import ApplicationService
         from services.loan_services import LoanService
+
+        # await UserService.update_mongo_vector_store(username)
+
         pipeline = [
             {
                 "$match": {

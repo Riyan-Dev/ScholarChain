@@ -120,7 +120,7 @@ export async function getAllApplications(): Promise<Application[]> {
     if (!response.ok) {
         const errorData = await response.text();
         throw new Error(`Failed to fetch applications: ${errorData}`);
-    }
+    };
 
     const data: Application[] = await response.json();
     return data;
@@ -230,3 +230,24 @@ export const fetchRepay = async () => {
   }
   return res.json();
 };
+
+export const retriggerAiFlow = async (applicationId: string) => {
+    const response = await fetch(
+      `${API_BASE_URL}/application/retrigger-ai-flow/?application_id=${applicationId}`,
+      {
+        method: "PUT",
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${AuthService.getToken()}`,
+        },
+      }
+    );
+  
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`Failed to retrigger AI flow: ${errorData}`);
+    }
+  
+    return await response.json();
+  };
+  

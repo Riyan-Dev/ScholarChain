@@ -9,17 +9,15 @@ from utility import convert_date_fields
 from models.application import Application, Reference, AcademicInfo, FinancialInfo, LoanDetails, PersonalInfo, Document
 from services.documents import app
 from services.langchain_services import LangChainService
-from services.gemini_services import GeminiServices
 from services.blockchain_service import BlockchainService
 from services.loan_services import LoanService
 from services.transaction_services import TransactionServices
+from services.email_service import EmailService
 
 
 from utility import post_processing_response, validate_application_object
 
 from models.plan import Plan
-from models.gemini_response import PlanResponse
-from google.genai import types
 
 class ApplicationService:
 
@@ -72,6 +70,14 @@ class ApplicationService:
         return filtered_data
 
     @staticmethod
+    async def update_status(username, status):
+        update_data = {
+            "updated_at": datetime.now(),
+            "status": status
+        }
+        return await ApplicationService.update_application(username, update_data)
+
+    @staticmethod
     async def accept_application(username: str, application_id: str):
         update_data = {
             "updated_at": datetime.now(),
@@ -81,7 +87,7 @@ class ApplicationService:
         # print(results)
         plan_data = await ApplicationService.get_plan_db(application_id)    
 
-        await TransactionServices.transfer_token(plan_data["total_loan_amount"], "scholarchain", username, "Loan Payment")
+        await TransactionServices.transfer_token(plan_data["total_loan_amount"], "scholarchain", username, "Loan Disbursement")
 
         deploy_result = await BlockchainService.deploy_loan_contract(username, plan_data["total_loan_amount"])
         print(deploy_result)
@@ -103,7 +109,7 @@ class ApplicationService:
         return {"Message": "Application Stage Updated"}
 
     @staticmethod
-    async def verify_application(application_id: str, verified: bool):
+    async def verify_application(application_id: str, verified: bool, background_tasks):
         if verified:
             update_data = {
                 "updated_at": datetime.now(),
@@ -114,6 +120,7 @@ class ApplicationService:
                 "updated_at": datetime.now(),
                 "status": "rejected"
             }
+        
 
         try:
             # Perform the update
@@ -121,9 +128,15 @@ class ApplicationService:
                 {"_id": ObjectId(application_id)},
                 {"$set": update_data}
             )
+            
             if result.modified_count == 0:
                 raise HTTPException(status_code=404, detail="Application not found or no fields to update.")
             
+            if verified:
+                background_tasks.add_task(EmailService.send_verified_email, application_id)
+            else:
+                background_tasks.add_task(EmailService.send_rejection_email, application_id)
+
             return {"message": "Application successfully Verified."}
         
         except Exception as e:
@@ -217,7 +230,7 @@ class ApplicationService:
             if result.modified_count == 0:
                 raise HTTPException(status_code=404, detail="Application not found or no fields to update.")
             
-            return {"message": "Application successfully updated."}
+            return {"message": "Application successfully updated.", "result": result}
         
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
@@ -232,7 +245,7 @@ class ApplicationService:
         application = await application_collection.find_one({"_id": ObjectId(application_id)})
         # print(application)
         return application
-    
+
 
     @staticmethod
     async def generate_personalised_plan(application_dict, current_user):
@@ -278,7 +291,6 @@ class ApplicationService:
                 """
         
         
-        # response = await LangChainService.rag_bot(query, temp_dir)
         response = await LangChainService.rag_bot(query, current_user)
         processed_response = await post_processing_response(response["response"])
         print(processed_response)
@@ -286,7 +298,7 @@ class ApplicationService:
             import json
             response_json = json.loads(processed_response)
             response_json["application_id"] = application_dict["id"]
-            # result = await ApplicationService.save_plan_db(response_json)
+            result = await ApplicationService.save_plan_db(response_json)
         except (json.JSONDecodeError, KeyError, TypeError) as e:
             print(f"Error parsing JSON: {e}")
             print("Raw response text:")
@@ -298,8 +310,8 @@ class ApplicationService:
             { "$project": {
                 "_id": 1,
                 "name": "$personal_info.full_name",
-                "current_education": "$personal_info.current_education_level",
-                "institute": "$personal_info.college_or_university",
+                "current_education": "$academic_info.current_education_level",
+                "institute": "$academic_info.college_or_university",
                 "status": 1,
                 "application_date": 1
             }}
@@ -436,90 +448,4 @@ class ApplicationService:
         print("Application generated from the documents")
         await ApplicationService.create_application(application.dict())
         return application
-        # response = await LangChainService.rag_bot(query, current_user.username)
-        # processed_response = await post_processing_response(response["response"])
-        # print(processed_response)
-        # try:
 
-        #     # converting the LLM response into json object
-        #     json_object = json.loads(processed_response)
-        #     if json_object["personal_info"]["dob"] == "" or json_object["personal_info"]["dob"] == "Not Found":
-        #         json_object["personal_info"]["dob"] = "2002-12-30"
-        #     if json_object["application_date"] == "" or json_object["application_date"] == "Not Found":
-        #         json_object["application_date"] = "2002-12-30"
-        #     await validate_application_object(json_object)
-        #     # results = await ApplicationService.create_application(json_object)
-        #     # json_object["_id"] = str(results["application_id"])
-
-        #     return json_object
-        # except json.JSONDecodeError as e:
-        #     # Handle JSON decoding error if any
-        #     print(e)
-        #     raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
-    
-
-    # query = f"""
-        #     Given the information of the documents in the context above give the response in the following JSON format
-
-
-        #     username: {current_user.username} (always return this username in the field called username in response)
-
-        #     Restrictions:
-        #     1. The key Values of Json Response must be exactly as Example JSON object (no extra or less fields in json response)
-        #     2. Do not return "Not Found" in JSON Object (Most Important)
-        #     3. Return an empty string "" for a string fields only if not found.  (Most Important)
-        #         example LLM could not locate nationality:
-        #         the response of the specific field in JSON Object should be ("nationality": "")
-        #     4. Do not add comment in JSON Object.
-
-
-        #     Example JSON Object Response:
-        #     {{
-        #     "username": "john_doe_123",
-        #     "personal_info": {{
-        #         "full_name": "John Doe",
-        #         "dob": "2000-05-15" (return todays date if not found),
-        #         "gender": "Male",
-        #         "nationality": "American",
-        #         "marital_status": "Single",
-        #         "phone_number": "+123456789",
-        #         "email_address": "john.doe@example.com",
-        #         "residential_address": "123 Main St, City, Country",
-        #         "permanent_address": "456 Another St, City, Country"
-        #     }},
-        #     "financial_info": {{
-        #         "total_family_income": 50000 (return an integer),
-        #         "other_income_sources": ["Part-time job: 10000", "Freelance: 5000"],
-        #         "outstanding_loans_or_debts": ["Car loan: 10000", "Credit Card: 5000"]
-        #     }},
-        #     "academic_info": {{
-        #         "current_education_level": "Undergraduate",
-        #         "college_or_university": "XYZ University",
-        #         "student_id": "U1234567",
-        #         "program_name_degree": "Computer Science",
-        #         "duration_of_course": "4 years",
-        #         "year_or_semester": "Year 2, Semester 1",
-        #         "gpa": 3.8 (return a float),
-        #         "achievements_or_awards": ["Dean's List", "Hackathon Winner"]
-        #     }},
-        #     "loan_details": {{
-        #         "loan_amount_requested": 20000 (return an integer),
-        #         "purpose_of_loan": "Tuition fees",
-        #         "proposed_repayment_period": "24 months",
-        #         "preferred_repayment_frequency": "Monthly"
-        #     }},
-        #     "references": [
-        #         {{
-        #             "name": "source for this information is reference letter as mention in some metadata for documents",
-        #             "designation": "Professor",
-        #             "contact_details": "+987654321",
-        #             "comments": "John is a diligent student."
-        #         }}
-        #     ],
-        #     "status": "Pending",
-        #     "application_date": "2024-11-30" (return todays date),
-        #     "declaration": "I hereby declare that all the information provided is true.",
-        #     "signature": "John Doe"
-        # }}
-
-        # """

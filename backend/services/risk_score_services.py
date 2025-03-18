@@ -17,37 +17,50 @@ class RiskScoreCalCulations:
 
     @staticmethod
     async def generate_risk_scores(application_dict, current_user):
-        risk_scores = RiskAssessment(
-        application_id="12345",
-        financial_risk={"risk_score": 0, "calculations": "N/A"},
-        academic_risk={"risk_score": 0, "calculations": "N/A"},
-        personal_risk={"risk_score": 0, "calculations": "N/A"},
-        reference_risk={"risk_score": 0, "calculations": "N/A"},
-        repayment_potential={"risk_score": 0, "calculations": "N/A"}
-    )
-        application = Application(**application_dict)
-        risk_scores.application_id = str(application_dict["id"])
-        score = 0
-        score += await RiskScoreCalCulations.get_personal_information_score(application.personal_info, risk_scores)
-        await asyncio.sleep(2)
-        score += await RiskScoreCalCulations.get_academic_risk_score(application.academic_info, risk_scores)
-        await asyncio.sleep(2)
-        score += await RiskScoreCalCulations.get_financial_risk_score(application.financial_info, application.loan_details, risk_scores)
-        await asyncio.sleep(2)
-        score += await RiskScoreCalCulations.get_reference_risk_score(application.references, risk_scores)
-        await asyncio.sleep(2)
-        score += await RiskScoreCalCulations.repayment_potential_score(application.references, risk_scores)
+
+        try:
+            risk_scores = RiskAssessment(
+            application_id="12345",
+            financial_risk={"risk_score": 0, "calculations": "N/A"},
+            academic_risk={"risk_score": 0, "calculations": "N/A"},
+            personal_risk={"risk_score": 0, "calculations": "N/A"},
+            reference_risk={"risk_score": 0, "calculations": "N/A"},
+            repayment_potential={"risk_score": 0, "calculations": "N/A"}
+            )
+            application = Application(**application_dict)
+            risk_scores.application_id = str(application_dict["_id"])
+            score = 0
+            score += await RiskScoreCalCulations.get_personal_information_score(application.personal_info, risk_scores)
+            await asyncio.sleep(2)
+            print("Personal done")
+            score += await RiskScoreCalCulations.get_academic_risk_score(application.academic_info, risk_scores)
+            await asyncio.sleep(2)
+            print("Academic done")
+            score += await RiskScoreCalCulations.get_financial_risk_score(application.financial_info, application.loan_details, risk_scores)
+            await asyncio.sleep(2)
+            print("Financial done")
+            score += await RiskScoreCalCulations.get_reference_risk_score(application.references, risk_scores)
+            await asyncio.sleep(2)
+            print("References done")
+            score += await RiskScoreCalCulations.repayment_potential_score(application.references, risk_scores)
+            print("repayment done")
+            exisiting_risk_score = await RiskScoreCalCulations.get_risk_assessment_score(risk_scores.application_id)
+
+            if exisiting_risk_score:
+                await RiskScoreCalCulations.update_riskScores(risk_scores)
+            else:
+                await RiskScoreCalCulations.add_to_db(risk_scores)
+
+            
+            await ApplicationService.generate_personalised_plan(application_dict, application.username)
+            print(await ApplicationService.update_status(application.username, "pending"))
+            print("completed")
+            return score
         
-        exisiting_risk_score = await RiskScoreCalCulations.get_risk_assessment_score(risk_scores.application_id)
+        except Exception as e:
+            print(e)
+            await ApplicationService.update_status(application.username, "ai-failure")
 
-        if exisiting_risk_score:
-            await RiskScoreCalCulations.update_riskScores(risk_scores)
-        else:
-            await RiskScoreCalCulations.add_to_db(risk_scores)
-
-        if score > 70: 
-            await ApplicationService.generate_personalised_plan(application_dict, current_user.username)
-        return score
 
     @staticmethod
     async def get_risk_assessment_score(application_id: str):

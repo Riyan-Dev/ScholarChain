@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -7,7 +7,7 @@ class TokenTransaction(BaseModel):
     amount: int
     action: str  # 'buy' or 'burn'
     timestamp: str =  datetime.now().strftime("%Y-%m-%d %H:%M:%S") # Add timestamp for tracking transactions
-    description: str
+    description: Optional[str] = ""
 
 class Wallet(BaseModel):
     username: str

@@ -1,10 +1,18 @@
-"use client"
+/* eslint-disable prettier/prettier */
+"use client";
 
-import { useState } from "react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useEffect, useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,135 +20,99 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ChevronLeft, ChevronRight, MoreHorizontal, Search } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import {
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
+  Search,
+} from "lucide-react";
+import { getAllLoans } from "@/services/loan.services";
+import { Loan } from "@/lib/types";
 
 export function LoansTable() {
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState(1);
+  const [loans, setLoans] = useState<Loan[] | null>([]);
 
-  // Sample loan data
-  const loans = [
-    {
-      id: "LN78901",
-      borrower: "Michael Smith",
-      amount: "$3,500.00",
-      disbursementDate: "2022-10-15",
-      dueDate: "2023-10-15",
-      status: "Active",
-      repaymentStatus: "On Time",
-    },
-    {
-      id: "LN78902",
-      borrower: "Jessica Brown",
-      amount: "$2,500.00",
-      disbursementDate: "2022-11-01",
-      dueDate: "2023-11-01",
-      status: "Active",
-      repaymentStatus: "On Time",
-    },
-    {
-      id: "LN78903",
-      borrower: "Robert Johnson",
-      amount: "$4,200.00",
-      disbursementDate: "2022-09-20",
-      dueDate: "2023-09-20",
-      status: "Active",
-      repaymentStatus: "Late",
-    },
-    {
-      id: "LN78904",
-      borrower: "Sarah Williams",
-      amount: "$3,000.00",
-      disbursementDate: "2022-12-05",
-      dueDate: "2023-12-05",
-      status: "Active",
-      repaymentStatus: "On Time",
-    },
-    {
-      id: "LN78905",
-      borrower: "David Miller",
-      amount: "$5,000.00",
-      disbursementDate: "2022-08-15",
-      dueDate: "2023-08-15",
-      status: "Active",
-      repaymentStatus: "At Risk",
-    },
-    {
-      id: "LN78906",
-      borrower: "Jennifer Davis",
-      amount: "$2,800.00",
-      disbursementDate: "2022-07-10",
-      dueDate: "2023-07-10",
-      status: "Completed",
-      repaymentStatus: "Paid",
-    },
-    {
-      id: "LN78907",
-      borrower: "Thomas Wilson",
-      amount: "$3,200.00",
-      disbursementDate: "2022-06-20",
-      dueDate: "2023-06-20",
-      status: "Defaulted",
-      repaymentStatus: "Defaulted",
-    },
-  ]
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const _dashData = await getAllLoans();
+        setLoans(_dashData);
+      } catch (error) {
+        console.error("Error while fetching admin dashboard:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search loans..." className="h-9 w-[250px] md:w-[300px]" />
+          <Search className="text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Search loans..."
+            className="h-9 w-[250px] md:w-[300px]"
+          />
         </div>
       </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Loan ID</TableHead>
-              <TableHead>Borrower</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead className="hidden md:table-cell">Disbursement Date</TableHead>
-              <TableHead className="hidden md:table-cell">Due Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Repayment</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+            <TableRow className="text-center">
+              <TableHead className="text-center">Loan ID</TableHead>
+              <TableHead className="text-center">Borrower</TableHead>
+              <TableHead className="text-center">Amount</TableHead>
+              <TableHead className="hidden text-center md:table-cell">
+                Installments
+              </TableHead>
+              <TableHead className="hidden text-center md:table-cell">
+                Amount Repaid
+              </TableHead>
+              <TableHead className="text-center">Status</TableHead>
+              <TableHead className="text-center">
+                Installments Completed
+              </TableHead>
+              <TableHead className="text-center">Created At</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loans.map((loan) => (
+            {loans?.map((loan) => (
               <TableRow key={loan.id}>
-                <TableCell className="font-medium">{loan.id}</TableCell>
-                <TableCell>{loan.borrower}</TableCell>
-                <TableCell>{loan.amount}</TableCell>
-                <TableCell className="hidden md:table-cell">{loan.disbursementDate}</TableCell>
-                <TableCell className="hidden md:table-cell">{loan.dueDate}</TableCell>
-                <TableCell>
+                <TableCell className="text-center font-medium">
+                  {loan.id}
+                </TableCell>
+                <TableCell className="text-center">{loan.username}</TableCell>
+                <TableCell className="text-center">
+                  {loan.loan_amount}
+                </TableCell>
+                <TableCell className="hidden text-center md:table-cell">
+                  {loan.no_of_installments}
+                </TableCell>
+                <TableCell className="hidden text-center md:table-cell">
+                  {loan.loan_amount_repaid}
+                </TableCell>
+                <TableCell className="text-center">
                   <Badge
                     variant={
-                      loan.status === "Active" ? "default" : loan.status === "Completed" ? "success" : "destructive"
+                      loan.status === "ongoing"
+                        ? "default"
+                        : loan.status === "completed"
+                          ? "success"
+                          : "destructive"
                     }
                   >
                     {loan.status}
                   </Badge>
                 </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={
-                      loan.repaymentStatus === "On Time"
-                        ? "success"
-                        : loan.repaymentStatus === "Paid"
-                          ? "outline"
-                          : loan.repaymentStatus === "Late"
-                            ? "secondary"
-                            : "destructive"
-                    }
-                  >
-                    {loan.repaymentStatus}
-                  </Badge>
+                <TableCell className="text-center">
+                  {loan.installments_completed}
                 </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
+                <TableCell className="text-center">
+                  {loan.created_at}
+                  {/* <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">
                         <MoreHorizontal className="h-4 w-4" />
@@ -155,7 +127,7 @@ export function LoansTable() {
                       <DropdownMenuItem>View Repayments</DropdownMenuItem>
                       <DropdownMenuItem>Send Reminder</DropdownMenuItem>
                     </DropdownMenuContent>
-                  </DropdownMenu>
+                  </DropdownMenu> */}
                 </TableCell>
               </TableRow>
             ))}
@@ -163,16 +135,20 @@ export function LoansTable() {
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2">
-        <Button variant="outline" size="sm" onClick={() => setPage(page > 1 ? page - 1 : 1)} disabled={page === 1}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage(page > 1 ? page - 1 : 1)}
+          disabled={page === 1}
+        >
           <ChevronLeft className="h-4 w-4" />
           Previous
         </Button>
         <Button variant="outline" size="sm" onClick={() => setPage(page + 1)}>
           Next
-          <ChevronRight className="h-4 w-4 ml-1" />
+          <ChevronRight className="ml-1 h-4 w-4" />
         </Button>
       </div>
     </div>
-  )
+  );
 }
-

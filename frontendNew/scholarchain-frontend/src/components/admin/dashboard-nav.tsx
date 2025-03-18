@@ -45,11 +45,11 @@ const navItems: NavItem[] = [
     href: "/admin/wallet",
     icon: Wallet,
   },
-  {
-    title: "Reports",
-    href: "/admin/reports",
-    icon: FileBarChart,
-  },
+  // {
+  //   title: "Reports",
+  //   href: "/admin/reports",
+  //   icon: FileBarChart,
+  // },
   {
     title: "Users",
     href: "/admin/users",

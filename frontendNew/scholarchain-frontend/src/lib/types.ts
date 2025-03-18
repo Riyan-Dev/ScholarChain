@@ -38,3 +38,39 @@ export interface LoanDashData {
   overdue: number;
   paid: number;
 }
+
+interface DocumentMetadata {
+  source: string;
+  author: string;
+  section: string;
+  document_type: string;
+}
+
+interface Document {
+  page_content: string;
+  metadata: DocumentMetadata;
+}
+
+interface DocumentsList {
+  CNIC: Document[];
+  gaurdian_CNIC: Document[];
+  electricity_bills: Document[];
+  gas_bills: Document[];
+  intermediate_result: Document[];
+  undergrad_transcript: Document[];
+  salary_slips: Document[];
+  bank_statements: Document[];
+  income_tax_certificate: Document[];
+  reference_letter: Document[];
+}
+
+export interface User {
+  _id: string;
+  username: string;
+  email: string;
+  hashed_password: string;
+  role: "admin" | "applicant" | "donator";
+  application_stage: string[];
+  chroma_path: string[];
+  documents: DocumentsList;
+}

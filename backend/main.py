@@ -15,8 +15,8 @@ from controller.donator_controller import donator_router
 from config.init_EM import get_embedding_model
 from config.init_gemini import get_gemini_client
 
-get_embedding_model()
-get_gemini_client()
+# get_embedding_model()
+# get_gemini_client()
 app = FastAPI()
 
 app.include_router(rag_router, prefix="/rag", tags=["rag"])

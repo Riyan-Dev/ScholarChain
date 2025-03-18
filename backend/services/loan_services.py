@@ -96,7 +96,7 @@ class LoanService:
     
     @staticmethod
     async def get_all_loans():
-        loans = loan_collection.find().to_list()
+        loans = await loan_collection.find().to_list()
         for loan in loans:
             loan["_id"] = str(loan["_id"])
         return loans

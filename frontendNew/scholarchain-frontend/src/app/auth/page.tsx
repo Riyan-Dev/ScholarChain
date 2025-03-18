@@ -6,6 +6,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { AuthService } from "@/services/auth.service";
 import { redirect } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+
 
 const LoginPage = () => {
   const [isActive, setIsActive] = useState(false);
@@ -270,7 +272,7 @@ const LoginPage = () => {
               >
                 <h1 className="mb-4 text-2xl font-bold">Welcome Back!</h1>
                 <p className="my-5 text-sm leading-5 tracking-wide">
-                  Enter your personal details to use all of site features
+                  Enter your Credentials to use all of site features
                 </p>
                 <button
                   onClick={() => setIsActive(false)}
@@ -284,7 +286,7 @@ const LoginPage = () => {
                   isActive ? "translate-x-[200%]" : "translate-x-0"
                 }`}
               >
-                <h1 className="mb-4 text-2xl font-bold">Hello, Friend!</h1>
+                <h1 className="mb-4 text-2xl font-bold">New to ScholarChain? </h1>
                 <p className="my-5 text-sm leading-5 tracking-wide">
                   Register with your personal details to use all of site
                   features

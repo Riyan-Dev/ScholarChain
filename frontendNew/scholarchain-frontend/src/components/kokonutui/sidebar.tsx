@@ -34,7 +34,8 @@ export default function Sidebar() {
 
   type SidebarItemsType = {
     [key: string]: {
-      overview: {
+      [section: string]: {
+        // Allow multiple sections
         href: string;
         icon: any;
         label: string;
@@ -47,7 +48,7 @@ export default function Sidebar() {
     applicant: {
       overview: [
         {
-          href: "#",
+          href: "/dashboard",
           icon: Home,
           label: "Dashboard",
           onClick: () => {
@@ -55,17 +56,35 @@ export default function Sidebar() {
           },
         },
         {
-          href: "#",
+          href: "/application-form",
           icon: SquarePlus,
           label: "New Application",
           onClick: () => {},
+        },
+      ],
+      finance: [
+        {
+          href: "/purchase",
+          icon: CreditCard,
+          label: "Purchase Token",
+          onClick: () => {
+            router.push("/purchase");
+          },
+        },
+        {
+          href: "/transactions",
+          icon: Wallet,
+          label: "Transactions",
+          onClick: () => {
+            router.push("/transactions");
+          },
         },
       ],
     },
     admin: {
       overview: [
         {
-          href: "#",
+          href: "/admin",
           icon: Home,
           label: "Dashboard",
           onClick: () => {
@@ -73,7 +92,7 @@ export default function Sidebar() {
           },
         },
         {
-          href: "#",
+          href: "/admin/applications",
           icon: SquarePlus,
           label: "Applications",
           onClick: () => {
@@ -81,6 +100,7 @@ export default function Sidebar() {
           },
         },
       ],
+      finance: [],
     },
   };
 
@@ -141,7 +161,6 @@ export default function Sidebar() {
         <div className="flex h-full flex-col">
           <Link
             href="/dashboard"
-            // target="_blank"
             rel="noopener noreferrer"
             className="flex h-16 items-center border-b border-gray-200 px-6 dark:border-[#1F1F23]"
           >
@@ -165,31 +184,27 @@ export default function Sidebar() {
                 <div className="z-[10] mb-2 px-3 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
                   Overview
                 </div>
-                {sidebarItems.applicant.overview.map((item, index) => (
+                {sidebarItems[userRole].overview.map((item, index) => (
                   <NavItem key={index} href={item.href} icon={item.icon}>
                     {item.label}
                   </NavItem>
                 ))}
               </div>
 
-              {/* <div>
+              <div>
                 <div className="mb-2 px-3 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
                   Finance
                 </div>
                 <div className="space-y-1">
-                  <NavItem href="#" icon={Wallet}>
-                    Transactions
-                  </NavItem>
-                  <NavItem href="#" icon={Receipt}>
-                    Invoices
-                  </NavItem>
-                  <NavItem href="#" icon={CreditCard}>
-                    Payments
-                  </NavItem>
+                  {sidebarItems[userRole].finance.map((item, index) => (
+                    <NavItem key={index} href={item.href} icon={item.icon}>
+                      {item.label}
+                    </NavItem>
+                  ))}
                 </div>
               </div>
 
-              <div>
+              {/* <div>
                 <div className="mb-2 px-3 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
                   Team
                 </div>

@@ -21,8 +21,8 @@ async def accept_plan(stage: str, current_user: TokenData = Depends(get_current_
     return await ApplicationService.update_stage(current_user.username, stage)
 
 @application_router.get('/repay/')
-async def repay_loan(current_user: TokenData = Depends(get_current_user)):
-    return await LoanService.repay_loan(current_user.username)
+async def repay_loan(background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
+    return await LoanService.repay_loan(current_user.username, background_tasks)
 
 @application_router.get('/get-loan-details/')
 async def get_loan_details(current_user: TokenData = Depends(get_current_user)):
@@ -48,10 +48,24 @@ async def get_application_by_id(application_id: str, current_user: TokenData = D
 @application_router.put('/submit/')
 async def update_application(updated_data:Application, background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
     result = await ApplicationService.update_application(current_user.username, updated_data.dict())
+    application_data = await ApplicationService.get_application_by_id(updated_data.id)
+    application_data["_id"] = str(application_data["_id"])
     if result:
-        background_tasks.add_task(RiskScoreCalCulations.generate_risk_scores, updated_data.dict(), current_user)
+        background_tasks.add_task(RiskScoreCalCulations.generate_risk_scores, application_data, current_user)
     
     return {'message': 'Application Added Successfully, Risk Assessment and personalised Plan Under Construction', 'success': True}
+
+@application_router.put('/retrigger-ai-flow/')
+async def update_application(application_id: str, background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=401, detail="Only admin access allowed")
+    
+    application_data = await ApplicationService.get_application_by_id(application_id)
+    application_data["_id"] = str(application_data["_id"])
+    if application_data:
+        background_tasks.add_task(RiskScoreCalCulations.generate_risk_scores, application_data, current_user)
+    
+    return {'message': 'AI Workflow retriggered, Risk Assessment and personalised Plan Under Construction', 'success': True}
 
 @application_router.get('/auto-fill-fields/')
 async def auto_fill_fields(background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
@@ -69,10 +83,13 @@ async def application_overview(current_user: TokenData = Depends(get_current_use
 
 @application_router.get('/repay-details/')
 async def repay_details(current_user: TokenData = Depends(get_current_user)):
-    result = await LoanService.fetch_repay_details(current_user.username)
-    if result is None:
+    try:
+        result = await LoanService.fetch_repay_details(current_user.username)
+        if result is None:
+            raise HTTPException(status_code=404, detail="No Loan Found")
+        return result
+    except Exception as e:
         raise HTTPException(status_code=404, detail="No Loan Found")
-    return result
 # *************Strong case*****************
 # {
 #   "personal_info": {

@@ -14,7 +14,7 @@ class DocumentMetadata(BaseModel):
     author: str
     section: str
     document_type: str
-    date: datetime
+    # date: datetime
 
 class Document(BaseModel):
     page_content: str

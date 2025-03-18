@@ -45,12 +45,12 @@ async def update_plan(updated_data:Plan, application_id:str, current_user: Token
  also other validation checks need to be make
 """
 @admin_router.put('/verify/')
-async def verify_application(application_id: str, verified: bool, current_user: TokenData = Depends(get_current_user)):
+async def verify_application(application_id: str, verified: bool, background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
 
     if current_user.role != "admin":
         raise HTTPException(status_code=401, detail="Only admin access allowed")
 
-    return await ApplicationService.verify_application(application_id, verified)
+    return await ApplicationService.verify_application(application_id, verified, background_tasks)
 
 @admin_router.get('/generate_plan/')
 async def generate_plan(application_id: str, background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
@@ -77,7 +77,7 @@ async def application_details(application_id: str, current_user: TokenData = Dep
 
         total_score = await RiskScoreCalCulations.calculate_total_score(risk_assessment)
 
-        if total_score > 70:
+        if total_score > 0:
         
             plan = await ApplicationService.get_plan_db(application_id)
             if plan:

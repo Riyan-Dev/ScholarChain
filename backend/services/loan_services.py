@@ -12,6 +12,7 @@ from db import loan_collection
 
 from pymongo import UpdateOne
 
+from services.email_service import EmailService
 class LoanService:
     @staticmethod
     async def create_loan(loan_amount, start_date, end_date, repayement_frequecy, username, address):
@@ -66,16 +67,16 @@ class LoanService:
 
 
     @staticmethod
-    async def repay_loan(username): 
+    async def repay_loan(username, background_tasks): 
         loan_data = await LoanService.get_loan_details(username)
         loan = Loan(**loan_data)
         
         amount_remaining = loan.loan_amount - loan.loan_amount_repaid
         
         first_pending = next((inst for inst in loan.installments if inst.installment_status == "pending"), None)
-        installments_remaining = loan.no_of_installments - first_pending.installment_id - 1
-        amount_to_pay = math.ceil(amount_remaining / installments_remaining)
+        installments_remaining = loan.no_of_installments - (first_pending.installment_id - 1)
 
+        amount_to_pay = math.ceil(amount_remaining / installments_remaining)
         first_pending.installment_status = "paid"
         first_pending.amount_paid = amount_to_pay
         first_pending.installment_paid_date = datetime.now()
@@ -87,10 +88,10 @@ class LoanService:
         deploy_result = await BlockchainService.repay_loan(username, loan.contract_address, amount_to_pay)
         first_pending.transaction_id = deploy_result["transaction_hash"]
 
+        next_pending = next((inst for inst in loan.installments if inst.installment_status == "pending"), None)
         
-        
-
         await LoanService.update_loan(username, loan.dict())
+        background_tasks.add_task(EmailService.send_repayment_email, username, loan, first_pending, next_pending)
         return {"transaction_id": deploy_result["transaction_hash"]}
     
     @staticmethod
@@ -332,7 +333,7 @@ class LoanService:
                             {
                                 "$subtract": [
                                     "$loanDetails.no_of_installments",
-                                    {"$add": ["$nextInstallment.installment_id", 1]}
+                                    {"$subtract": ["$nextInstallment.installment_id", 1]}
                                 ]
                             }
                         ]

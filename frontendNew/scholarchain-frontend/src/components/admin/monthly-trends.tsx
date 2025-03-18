@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -18,6 +19,13 @@ import {
 } from "recharts"
 
 export function MonthlyTrends() {
+  // Client-side rendering control
+  const [isMounted, setIsMounted] = useState(false)
+  
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   // Sample data for the charts
   const monthlyData = [
     { name: "Jan", donations: 65000, loans: 45000, repayments: 30000 },
@@ -49,75 +57,82 @@ export function MonthlyTrends() {
               <TabsTrigger value="area">Area</TabsTrigger>
             </TabsList>
           </div>
-          <TabsContent value="line" className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={monthlyData}
-                margin={{
-                  top: 20,
-                  right: 30,
-                  left: 20,
-                  bottom: 10,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="donations" stroke="#8884d8" activeDot={{ r: 8 }} />
-                <Line type="monotone" dataKey="loans" stroke="#82ca9d" />
-                <Line type="monotone" dataKey="repayments" stroke="#ffc658" />
-              </LineChart>
-            </ResponsiveContainer>
-          </TabsContent>
-          <TabsContent value="bar" className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={monthlyData}
-                margin={{
-                  top: 20,
-                  right: 30,
-                  left: 20,
-                  bottom: 10,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="donations" fill="#8884d8" />
-                <Bar dataKey="loans" fill="#82ca9d" />
-                <Bar dataKey="repayments" fill="#ffc658" />
-              </BarChart>
-            </ResponsiveContainer>
-          </TabsContent>
-          <TabsContent value="area" className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={monthlyData}
-                margin={{
-                  top: 20,
-                  right: 30,
-                  left: 20,
-                  bottom: 10,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Area type="monotone" dataKey="donations" stackId="1" stroke="#8884d8" fill="#8884d8" />
-                <Area type="monotone" dataKey="loans" stackId="2" stroke="#82ca9d" fill="#82ca9d" />
-                <Area type="monotone" dataKey="repayments" stackId="3" stroke="#ffc658" fill="#ffc658" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </TabsContent>
+          {isMounted ? (
+            <>
+              <TabsContent value="line" className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={monthlyData}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 20,
+                      bottom: 10,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="donations" stroke="#8884d8" activeDot={{ r: 8 }} />
+                    <Line type="monotone" dataKey="loans" stroke="#82ca9d" />
+                    <Line type="monotone" dataKey="repayments" stroke="#ffc658" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </TabsContent>
+              <TabsContent value="bar" className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={monthlyData}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 20,
+                      bottom: 10,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="donations" fill="#8884d8" />
+                    <Bar dataKey="loans" fill="#82ca9d" />
+                    <Bar dataKey="repayments" fill="#ffc658" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </TabsContent>
+              <TabsContent value="area" className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={monthlyData}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 20,
+                      bottom: 10,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Area type="monotone" dataKey="donations" stackId="1" stroke="#8884d8" fill="#8884d8" />
+                    <Area type="monotone" dataKey="loans" stackId="2" stroke="#82ca9d" fill="#82ca9d" />
+                    <Area type="monotone" dataKey="repayments" stackId="3" stroke="#ffc658" fill="#ffc658" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </TabsContent>
+            </>
+          ) : (
+            <div className="h-[300px] w-full flex items-center justify-center">
+              <p className="text-muted-foreground">Loading charts...</p>
+            </div>
+          )}
         </Tabs>
       </CardContent>
     </Card>
   )
 }
-

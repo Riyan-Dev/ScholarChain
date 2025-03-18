@@ -5,6 +5,7 @@ import { useTheme } from "next-themes"; // Import useTheme
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AuthService } from "@/services/auth.service";
 import { redirect } from "next/navigation";
+import "@fortawesome/fontawesome-free/css/all.min.css";
 
 const LoginPage = () => {
   const [isActive, setIsActive] = useState(false);

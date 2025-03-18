@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -169,6 +168,38 @@ export default function PurchasePage() {
     }
   }, [activeTab])
 
+
+  // Create the payment details object to pass to the payment page
+  const paymentDetails = useMemo(() => {
+    if (activeTab === "packages" && selectedPackageDetails) {
+      return {
+        type: "token",
+        package: selectedPackageDetails,
+        tokens: selectedPackageDetails.tokens,
+        price: parseFloat(selectedPackageDetails.price.replace("PKR ", "")),
+        description: `Purchase of ${selectedPackageDetails.tokens} tokens (${selectedPackageDetails.label} package)`,
+      };
+    } else if (activeTab === "custom" && customAmount) {
+      return {
+        type: "token",
+        tokens: estimatedTokens,
+        price: customAmount,
+        description: `Purchase of ${estimatedTokens} tokens (Custom Amount)`,
+      };
+    }
+    return null;  // or a default object if appropriate
+  }, [activeTab, selectedPackageDetails, customAmount, estimatedTokens]);
+
+  const handleContinueToPayment = () => {
+    if (paymentDetails) {
+      // Convert paymentDetails to a query parameter string
+      const paymentDetailsString = encodeURIComponent(JSON.stringify(paymentDetails));
+      router.push(`/payment?type=token&paymentDetails=${paymentDetailsString}`);
+    } else {
+      toast.error("Please select a package or enter a custom amount.");
+    }
+  };
+
   return (
     <div>
       <DashboardHeader
@@ -224,7 +255,7 @@ export default function PurchasePage() {
                     onChange={handleCustomAmountChange}
                   />
                   <p className="text-muted-foreground text-sm">
-                    You&apos;ll receive 1 token(s) per PKR 1 spent
+                    You'll receive 1 token(s) per PKR 1 spent
                   </p>
                 </div>
                 <div className="bg-muted rounded-md p-4">
@@ -237,7 +268,7 @@ export default function PurchasePage() {
             </Tabs>
           </CardContent>
           <CardFooter>
-            <Button className="w-full" onClick={() => router.push("/payment")}>
+            <Button className="w-full" onClick={handleContinueToPayment}>
               Continue to Payment
             </Button>
           </CardFooter>
@@ -276,53 +307,6 @@ export default function PurchasePage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* --- The Dialog Component --- */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Enter Payment Details</DialogTitle>
-              <DialogDescription>
-                Please enter your banking information to complete the purchase.
-              </DialogDescription>
-            </DialogHeader>
-            {/* --- Form Fields (inside the Dialog) --- */}
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="cardNumber" className="text-right">
-                  Card Number
-                </Label>
-                <Input id="cardNumber" placeholder="XXXX XXXX XXXX XXXX" className="col-span-3" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="expiryDate" className="text-right">
-                  Expiry Date
-                </Label>
-                <Input id="expiryDate" placeholder="MM/YY" className="col-span-3" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="cvc" className="text-right">
-                  CVC/CVV
-                </Label>
-                <Input id="cvc" placeholder="XXX" className="col-span-3" value={cvc} onChange={(e) => setCvc(e.target.value)} />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Name on Card
-                </Label>
-                <Input id="name" placeholder="John Doe" className="col-span-3" value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="secondary" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" onClick={handlePaymentSubmit} disabled={isSubmitting}>
-                {isSubmitting ? "Processing..." : "Confirm Purchase"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
 
         {/* Why Buy Tokens? Card - Full Width */}
         <div className="md:col-span-2">

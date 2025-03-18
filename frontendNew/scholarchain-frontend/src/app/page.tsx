@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Brain, FileCode, Percent } from "lucide-react";
 import { motion } from "framer-motion";

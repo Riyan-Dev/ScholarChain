@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+import os
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from controller.rag_controller import router as rag_router
@@ -11,6 +12,11 @@ from controller.application_controller import application_router
 from controller.admin_controller import admin_router
 from controller.donator_controller import donator_router
 
+from config.init_EM import get_embedding_model
+from config.init_gemini import get_gemini_client
+
+# get_embedding_model()
+get_gemini_client()
 app = FastAPI()
 
 app.include_router(rag_router, prefix="/rag", tags=["rag"])
@@ -19,6 +25,7 @@ app.include_router(application_router, prefix="/application", tags=["application
 app.include_router(admin_router, prefix="/admin", tags=["admin"])
 app.include_router(donator_router, prefix="/donator", tags=["donator"])
 
+os.makedirs("static", exist_ok=True)
 app.mount("/pdfs", StaticFiles(directory="static"), name="pdfs")
 
 origins = [

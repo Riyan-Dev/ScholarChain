@@ -1,7 +1,7 @@
 import os
 import sys
 # sys.path.insert(0, "/Users/ryan/Developer/ScholarChain/backend/scholarChainEnv/lib/python3.11/site-packages")
-from config import Config
+from config.config import Config
 from dotenv import load_dotenv
 from mistralai import Mistral
 import fitz 
@@ -9,13 +9,8 @@ import fitz
 # Retrieve the API key from environment variables
 load_dotenv()
 
-async def pdf_to_images(file):
-    # Check if the uploaded file is a PDF
-    if file.content_type != 'application/pdf':
-        return {"error": "The file must be a PDF"}
-
-    # Read the file content as bytes
-    file_bytes = await file.read()
+async def pdf_to_images(file_bytes):
+   
     # Open the PDF document from bytes
     pdf_document = fitz.open("pdf", file_bytes)
     # Ensure the output folder exists

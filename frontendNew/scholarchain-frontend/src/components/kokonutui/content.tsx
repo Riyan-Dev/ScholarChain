@@ -259,7 +259,7 @@ export default function Content() {
         isOpen={isSuccessModalOpen}
         onClose={() => {
           setIsSuccessModalOpen(false);
-          router.push('/dashboard')
+          router.push("/dashboard");
         }}
         paymentDetails={paymentDetails}
       />

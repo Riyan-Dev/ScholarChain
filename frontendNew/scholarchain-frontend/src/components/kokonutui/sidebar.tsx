@@ -80,7 +80,8 @@ export default function Sidebar() {
             router.push("/admin/applications");
           },
         },
-      ],},
+      ],
+    },
   };
 
   function handleNavigation() {

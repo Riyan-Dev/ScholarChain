@@ -1,5 +1,5 @@
 from mistralai import Mistral
-from config import Config
+from config.config import Config
 
 client = Mistral(api_key=Config.mistral_api_key)
 

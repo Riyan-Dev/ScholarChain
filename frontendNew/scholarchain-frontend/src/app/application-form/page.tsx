@@ -30,14 +30,13 @@ import {
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
-import { useQuery } from "@tanstack/react-query";
-import { fetchApplication, submitApplication } from "@/services/user.service";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
+import { fetchApplication, submitApplication } from "@/services/user.service";
+import { useQuery } from "@tanstack/react-query";
 
 interface Reference {
   name: string;
-  designation: string;
   contact_details: string;
   comments: string;
 }
@@ -553,9 +552,6 @@ export default function ApplicationFormComponent({
                     placeholder="Other Income Sources"
                     required
                   />
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="outstandingLoansOrDebts">
                     Outstanding Loans or Debts (eg: loan1, loan2)
                   </Label>

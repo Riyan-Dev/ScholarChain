@@ -1,5 +1,5 @@
 
-from config import Config
+from config.config import Config
 from mistralai import Mistral
 from fastapi import HTTPException
 from datetime import datetime, date

@@ -7,14 +7,12 @@ import dateutil.relativedelta
 from services.transaction_services import TransactionServices
 from services.blockchain_service import BlockchainService
 
-from models.loan import Loan, Installment
+from models.loan import Loan
 from db import loan_collection
-from bson import ObjectId
 
 from pymongo import UpdateOne
 
 class LoanService:
-
     @staticmethod
     async def create_loan(loan_amount, start_date, end_date, repayement_frequecy, username, address):
         print("yolo")
@@ -84,7 +82,7 @@ class LoanService:
         loan.installments_completed += 1
         loan.loan_amount_repaid += amount_to_pay
         
-        await TransactionServices.transfer_token(amount_to_pay, username, "scholarchain")
+        await TransactionServices.transfer_token(amount_to_pay, username, "scholarchain", "Loan Repayment")
 
         deploy_result = await BlockchainService.repay_loan(username, loan.contract_address, amount_to_pay)
         first_pending.transaction_id = deploy_result["transaction_hash"]

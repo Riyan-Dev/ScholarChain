@@ -1,5 +1,5 @@
 import os
-from config import Config
+from config.config import Config
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 

@@ -35,11 +35,10 @@ const LoginPage = () => {
     setError("");
     setLoading(true);
 
-    const credentials: any = { username: username, password: password }; // Assuming username is email
+    const credentials: any = { username: email, password: password }; // Assuming username is email
 
     try {
       await AuthService.login(credentials);
-      handleRouting();
     } catch (error: any) {
       console.log(error.message);
       setError(error.message || "Login failed");
@@ -70,7 +69,7 @@ const LoginPage = () => {
     } finally {
       setLoading(false); // Stop loading state
     }
-  };
+  }
 
   return (
     <div>

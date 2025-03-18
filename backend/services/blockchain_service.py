@@ -1,15 +1,15 @@
 
-from config import Config
+from services.transaction_services import TransactionServices
+from config.config import Config
 from fastapi import HTTPException
 import json
 import os
 
 from dotenv import load_dotenv
 
-from RPC_server import web3
-from web3._utils.events import get_event_data
 
-from services.transaction_services import TransactionServices
+from config import web3
+
 from services.encrption_services import EncrptionServices
 from models.wallet import Wallet
 
@@ -48,10 +48,6 @@ class BlockchainService:
 
         loan_factory_contract = web3.eth.contract(address=factory_address, abi=factory_contract_abi)
         
-        wallet_data = await TransactionServices.get_wallet(username)
-        wallet = Wallet(**wallet_data)
-        
-        bytecode = loan_factory_contract.functions.getBytecode(wallet.public_key, int(loan_amount)).call()
         new_contract_address = loan_factory_contract.functions.getAddress(bytecode, salt).call()
         
         # Build the transaction for deploying the loan

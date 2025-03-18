@@ -32,10 +32,10 @@ async def register(user: User):
 @user_router.post("/upload-documents")
 async def process_documents( background_tasks: BackgroundTasks, files: List[UploadFile] = File(...), ids: str = Form(...), token: TokenData = Depends(get_current_user)):
     ids_list = ids.split(",")
-    # await UserService.store_documents(files, ids_list, token)
-    print(f"Received ids: {ids_list}")  # Debugging
-    ids_list = ['CNIC', 'gaurdian_CNIC', 'intermediate_result', 'bank_statements', 'salary_slips', 'gas_bills', 'electricity_bills', 'reference_letter']
-    background_tasks.add_task(UserService.upload_documents, files, ids_list, token)
+    documents, file_paths = await UserService.store_documents(files, ids_list, token)
+    print(f"Files Paths: {file_paths}")  # Debugging
+    # ids_list = ['CNIC', 'gaurdian_CNIC', 'intermediate_result', 'bank_statements', 'salary_slips', 'gas_bills', 'electricity_bills', 'reference_letter', 'undergrad_transcript']
+    background_tasks.add_task(UserService.upload_documents, token, file_paths, ids_list,documents)
     return {"Message": f"Docuemnt Uploading in process"}
 
 @user_router.get("/documents-status")

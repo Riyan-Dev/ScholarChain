@@ -26,7 +26,7 @@ class DocumentsList(BaseModel):
     electricity_bills: List[Document] = []
     gas_bills: List[Document] = []
     intermediate_result: List[Document] = []
-    undergrad_transacript: List[Document] = []
+    undergrad_transcript: List[Document] = []
     salary_slips: List[Document] = []
     bank_statements: List[Document] = []
     income_tax_certificate: List[Document] = []
@@ -40,4 +40,5 @@ class User(BaseModel):
     hashed_password: str
     role: UserRole
     application_stage: Optional[str] = ""
+    chroma_path: Optional[str] = ""
     documents: Optional[DocumentsList] = None

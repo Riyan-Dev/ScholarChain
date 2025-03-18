@@ -7,6 +7,7 @@ class TokenTransaction(BaseModel):
     amount: int
     action: str  # 'buy' or 'burn'
     timestamp: str =  datetime.now().strftime("%Y-%m-%d %H:%M:%S") # Add timestamp for tracking transactions
+    description: str
 
 class Wallet(BaseModel):
     username: str

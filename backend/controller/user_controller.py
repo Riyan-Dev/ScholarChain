@@ -8,7 +8,10 @@ from typing import List
 
 from middleware.JWT_authentication import create_access_token, TokenData, get_current_user
 from services.user_services import UserService
+from services.email_service import send_email
 from models.user import User
+from models.email import EmailSchema
+
 
 user_router = APIRouter()
 
@@ -58,6 +61,34 @@ async def get_dash(token: TokenData = Depends(get_current_user)):
 async def set_upload(token: TokenData = Depends(get_current_user)):
     return await UserService.set_upload(token.username)
 
+@user_router.post("/")
+async def send_email_test():
+    user = {
+        "name": "Riyan",
+        "email": "i210428@nu.edu.pk"
+    }
+    loan_data = {
+        "amount": "10,000",
+        "currency": "USD",
+        "interest_rate": "7.5",
+        "term": "36",
+        "repayment_start_date": "2025-04-15"
+    }
+    dashboard_link = "https://yourplatform.com/dashboard"
+    current_year = 2025
+    email_data = EmailSchema(
+        to=[user["email"]],
+        subject="Your Loan Application Has Been Accepted!",
+    template_name="sample_email.html", # Rename your template file
+    context={
+        "user": user,
+        "loan_details": loan_data,
+        "dashboard_url": dashboard_link,
+        "current_year": current_year,
+    },
+    )
+    await send_email(email_data)
+    return {"message": "Email sending initiated"}
 
 
 

@@ -1,4 +1,3 @@
-
 from decimal import Decimal
 from models.block_details import BlockDetails, TransactionDetails
 from config.config import Config
@@ -49,7 +48,6 @@ class BlockchainService:
         factory_contract_abi = await BlockchainService.get_abi("./contracts/Create2Factory.json")
 
         loan_factory_contract = web3.eth.contract(address=factory_address, abi=factory_contract_abi)
-        
         wallet_data = await TransactionServices.get_wallet(username)
         wallet = Wallet(**wallet_data)
         

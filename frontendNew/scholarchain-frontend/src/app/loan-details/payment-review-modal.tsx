@@ -28,7 +28,7 @@ import type { RepaymentData } from "./repayment-types";
 interface PaymentReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  repaymentData?: RepaymentData;
+  repaymentData?: RepaymentData | null;
   onConfirmPayment: () => Promise<void>;
   onPurchaseTokens: () => void;
 }

@@ -5,6 +5,7 @@ import { useTheme } from "next-themes"; // Import useTheme
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AuthService } from "@/services/auth.service";
 import { redirect } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 const LoginPage = () => {
@@ -17,8 +18,9 @@ const LoginPage = () => {
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // <-- Loader State
 
-  const handleRouting = () => {
+x  const handleRouting = () => {
     const userRole = AuthService.getUserRole();
     console.log(userRole);
     if (userRole === "applicant") window.location.href = "/dashboard";
@@ -29,6 +31,7 @@ const LoginPage = () => {
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
+    setLoading(true);
 
     const credentials: any = { username: username, password: password }; // Assuming username is email
 
@@ -38,12 +41,15 @@ const LoginPage = () => {
     } catch (error: any) {
       console.log(error.message);
       setError(error.message || "Login failed");
+    } finally {
+      setLoading(false); // Stop loading state
     }
   };
 
   const handleSignup = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
+    setLoading(true);
 
     const details: any = {
       name: name,
@@ -59,6 +65,8 @@ const LoginPage = () => {
     } catch (error: any) {
       console.log(error.message);
       setError(error.message || "Login failed");
+    } finally {
+      setLoading(false); // Stop loading state
     }
   };
 
@@ -152,8 +160,18 @@ const LoginPage = () => {
                 <option value="donator">Donator</option>
                 <option value="applicant">Applicant</option>
               </select>
-              <button className="mt-3 cursor-pointer rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-gray-500 dark:hover:bg-indigo-600">
-                Sign Up
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 disabled:opacity-50 dark:bg-gray-500 dark:hover:bg-indigo-600"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Processing...
+                  </>
+                ) : (
+                  "Sign Up"
+                )}
               </button>
             </form>
           </div>
@@ -222,10 +240,20 @@ const LoginPage = () => {
                 href="#"
                 className="my-4 text-sm text-gray-700 dark:text-gray-400"
               >
-                Forget Your Password?
+                Forgot Your Password ?
               </a>
-              <button className="mt-3 cursor-pointer rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-gray-500 dark:hover:bg-indigo-600">
-                Sign In
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 disabled:opacity-50 dark:bg-gray-500 dark:hover:bg-indigo-600"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Processing...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
               </button>
             </form>
           </div>
@@ -250,7 +278,7 @@ const LoginPage = () => {
               >
                 <h1 className="mb-4 text-2xl font-bold">Welcome Back!</h1>
                 <p className="my-5 text-sm leading-5 tracking-wide">
-                  Enter your personal details to use all of site features
+                  Enter your Credentials to use all of site features
                 </p>
                 <button
                   onClick={() => setIsActive(false)}
@@ -264,7 +292,9 @@ const LoginPage = () => {
                   isActive ? "translate-x-[200%]" : "translate-x-0"
                 }`}
               >
-                <h1 className="mb-4 text-2xl font-bold">Hello, Friend!</h1>
+                <h1 className="mb-4 text-2xl font-bold">
+                  New to ScholarChain?{" "}
+                </h1>
                 <p className="my-5 text-sm leading-5 tracking-wide">
                   Register with your personal details to use all of site
                   features

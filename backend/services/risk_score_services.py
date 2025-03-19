@@ -9,10 +9,9 @@ from models.risk_scores import RiskAssessment, RiskScoreReasoning
 from datetime import date
 from db import risk_assessment_collection
 from services.application_services import ApplicationService
+
 from services.gemini_services import GeminiServices
-
 from utility import run_mistral
-
 class RiskScoreCalCulations:
 
     @staticmethod

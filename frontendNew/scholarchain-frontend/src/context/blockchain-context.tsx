@@ -1,6 +1,6 @@
 "use client";
 
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast";
 import { Block, BlockchainStats, Transaction } from "@/lib/types";
 import { get_ledger } from "@/services/blockchain.service";
 import {
@@ -87,7 +87,7 @@ export function BlockchainProvider({ children }: { children: ReactNode }) {
 
         // Calculate stats
         const totalTransactions = blockchainData.reduce(
-          (sum, block) => sum + block.block_transactions.length,
+          (sum: any, block: any) => sum + block.block_transactions.length,
           0
         );
 

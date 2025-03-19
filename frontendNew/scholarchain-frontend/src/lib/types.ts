@@ -7,6 +7,17 @@ export interface Installment {
   amount_due: number;
 }
 
+export interface LoanData {
+  id: string;
+  borrower: string;
+  loan_amount: number;
+  interest_rate: number;
+  loan_term: number;
+  start_date: string;
+  no_of_installments: number;
+  installments: Installment[];
+}
+
 export interface Loan {
   _id: string;
   id: string | null;
@@ -20,6 +31,10 @@ export interface Loan {
   status: "ongoing" | "completed" | "defaulted";
   created_at: string;
   installments: Installment[];
+  borrower: string;
+  interest_rate: number;
+  loan_term: number;
+  start_date: string;
 }
 
 export interface LoanDashData {

@@ -136,7 +136,7 @@ export const AuthService = {
         return null;
       }
 
-      return {username: decoded.sub, role: decoded.role };
+      return {username: decoded.sub!, role: decoded.role };
     } catch (error) {
       console.error("Token Decode Error", error);
       return null;

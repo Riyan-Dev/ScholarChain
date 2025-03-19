@@ -16,6 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { uploadDocuments } from "@/services/user.service";
 import { useRouter } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2 } from "lucide-react";
 
 // List of required documents
 const REQUIRED_DOCUMENTS = [
@@ -62,6 +63,8 @@ const REQUIRED_DOCUMENTS = [
     description: "Letter of recommendation",
   },
 ];
+
+
 
 export default function DocumentUploadPage() {
   const router = useRouter();
@@ -118,15 +121,19 @@ export default function DocumentUploadPage() {
     });
   };
 
+  const [loading, setLoading] = useState(false);
+  
   const handleSubmitDocuments = async () => {
+    setLoading(true); // Show loader
     try {
-      const data = await uploadDocuments(uploadedDocuments);
+      const data = await uploadDocuments(uploadedDocuments); // AWAIT the API call
       console.log("Upload successful:", data);
       router.push("/dashboard");
-      // Optionally, update UI or notify the user of success
     } catch (error) {
       console.error("Error uploading documents:", error);
-      // Optionally, display an error message to the user
+      // Handle the error (we'll cover this in the toast section below)
+    } finally {
+      setLoading(false); // Hide loader
     }
   };
 
@@ -278,13 +285,20 @@ export default function DocumentUploadPage() {
           </div>
           <CardFooter className="justify-center">
             <div className="mt-8 flex justify-center">
-              <Button
-                // disabled={uploadedCount < totalCount}
-                onClick={handleSubmitDocuments}
-                className="cursor-pointer px-8"
-              >
-                Submit Documents
-              </Button>
+            <Button
+              onClick={handleSubmitDocuments}
+              disabled={loading || uploadedCount < totalCount} // Disable button while uploading
+              className="cursor-pointer px-8 flex items-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                "Submit Documents"
+              )}
+            </Button>
             </div>
           </CardFooter>
         </div>

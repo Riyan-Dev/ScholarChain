@@ -131,15 +131,15 @@ export const fetchPlan = async ({ queryKey }) => {
 
 export const submitApplication = async (formData: any) => {
   formData.status = "submitted";
-  formData.financial_info.other_income_sources = commaSplitString(
-    formData.financial_info.other_income_sources
-  );
-  formData.financial_info.outstanding_loans_or_debts = commaSplitString(
-    formData.financial_info.outstanding_loans_or_debts
-  );
-  formData.academic_info.achievements_or_awards = commaSplitString(
-    formData.academic_info.achievements_or_awards
-  );
+  // formData.financial_info.other_income_sources = commaSplitString(
+  //   formData.financial_info.other_income_sources
+  // );
+  // formData.financial_info.outstanding_loans_or_debts = commaSplitString(
+  //   formData.financial_info.outstanding_loans_or_debts
+  // );
+  // formData.academic_info.achievements_or_awards = commaSplitString(
+  //   formData.academic_info.achievements_or_awards
+  // );
   const res = await fetch(`${API_BASE_URL}/application/submit/`, {
     method: "PUT",
     headers: {

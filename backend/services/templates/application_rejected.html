@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject }}</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo img {
+            max-width: 150px; /* Adjust as needed */
+            height: auto;
+        }
+        .platform-name {
+            color: #007bff; /* Blue */
+            background-image: linear-gradient(to right, #007bff, #00ffff); /* Blue to Cyan */
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: bold;
+        }
+        h1 {
+            color: #dc3545; /* Red for rejection */
+            margin-top: 0;
+        }
+        .rejection-message {
+            margin-bottom: 20px;
+        }
+        .reason-section {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .reason-section h2 {
+            color: #555;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .reason-section p {
+            margin-bottom: 8px;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #777;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="your_logo_url_here.png" alt="ScholarChain Logo">
+        </div>
+        <h1>Your Loan Application</h1>
+        <div class="rejection-message">
+            <p>Dear {{ user.name }},</p>
+            <p>Thank you for submitting your loan application through <span class="platform-name">ScholarChain</span>. After careful review, we regret to inform you that your application has not been approved at this time.</p>
+        </div>
+
+        {% if reason %}
+        <div class="reason-section">
+            <h2>Reason for Rejection</h2>
+            <p>{{ reason }}</p>
+        </div>
+        {% endif %}
+
+        <p>We understand this news may be disappointing. Please note that this decision was made after a thorough evaluation of your application based on our lending criteria.</p>
+
+        <p>You may review your application details in your <span class="platform-name">ScholarChain</span> account. You may also be eligible to reapply in the future after addressing the issues that may have led to this decision.</p>
+
+        <div class="footer">
+            <p>Thank you for considering <span class="platform-name">ScholarChain</span>.</p>
+            <p>&copy; {{ current_year }} ScholarChain. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

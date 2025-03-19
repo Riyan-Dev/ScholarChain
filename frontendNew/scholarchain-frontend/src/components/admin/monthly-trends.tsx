@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEffect, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -25,6 +26,13 @@ import {
 } from "recharts";
 
 export function MonthlyTrends() {
+  // Client-side rendering control
+  const [isMounted, setIsMounted] = useState(false)
+  
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   // Sample data for the charts
   const monthlyData = [
     { name: "Jan", donations: 65000, loans: 45000, repayments: 30000 },

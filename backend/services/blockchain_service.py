@@ -1,5 +1,3 @@
-
-from services.transaction_services import TransactionServices
 from decimal import Decimal
 from models.block_details import BlockDetails, TransactionDetails
 from config.config import Config
@@ -9,9 +7,10 @@ import os
 
 from dotenv import load_dotenv
 
-
 from RPC_server import web3
+from web3._utils.events import get_event_data
 
+from services.transaction_services import TransactionServices
 from services.encrption_services import EncrptionServices
 from models.wallet import Wallet
 

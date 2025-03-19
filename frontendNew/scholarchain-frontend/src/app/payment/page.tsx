@@ -16,6 +16,7 @@ import { getLoanData } from "@/lib/data";
 import { PaymentConfirmation } from "./payment-confirmation";
 import { PaymentForm } from "./payment-form";
 import { PaymentMethod } from "./payment-method";
+import { PaymentSummary } from "./payment-summary";
 
 // Type definitions added here
 export type Installment = {

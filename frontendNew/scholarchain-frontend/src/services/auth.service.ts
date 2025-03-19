@@ -119,7 +119,7 @@ export const AuthService = {
   },
 
   // --- Get User Information (from the token) ---
-  getUserInfo: (tokenPara = null): { username: string; role: string } | null => {
+  getUserInfo: (tokenPara: string | null = null): { username: string; role: string } | null => {
     const token = tokenPara || AuthService.getToken();
 
     if (!token) {

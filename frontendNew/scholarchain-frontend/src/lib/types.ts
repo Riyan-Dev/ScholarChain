@@ -73,6 +73,7 @@ export interface User {
   application_stage: string[];
   chroma_path: string[];
   documents: DocumentsList;
+}
 export interface Block {
   block_number: number;
   block_hash: string;

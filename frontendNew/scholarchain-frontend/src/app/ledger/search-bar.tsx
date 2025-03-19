@@ -29,11 +29,11 @@ export default function SearchBar() {
     e.preventDefault();
 
     if (!query.trim()) {
-      toast({
-        title: "Search Error",
-        description: "Please enter a block number or hash to search",
-        variant: "destructive",
-      });
+      // toast({
+      //   title: "Search Error",
+      //   description: "Please enter a block number or hash to search",
+      //   variant: "destructive",
+      // });
       return;
     }
 

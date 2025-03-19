@@ -7,12 +7,16 @@ import json
 import time
 
 import asyncio
+
+from typing import List
 from fastapi import HTTPException
 from web3 import Web3
+
 from middleware.JWT_authentication import get_password_hash, verify_password
 from db import user_collection, wallet_collection
 from utility import transform_user_document, convert_mongo_to_json_string
 
+from models.application import Document
 from models.user import User, DocumentsList
 from models.wallet import Wallet
 
@@ -20,8 +24,8 @@ from google.genai import types
 from services.gemini_services import GeminiServices
 
 
-
 from services.encrption_services import EncrptionServices
+from services.rag_services import pdf_to_images, vision_model
 from services.documents import document
 from services.transaction_services import TransactionServices
 

@@ -107,7 +107,7 @@ export default async function RootLayout({
                 </div>
               </div>
             )}
-            <Toaster className="z-[9999]" />
+            <Toaster richColors position="top-right" /> {/* ADDED richColors */}
           </ThemeProvider>
         </Providers>
       </body>

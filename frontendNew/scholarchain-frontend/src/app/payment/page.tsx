@@ -16,6 +16,8 @@ import { getLoanData } from "@/lib/data";
 import { PaymentConfirmation } from "./payment-confirmation";
 import { PaymentForm } from "./payment-form";
 import { PaymentMethod } from "./payment-method";
+import { buyTokens } from "@/services/donor.service";
+import { AuthService } from "@/services/auth.service";
 
 // Type definitions added here
 export type Installment = {
@@ -37,7 +39,7 @@ export type LoanData = {
 };
 
 export type TokenPurchase = {
-  type: 'token';
+  type: "token";
   package?: { value: string; label: string; price: string; tokens: number };
   tokens: number;
   price: number;
@@ -48,12 +50,12 @@ export type TokenPurchase = {
 type PaymentDetails =
   | { type: "loan"; installment: Installment; loanData: LoanData }
   | {
-    type: "token";
-    package?: { value: string; label: string; price: string; tokens: number };
-    tokens: number;
-    price: number;
-    description: string;
-  };
+      type: "token";
+      package?: { value: string; label: string; price: string; tokens: number };
+      tokens: number;
+      price: number;
+      description: string;
+    };
 
 type PaymentStep =
   | "summary"
@@ -68,9 +70,10 @@ export default function PaymentPage() {
   const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState<PaymentStep>("summary");
   const [selectedMethod, setSelectedMethod] = useState<string>("card");
-  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null); // Add state for payment details
+  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(
+    null
+  ); // Add state for payment details
   const [isLoading, setIsLoading] = useState(false);
-  const [authToken, setAuthToken] = useState<string | null>('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJEb25vcjMiLCJyb2xlIjoiZG9uYXRvciIsImV4cCI6MTc0MjM0ODc3N30.Oyj7BptQV_kAKaxh1HtJliOeYwQjn00muGaLqa00FPw'); // Add authToken state
 
   const paymentType = searchParams.get("type");
   const paymentDetailsParam = searchParams.get("paymentDetails");
@@ -86,56 +89,34 @@ export default function PaymentPage() {
   useEffect(() => {
     if (paymentDetailsParam) {
       try {
-        const decodedPaymentDetails = JSON.parse(decodeURIComponent(paymentDetailsParam));
+        const decodedPaymentDetails = JSON.parse(
+          decodeURIComponent(paymentDetailsParam)
+        );
         setPaymentDetails(decodedPaymentDetails as PaymentDetails); // Type assertion
       } catch (error) {
         console.error("Error parsing paymentDetails:", error);
-        // Handle the error appropriately (e.g., show an error message)
       }
     }
   }, [paymentDetailsParam]);
-
-  // Get the token from local storage, cookies, or state
-  // const getAuthToken = () => {
-  //   return localStorage.getItem('authToken'); // Example using local storage
-  // };
 
   const processTokenPurchase = async (amount: number) => {
     setIsLoading(true); // Set loading state to true
     setCurrentStep("processing"); // Update the step to "processing"
 
-    //const token = getAuthToken(); // Get the token
-
     try {
-      const response = await fetch(`http://localhost:8000/donator/buy-tokens/?amount=${amount}`, {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'Authorization': `Bearer ${authToken}`, // Add the Authorization header
-        },
-        body: '', // Or JSON.stringify({}) if the server expects JSON
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      // Optionally, handle the response from the server here
-      const data = await response.json();
+      const data = await buyTokens(amount);
       console.log("Token purchase response:", data);
-
-      // Redirect to the admin donor dashboard after successful purchase
-      router.push("/donor"); // Replace with your actual dashboard route
-
     } catch (error) {
       console.error("Error buying tokens:", error);
-      // Handle the error appropriately (e.g., show an error message)
     } finally {
-      setIsLoading(false); // Set loading state to false
+      setIsLoading(false);
+      setCurrentStep("success");
     }
   };
 
   const handleContinue = () => {
+    const role = AuthService.getUserRole();
+
     switch (currentStep) {
       case "summary":
         setCurrentStep("method");
@@ -148,14 +129,26 @@ export default function PaymentPage() {
         break;
       case "confirmation":
         // If it's a token purchase, call the endpoint and redirect
-        if (paymentType === "token" && paymentDetails && 'tokens' in paymentDetails) {
+        if (
+          paymentType === "token" &&
+          paymentDetails &&
+          "tokens" in paymentDetails
+        ) {
           processTokenPurchase(paymentDetails.tokens);
         } else {
           setCurrentStep("success");
         }
         break;
       case "success":
-        router.push("/");
+        if (role) {
+          if (role === "donator") {
+            router.push("/donor");
+            router.replace("/donor");
+          } else if (role === "applicant") {
+            router.push("/dashboard");
+            router.replace("/dashboard");
+          }
+        }
         break;
     }
   };
@@ -172,7 +165,8 @@ export default function PaymentPage() {
         setCurrentStep("details");
         break;
       default:
-        router.push("/");
+        router.push("/purchase");
+        router.replace("/purchase");
     }
   };
 
@@ -194,10 +188,10 @@ export default function PaymentPage() {
   if (currentStep === "summary") {
     cardContent = (
       <>
-        {paymentType === "loan" && paymentDetails?.type === 'loan' && (
+        {paymentType === "loan" && paymentDetails?.type === "loan" && (
           <PaymentSummary installment={nextInstallment} loanData={loanData} />
         )}
-        {paymentType === "token" && paymentDetails?.type === 'token' && (
+        {paymentType === "token" && paymentDetails?.type === "token" && (
           <div>
             <p>Description: {paymentDetails.description}</p>
             <p>Tokens: {paymentDetails.tokens}</p>
@@ -231,8 +225,10 @@ export default function PaymentPage() {
         </div>
         <h3 className="mb-2 text-lg font-medium">Payment Successful</h3>
         <p className="text-muted-foreground mb-4">
-          {paymentType === 'loan' ? `Your payment of ${nextInstallment?.amount_due} has been processed
-          successfully.` : `Your token purchase of ${paymentDetails?.tokens} tokens has been processed successfully.`}
+          {paymentType === "loan"
+            ? `Your payment of ${nextInstallment?.amount_due} has been processed
+          successfully.`
+            : `Your token purchase of ${paymentDetails?.tokens} tokens has been processed successfully.`}
         </p>
         <div className="bg-muted mb-4 rounded-lg p-4 text-left">
           <div className="mb-2 flex justify-between">
@@ -251,7 +247,8 @@ export default function PaymentPage() {
         </div>
       </div>
     );
-  } else if (currentStep === "processing") { // Add a case for the processing step
+  } else if (currentStep === "processing") {
+    // Add a case for the processing step
     cardContent = (
       <div className="py-6 text-center">
         <p>Processing payment...</p>
@@ -278,29 +275,30 @@ export default function PaymentPage() {
                 <span className="sr-only">Back</span>
               </Button>
             )}
-            <CardTitle>
-              {cardTitle}
-            </CardTitle>
+            <CardTitle>{cardTitle}</CardTitle>
           </div>
-          <CardDescription>
-            {cardDescription}
-          </CardDescription>
+          <CardDescription>{cardDescription}</CardDescription>
         </CardHeader>
 
-        <CardContent>
-          {cardContent}
-        </CardContent>
+        <CardContent>{cardContent}</CardContent>
 
         <CardFooter>
-          <Button className="w-full" onClick={handleContinue} disabled={isLoading}>
+          <Button
+            className="w-full"
+            onClick={handleContinue}
+            disabled={isLoading}
+          >
             {currentStep === "summary" && "Continue"}
             {currentStep === "method" && "Continue"}
             {currentStep === "details" && "Review Payment"}
             {currentStep === "confirmation" && (
               <div className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
-                {paymentType === 'loan' ? `Pay ${nextInstallment?.amount_due}` :
-                  isLoading ? 'Processing...' : `Purchase ${paymentDetails?.tokens} tokens`}
+                {paymentType === "loan"
+                  ? `Pay ${nextInstallment?.amount_due}`
+                  : isLoading
+                    ? "Processing..."
+                    : `Purchase ${paymentDetails?.tokens} tokens`}
               </div>
             )}
             {currentStep === "success" && "Return to Dashboard"}

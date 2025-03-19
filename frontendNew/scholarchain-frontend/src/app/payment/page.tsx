@@ -18,6 +18,7 @@ import { PaymentForm } from "./payment-form";
 import { PaymentMethod } from "./payment-method";
 import { buyTokens } from "@/services/donor.service";
 import { AuthService } from "@/services/auth.service";
+import { PaymentSummary } from "./payment-summary";
 
 // Type definitions added here
 export type Installment = {
@@ -77,9 +78,6 @@ export default function PaymentPage() {
 
   const paymentType = searchParams.get("type");
   const paymentDetailsParam = searchParams.get("paymentDetails");
-
-  const loanData = getLoanData();
-
   // Find the next pending installment
   const nextInstallment = loanData.installments.find(
     (installment) => installment.installment_status === "pending"

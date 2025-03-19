@@ -33,6 +33,7 @@ import {
   Eye,
   Download,
   ExternalLink,
+  Copy,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { BlockchainTransaction } from "@/lib/types";
@@ -46,6 +47,16 @@ export function BlockchainTransactionsTable() {
   const [selectedTransaction, setSelectedTransaction] =
     useState<BlockchainTransaction | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`"${truncateAddress(text)}" copied to clipboard.`);
+    } catch (err) {
+      toast.error("Failed to copy to clipboard.");
+      console.error("Failed to copy: ", err);
+    }
+  };
 
   if (error) {
     return (
@@ -93,10 +104,10 @@ export function BlockchainTransactionsTable() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Button variant="outline" onClick={handleExportCSV}>
+        {/* <Button variant="outline" onClick={handleExportCSV}>
           <Download className="mr-2 h-4 w-4" />
           Export
-        </Button>
+        </Button> */}
       </div>
 
       {isLoading ? (
@@ -113,6 +124,12 @@ export function BlockchainTransactionsTable() {
                 <TableHead>
                   <div className="flex items-center">
                     Block
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </div>
+                </TableHead>
+                 <TableHead>
+                  <div className="flex items-center">
+                    Type
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </div>
                 </TableHead>
@@ -139,47 +156,80 @@ export function BlockchainTransactionsTable() {
                 filteredTransactions.map((transaction) => (
                   <TableRow key={transaction.transaction_hash}>
                     <TableCell>{transaction.block_number}</TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {truncateAddress(transaction.transaction_hash)}
+                    <TableCell>{transaction.type}</TableCell>
+                    <TableCell
+                      className="cursor-pointer font-mono text-xs hover:underline"
+                      onClick={() =>
+                        copyToClipboard(transaction.transaction_hash)
+                      }
+                    >
+                      <span
+                        title={transaction.transaction_hash}
+                        className="flex items-center gap-1"
+                      >
+                        {truncateAddress(transaction.transaction_hash)}
+                        <Copy className="text-muted-foreground h-3 w-3" />
+                      </span>
                     </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {truncateAddress(transaction.from_address)}
+                    <TableCell
+                      className="cursor-pointer font-mono text-xs hover:underline"
+                      onClick={() => copyToClipboard(transaction.from_address)}
+                    >
+                      <span
+                        title={transaction.from_address}
+                        className="flex items-center gap-1"
+                      >
+                        {truncateAddress(transaction.from_address)}
+                        <Copy className="text-muted-foreground h-3 w-3" />
+                      </span>
                     </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {truncateAddress(transaction.to_address)}
+                    <TableCell
+                      className="cursor-pointer font-mono text-xs hover:underline"
+                      onClick={() => copyToClipboard(transaction.to_address)}
+                    >
+                      <span
+                        title={transaction.to_address}
+                        className="flex items-center gap-1"
+                      >
+                        {truncateAddress(transaction.to_address)}
+                        <Copy className="text-muted-foreground h-3 w-3" />
+                      </span>
                     </TableCell>
                     <TableCell>{transaction.value} ETH</TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
+                      {/* <DropdownMenu>
+                        <DropdownMenuTrigger asChild> */}
+                      <div className="flex justify-end">
+                        <Button
+                          variant="ghost"
+                          className="h-8 px-2" // Adjusted padding
+                          onClick={() => handleViewDetails(transaction)}
+                        >
+                          <Eye className="mr-2 h-4 w-4" />
+                          View details
+                        </Button>
+                      </div>
+                      {/* </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => handleViewDetails(transaction)}
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            View details
+                          
                           </DropdownMenuItem>
-                          <DropdownMenuItem
+                          {/* <DropdownMenuItem
                             onClick={() =>
                               handleViewOnExplorer(transaction.transaction_hash)
                             }
                           >
                             <ExternalLink className="mr-2 h-4 w-4" />
                             View on explorer
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={handleExportCSV}>
+                          </DropdownMenuItem> */}
+                      {/*<DropdownMenuItem onClick={handleExportCSV}>
                             <Download className="mr-2 h-4 w-4" />
                             Export
                           </DropdownMenuItem>
                         </DropdownMenuContent>
-                      </DropdownMenu>
+                      </DropdownMenu> */}
                     </TableCell>
                   </TableRow>
                 ))
@@ -207,20 +257,38 @@ export function BlockchainTransactionsTable() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <span className="text-sm font-medium">Hash:</span>
-                <span className="col-span-3 font-mono text-xs break-all">
+                <span
+                  className="col-span-3 flex cursor-pointer items-center gap-1 font-mono text-xs break-all hover:underline"
+                  onClick={() =>
+                    copyToClipboard(selectedTransaction.transaction_hash)
+                  }
+                >
                   {selectedTransaction.transaction_hash}
+                  <Copy className="text-muted-foreground h-3 w-3" />
                 </span>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <span className="text-sm font-medium">From:</span>
-                <span className="col-span-3 font-mono text-xs break-all">
+                <span
+                  className="col-span-3 flex cursor-pointer items-center gap-1 font-mono text-xs break-all hover:underline"
+                  onClick={() =>
+                    copyToClipboard(selectedTransaction.from_address)
+                  }
+                >
                   {selectedTransaction.from_address}
+                  <Copy className="text-muted-foreground h-3 w-3" />
                 </span>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <span className="text-sm font-medium">To:</span>
-                <span className="col-span-3 font-mono text-xs break-all">
+                <span
+                  className="col-span-3 flex cursor-pointer items-center gap-1 font-mono text-xs break-all hover:underline"
+                  onClick={() =>
+                    copyToClipboard(selectedTransaction.to_address)
+                  }
+                >
                   {selectedTransaction.to_address}
+                  <Copy className="text-muted-foreground h-3 w-3" />
                 </span>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -235,7 +303,7 @@ export function BlockchainTransactionsTable() {
                   {selectedTransaction.gas_used}
                 </span>
               </div>
-              <Button
+              {/* <Button
                 className="mt-2"
                 onClick={() =>
                   handleViewOnExplorer(selectedTransaction.transaction_hash)
@@ -243,7 +311,7 @@ export function BlockchainTransactionsTable() {
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
                 View on Block Explorer
-              </Button>
+              </Button> */}
             </div>
           )}
         </DialogContent>

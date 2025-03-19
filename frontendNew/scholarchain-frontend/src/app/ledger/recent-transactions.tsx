@@ -56,12 +56,12 @@ export default function RecentTransactions() {
               </div>
             ))}
 
-            <Button variant="outline" className="w-full" asChild>
+            {/* <Button variant="outline" className="w-full" asChild>
               <Link href="#transactions">
                 View All Transactions
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
-            </Button>
+            </Button> */}
           </div>
         )}
       </CardContent>

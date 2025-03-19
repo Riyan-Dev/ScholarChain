@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { TransactionsCard } from "@/components/crpto-dash/transactions-card";
 import { WalletCard } from "@/components/crpto-dash/wallet-card";
+import { useRouter } from "next/navigation";
 // No need to import fetchDash here anymore
 //import { fetchDash } from "@/services/user.service";
 
@@ -36,7 +37,7 @@ export function TokenOverview({ userData }: TokenOverviewProps) {
 
   // No need for local state, we're receiving data via props
   const { totalCredit = 0, totalDebit = 0 } = userData;
-
+  const router = useRouter()
 
   return (
     <div>
@@ -140,7 +141,7 @@ export function TokenOverview({ userData }: TokenOverviewProps) {
         <WalletCard data={userData.wallet_data} onBuyToken={() => { }} />
         <TransactionsCard
           transactions={userData.transactions}
-          onViewAll={() => { }}
+          onViewAll={() => { router.push("/transactions") }}
         />
       </div>
     </div>

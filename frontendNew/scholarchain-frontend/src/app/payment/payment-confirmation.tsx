@@ -21,7 +21,7 @@ export type LoanData = {
 };
 
 export type TokenPurchase = {
-  type: 'token';
+  type: "token";
   package?: { value: string; label: string; price: string; tokens: number };
   tokens: number;
   price: number;
@@ -32,12 +32,12 @@ export type TokenPurchase = {
 type PaymentDetails =
   | { type: "loan"; installment: Installment; loanData: LoanData }
   | {
-    type: "token";
-    package?: { value: string; label: string; price: string; tokens: number };
-    tokens: number;
-    price: number;
-    description: string;
-  };
+      type: "token";
+      package?: { value: string; label: string; price: string; tokens: number };
+      tokens: number;
+      price: number;
+      description: string;
+    };
 
 interface PaymentConfirmationProps {
   installment?: Installment; // Make installment optional
@@ -45,7 +45,11 @@ interface PaymentConfirmationProps {
   paymentDetails?: PaymentDetails | null; // Payment details object
 }
 
-export function PaymentConfirmation({ installment, paymentMethod, paymentDetails }: PaymentConfirmationProps) {
+export function PaymentConfirmation({
+  installment,
+  paymentMethod,
+  paymentDetails,
+}: PaymentConfirmationProps) {
   const getPaymentMethodIcon = () => {
     switch (paymentMethod) {
       case "card":
@@ -87,59 +91,82 @@ export function PaymentConfirmation({ installment, paymentMethod, paymentDetails
 
   return (
     <div className="space-y-6">
-      <div className="bg-muted p-4 rounded-lg space-y-3">
-        {paymentDetails?.type === 'loan' && installment && (
+      <div className="bg-muted space-y-3 rounded-lg p-4">
+        {paymentDetails?.type === "loan" && installment && (
           <>
             <div className="flex justify-between">
               <span className="text-sm">Installment</span>
-              <span className="text-sm font-medium">#{installment.installment_id}</span>
+              <span className="text-sm font-medium">
+                #{installment.installment_id}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Due Date</span>
-              <span className="text-sm font-medium">{formatDate(installment.installment_date)}</span>
+              <span className="text-sm font-medium">
+                {formatDate(installment.installment_date)}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Amount</span>
-              <span className="text-sm font-medium">{formatCurrency(installment.amount_due)}</span>
+              <span className="text-sm font-medium">
+                {formatCurrency(installment.amount_due)}
+              </span>
             </div>
           </>
         )}
-        {paymentDetails?.type === 'token' && (
+        {paymentDetails?.type === "token" && (
           <>
             <div className="flex justify-between">
               <span className="text-sm">Description</span>
-              <span className="text-sm font-medium">{paymentDetails.description}</span>
+              <span className="text-sm font-medium">
+                {paymentDetails.description}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Tokens</span>
-              <span className="text-sm font-medium">{paymentDetails.tokens}</span>
+              <span className="text-sm font-medium">
+                {paymentDetails.tokens}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Price</span>
-              <span className="text-sm font-medium">{paymentDetails.price}</span>
+              <span className="text-sm font-medium">
+                {paymentDetails.price}
+              </span>
             </div>
           </>
         )}
       </div>
 
       <div className="border-t pt-4">
-        <h3 className="text-sm font-medium mb-3">Payment Method</h3>
-        <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-lg">
-          <div className="bg-primary/10 p-2 rounded-md">{getPaymentMethodIcon()}</div>
+        <h3 className="mb-3 text-sm font-medium">Payment Method</h3>
+        <div className="bg-primary/5 flex items-center gap-3 rounded-lg p-3">
+          <div className="bg-primary/10 rounded-md p-2">
+            {getPaymentMethodIcon()}
+          </div>
           <div>
             <p className="font-medium">{getPaymentMethodName()}</p>
-            <p className="text-sm text-muted-foreground">{getPaymentMethodDetails()}</p>
+            <p className="text-muted-foreground text-sm">
+              {getPaymentMethodDetails()}
+            </p>
           </div>
         </div>
       </div>
 
       <div className="border-t pt-4">
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <span className="text-base font-medium">Total Payment</span>
-          <span className="text-xl font-bold">{paymentDetails?.type === 'loan' && installment ? formatCurrency(installment.amount_due) : paymentDetails?.type === 'token' ? paymentDetails.price : 0}</span>
+          <span className="text-xl font-bold">
+            {paymentDetails?.type === "loan" && installment
+              ? formatCurrency(installment.amount_due)
+              : paymentDetails?.type === "token"
+                ? paymentDetails.price
+                : 0}
+          </span>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">
-          By proceeding with this payment, you agree to our terms and conditions.
+        <p className="text-muted-foreground mt-2 text-xs">
+          By proceeding with this payment, you agree to our terms and
+          conditions.
         </p>
       </div>
     </div>

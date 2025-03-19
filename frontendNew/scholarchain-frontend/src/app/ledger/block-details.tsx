@@ -2,6 +2,7 @@ import { Clock, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatTimestamp } from "@/lib/utils";
 import type { Block } from "@/lib/types";
+import { DialogContent } from "@/components/ui/dialog"; // Import DialogContent if you're modifying the parent
 
 export function BlockDetails({ block }: { block: Block }) {
   return (
@@ -28,7 +29,7 @@ export function BlockDetails({ block }: { block: Block }) {
         <div className="text-muted-foreground text-sm font-medium">
           Block Hash
         </div>
-        <div className="bg-muted rounded-md p-2 font-mono text-sm break-all">
+        <div className="bg-muted overflow-x-auto rounded-md p-2 font-mono text-sm break-all">
           {block.block_hash}
         </div>
       </div>
@@ -42,9 +43,11 @@ export function BlockDetails({ block }: { block: Block }) {
             {block.block_transactions.map((txHash) => (
               <div
                 key={txHash}
-                className="bg-muted flex items-center justify-between rounded-md p-2 font-mono text-sm break-all"
+                className="bg-muted flex items-center justify-between overflow-x-auto rounded-md p-2 font-mono text-sm text-wrap break-all"
               >
-                <span className="truncate">{txHash}</span>
+                <span className="bg-muted overflow-x-auto rounded-md p-2 font-mono text-sm break-all">
+                  {txHash}
+                </span>
                 <Button variant="ghost" size="icon">
                   <ExternalLink className="h-4 w-4" />
                 </Button>
@@ -60,3 +63,10 @@ export function BlockDetails({ block }: { block: Block }) {
     </div>
   );
 }
+
+// If you are directly rendering BlockDetails within a Dialog:
+// <Dialog open={isOpen} onOpenChange={setIsOpen}>
+//   <DialogContent className="sm:max-w-lg md:max-w-xl">
+//     <BlockDetails block={selectedBlock} />
+//   </DialogContent>
+// </Dialog>

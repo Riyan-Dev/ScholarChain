@@ -1,8 +1,8 @@
 /* eslint-disable prettier/prettier */
 "use client";
 
-import { useState, useEffect } from "react";
-import { CreditCard, DollarSign, History, LayoutDashboard } from "lucide-react";
+import { useState, useEffect, Suspense } from "react";
+import { CreditCard, DollarSign, History, LayoutDashboard, EarthLock} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +12,11 @@ import { TransactionHistory } from "./transaction-history";
 import { fetchDash } from "@/services/user.service";
 import { AuthService } from "@/services/auth.service";
 import { useRouter } from "next/navigation";
+import { BlockchainTransactionsTable } from "@/app/transactions/blockchain-transactions-table";
+import { LocalTransactionsTable } from "@/app/transactions/local-transactions-table";
+import { TransactionStats } from "@/app/transactions/transaction-stats";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../ui/card";
+import { Skeleton } from "../ui/skeleton";
 
 interface Transaction {
   username: string;
@@ -88,6 +93,7 @@ export function DonorDashboard() {
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-3xl font-bold tracking-tight">Donor Dashboard</h2>
           <div className="flex items-center space-x-2">
+            <Button onClick={() => router.push("/ledger")}> <EarthLock className="h-4 w-4" /> Ledger</Button>
             <Button onClick={() => router.push("/purchase")}>Buy Tokens</Button>
           </div>
         </div>
@@ -113,7 +119,52 @@ export function DonorDashboard() {
             <TokenOverview userData={userData} />
           </TabsContent>
           <TabsContent value="transactions" className="space-y-4">
-            <TransactionHistory transactions={userData.transactions} />
+            <Suspense fallback={<Skeleton className="h-[120px] w-full rounded-lg" />}>
+        <TransactionStats />
+      </Suspense>
+
+      <Tabs defaultValue="local" className="mt-8">
+        <TabsList className="mb-8 grid w-full grid-cols-2">
+          <TabsTrigger value="local">Token Transactions</TabsTrigger>
+          <TabsTrigger value="blockchain">Blockchain Transactions</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="local">
+          <Card>
+            <CardHeader>
+              <CardTitle>Token Transactions</CardTitle>
+              <CardDescription>
+                View all your token purchases and burns.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Suspense
+                fallback={<Skeleton className="h-[400px] w-full rounded-lg" />}
+              >
+                <LocalTransactionsTable />
+              </Suspense>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="blockchain">
+          <Card>
+            <CardHeader>
+              <CardTitle>Blockchain Transactions</CardTitle>
+              <CardDescription>
+                View all transactions recorded on the blockchain.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Suspense
+                fallback={<Skeleton className="h-[400px] w-full rounded-lg" />}
+              >
+                <BlockchainTransactionsTable />
+              </Suspense>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
           </TabsContent>
           <TabsContent value="donate" className="space-y-4">
             {/* Pass updateUserData to DonateTokens */}

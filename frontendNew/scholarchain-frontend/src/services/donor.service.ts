@@ -18,15 +18,17 @@ export async function buyTokens(amount: number): Promise<BuyTokensResponse> {
     }
 
     const url = `${API_BASE_URL}/donator/buy-tokens/?amount=${amount}`;
-
+    
     try {
         const response = await fetch(url, {
             method: "POST",
             headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${AuthService.getToken()}`,
                 Accept: "application/json",
-                Authorization: `Bearer ${token}`,
+
             },
-            body: "",
+            body: JSON.stringify({nothing: ""})
         });
 
         if (!response.ok) {

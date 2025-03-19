@@ -71,15 +71,15 @@ export default function PurchasePage() {
   );
 
   // Find the selected package details.  Handles undefined case gracefully.
-  const selectedPackageDetails = useMemo(() =>
-    packages.find((pkg) => pkg.value === selectedPackage), [packages, selectedPackage]
+  const selectedPackageDetails = useMemo(
+    () => packages.find((pkg) => pkg.value === selectedPackage),
+    [packages, selectedPackage]
   );
 
   // Calculate estimated tokens for custom amount
   const estimatedTokens = useMemo(() => {
-    return customAmount ? customAmount : 0;  //Returns 0, if customAmount is falsy
+    return customAmount ? customAmount : 0; //Returns 0, if customAmount is falsy
   }, [customAmount]);
-
 
   // Calculate total price
   const totalPrice = useMemo(() => {
@@ -101,29 +101,31 @@ export default function PurchasePage() {
     return 0;
   }, [activeTab, selectedPackageDetails, estimatedTokens]);
 
-
-
   // Update selected package when radio button changes
   const handlePackageChange = (value: string) => {
     setSelectedPackage(value);
-    setActiveTab("packages")
+    setActiveTab("packages");
   };
 
   // Update custom amount when input changes, include input validation
-  const handleCustomAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCustomAmountChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const value = event.target.value;
     if (value === "") {
       setCustomAmount(undefined);
     } else {
       const numValue = parseInt(value, 10);
-      if (!isNaN(numValue) && numValue >= 0) { //allow 0
+      if (!isNaN(numValue) && numValue >= 0) {
+        //allow 0
         setCustomAmount(numValue);
       }
     }
     setActiveTab("custom");
   };
 
-  const handlePaymentSubmit = async () => { // Make async
+  const handlePaymentSubmit = async () => {
+    // Make async
     // 1. Validate the input
     if (!cardNumber || !expiryDate || !cvc || !name) {
       toast.error("Please fill in all fields."); // Error toast
@@ -133,10 +135,12 @@ export default function PurchasePage() {
     // 2.  Set isSubmitting to true to disable the button
     setIsSubmitting(true);
 
-
     // 3. Use the buyTokens service
     try {
-      const amount = activeTab === "packages" && selectedPackageDetails ? selectedPackageDetails.tokens : estimatedTokens;
+      const amount =
+        activeTab === "packages" && selectedPackageDetails
+          ? selectedPackageDetails.tokens
+          : estimatedTokens;
       const result = await buyTokens(amount);
 
       if (result.error) {
@@ -147,11 +151,9 @@ export default function PurchasePage() {
         if (result.new_balance !== undefined) {
           // You would have a state variable for the user's balance, e.g., setUserBalance
           // setUserBalance(result.new_balance);
-          console.log("new balance", result.new_balance)
+          console.log("new balance", result.new_balance);
         }
       }
-
-
     } catch (error) {
       // This should ideally not be reached due to error handling in buyTokens,
       // but it's here as a safety net.
@@ -167,8 +169,7 @@ export default function PurchasePage() {
     if (activeTab === "packages") {
       setCustomAmount(undefined); // Reset on tab change
     }
-  }, [activeTab])
-
+  }, [activeTab]);
 
   // Create the payment details object to pass to the payment page
   const paymentDetails = useMemo(() => {
@@ -188,14 +189,19 @@ export default function PurchasePage() {
         description: `Purchase of ${estimatedTokens} tokens (Custom Amount)`,
       };
     }
-    return null;  // or a default object if appropriate
+    return null; // or a default object if appropriate
   }, [activeTab, selectedPackageDetails, customAmount, estimatedTokens]);
 
   const handleContinueToPayment = () => {
     if (paymentDetails) {
       // Convert paymentDetails to a query parameter string
-      const paymentDetailsString = encodeURIComponent(JSON.stringify(paymentDetails));
-      router.push(`/payment?type=token&paymentDetails=${paymentDetailsString}`);
+      const paymentDetailsString = encodeURIComponent(
+        JSON.stringify(paymentDetails)
+      );
+      // router.push(`/payment?type=token&paymentDetails=${paymentDetailsString}`);
+      router.replace(
+        `/payment?type=token&paymentDetails=${paymentDetailsString}`
+      );
     } else {
       toast.error("Please select a package or enter a custom amount.");
     }
@@ -217,13 +223,20 @@ export default function PurchasePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="packages" className="w-full" onValueChange={setActiveTab}>
+            <Tabs
+              defaultValue="packages"
+              className="w-full"
+              onValueChange={setActiveTab}
+            >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="packages">Packages</TabsTrigger>
                 <TabsTrigger value="custom">Custom Amount</TabsTrigger>
               </TabsList>
               <TabsContent value="packages" className="space-y-4">
-                <RadioGroup value={selectedPackage} onValueChange={handlePackageChange}>
+                <RadioGroup
+                  value={selectedPackage}
+                  onValueChange={handlePackageChange}
+                >
                   {packages.map((pkg) => (
                     <div
                       key={pkg.value}
@@ -256,13 +269,15 @@ export default function PurchasePage() {
                     onChange={handleCustomAmountChange}
                   />
                   <p className="text-muted-foreground text-sm">
-                    You'll receive 1 token(s) per PKR 1 spent
+                    You&apos;ll receive 1 token(s) per PKR 1 spent
                   </p>
                 </div>
                 <div className="bg-muted rounded-md p-4">
                   <div className="flex justify-between text-sm">
                     <span>Estimated tokens:</span>
-                    <span className="font-medium">{estimatedTokens} tokens</span>
+                    <span className="font-medium">
+                      {estimatedTokens} tokens
+                    </span>
                   </div>
                 </div>
               </TabsContent>

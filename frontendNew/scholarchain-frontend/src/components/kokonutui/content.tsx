@@ -38,7 +38,7 @@ export default function Content() {
     paymentDate: new Date().toISOString(),
     remainingInstallments: 0,
     totalInstallments: 0,
-    nextDueDate: undefined,
+    nextDueDate: "",
   });
 
   const fetchData = async () => {
@@ -162,7 +162,7 @@ export default function Content() {
               ? getNextMonthDate(
                   repaymentData.nextInstallment?.installment_date
                 ) // Use optional chaining
-              : undefined,
+              : "",
         });
 
         setIsReviewModalOpen(false);
@@ -189,7 +189,7 @@ export default function Content() {
 
   const handleViewAllTransactions = () => {
     // This would typically navigate to a transactions page
-    console.log("View all transactions");
+    router.push("/transactions");
   };
 
   // if (isLoadingg) {

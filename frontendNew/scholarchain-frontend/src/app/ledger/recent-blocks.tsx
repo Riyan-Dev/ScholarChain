@@ -59,12 +59,12 @@ export default function RecentBlocks() {
               </div>
             ))}
 
-            <Button variant="outline" className="w-full" asChild>
+            {/* <Button variant="outline" className="w-full" asChild>
               <Link href="#blocks">
                 View All Blocks
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
-            </Button>
+            </Button> */}
           </div>
         )}
       </CardContent>

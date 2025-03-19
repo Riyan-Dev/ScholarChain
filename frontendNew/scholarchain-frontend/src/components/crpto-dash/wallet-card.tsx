@@ -43,16 +43,16 @@ export function WalletCard({ data, onBuyToken }: WalletCardProps) {
               <span className="text-muted-foreground">Username</span>
               <span className="font-medium">{data.username}</span>
             </div>
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex flex-col items-start text-sm">
               <span className="text-muted-foreground">Public Key</span>
-              <span className="max-w-[200px] truncate font-mono text-xs">
+              <span className="text-md font-mono break-all">
                 {data.public_key}
               </span>
             </div>
           </div>
         </div>
       </CardContent>
-      <CardFooter className="grid grid-cols-4 gap-2">
+      <CardFooter className="grid grid-cols-2 gap-8">
         <Button
           onClick={onBuyToken}
           className="flex h-16 flex-col items-center justify-center bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
@@ -65,9 +65,9 @@ export function WalletCard({ data, onBuyToken }: WalletCardProps) {
           className="flex h-16 flex-col items-center justify-center"
         >
           <Send className="mb-1 h-5 w-5 text-green-500" />
-          <span className="text-xs">Send</span>
+          <span className="text-xs">Donate</span>
         </Button>
-        <Button
+        {/* <Button
           variant="outline"
           className="flex h-16 flex-col items-center justify-center"
         >
@@ -80,7 +80,7 @@ export function WalletCard({ data, onBuyToken }: WalletCardProps) {
         >
           <MoreHorizontal className="mb-1 h-5 w-5 text-blue-500" />
           <span className="text-xs">More</span>
-        </Button>
+        </Button> */}
       </CardFooter>
     </Card>
   );

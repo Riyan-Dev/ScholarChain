@@ -106,7 +106,7 @@ export interface PaginatedResponse<T> {
 export interface TokenTransaction {
   username: string;
   amount: number;
-  action: "buy" | "burn";
+  action: "buy" | "burn" | "credit" | "debit";
   timestamp: string;
   description?: string;
 }
@@ -126,4 +126,5 @@ export interface BlockchainTransaction {
   to_address: string;
   value: string;
   gas_used: number;
+  type: string;
 }

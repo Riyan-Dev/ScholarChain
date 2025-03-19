@@ -1,35 +1,31 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import type { BlockchainTransaction } from "@/lib/types"
+import { useState, useEffect } from "react";
+import type { BlockchainTransaction } from "@/lib/types";
+import { getBlockChainTransactions } from "@/services/blockchain.service";
 
 export function useBlockchainTransactions() {
-  const [transactions, setTransactions] = useState<BlockchainTransaction[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
+  const [transactions, setTransactions] = useState<BlockchainTransaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        setIsLoading(true)
-        const response = await fetch("/api/transactions/blockchain")
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`)
-        }
-
-        const data = await response.json()
-        setTransactions(data)
+        setIsLoading(true);
+        const data = await getBlockChainTransactions();
+        setTransactions(data);
       } catch (err) {
-        setError(err instanceof Error ? err : new Error("Unknown error occurred"))
+        setError(
+          err instanceof Error ? err : new Error("Unknown error occurred")
+        );
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchTransactions()
-  }, [])
+    fetchTransactions();
+  }, []);
 
-  return { transactions, isLoading, error }
+  return { transactions, isLoading, error };
 }
-

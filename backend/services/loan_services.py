@@ -7,12 +7,11 @@ import dateutil.relativedelta
 from services.transaction_services import TransactionServices
 from services.blockchain_service import BlockchainService
 
-from models.loan import Loan
+from models.loan import Loan, Installment
 from db import loan_collection
+from bson import ObjectId
 
 from pymongo import UpdateOne
-
-from services.email_service import EmailService
 class LoanService:
     @staticmethod
     async def create_loan(loan_amount, start_date, end_date, repayement_frequecy, username, address):

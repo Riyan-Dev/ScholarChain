@@ -13,6 +13,7 @@ from bson import ObjectId
 
 from pymongo import UpdateOne
 
+from services.email_service import EmailService
 class LoanService:
 
     @staticmethod
@@ -68,7 +69,7 @@ class LoanService:
 
 
     @staticmethod
-    async def repay_loan(username): 
+    async def repay_loan(username, background_tasks): 
         loan_data = await LoanService.get_loan_details(username)
         loan = Loan(**loan_data)
         
@@ -89,9 +90,10 @@ class LoanService:
         deploy_result = await BlockchainService.repay_loan(username, loan.contract_address, amount_to_pay)
         first_pending.transaction_id = deploy_result["transaction_hash"]
 
-        
+        next_pending = next((inst for inst in loan.installments if inst.installment_status == "pending"), None)
         
         await LoanService.update_loan(username, loan.dict())
+        background_tasks.add_task(EmailService.send_repayment_email, username, loan, first_pending, next_pending)
         return {"transaction_id": deploy_result["transaction_hash"]}
     
     @staticmethod

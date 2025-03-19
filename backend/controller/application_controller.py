@@ -21,8 +21,8 @@ async def accept_plan(stage: str, current_user: TokenData = Depends(get_current_
     return await ApplicationService.update_stage(current_user.username, stage)
 
 @application_router.get('/repay/')
-async def repay_loan(current_user: TokenData = Depends(get_current_user)):
-    return await LoanService.repay_loan(current_user.username)
+async def repay_loan(background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
+    return await LoanService.repay_loan(current_user.username, background_tasks)
 
 @application_router.get('/get-loan-details/')
 async def get_loan_details(current_user: TokenData = Depends(get_current_user)):

@@ -8,7 +8,10 @@ from typing import List
 
 from middleware.JWT_authentication import create_access_token, TokenData, get_current_user
 from services.user_services import UserService
+from services.email_service import send_email
 from models.user import User
+from models.email import EmailSchema
+
 
 user_router = APIRouter()
 
@@ -57,6 +60,7 @@ async def get_dash(token: TokenData = Depends(get_current_user)):
 @user_router.post("/set-upload")
 async def set_upload(token: TokenData = Depends(get_current_user)):
     return await UserService.set_upload(token.username)
+
 
 
 

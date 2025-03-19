@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 // lib/auth.service.ts
 import Cookies from "js-cookie";
 import { jwtDecode, JwtPayload } from "jwt-decode";
@@ -18,7 +17,7 @@ export const AuthService = {
     if (!credentials.username || !credentials.password) {
       throw new Error("Username and password are required");
     }
-      console.log(credentials)
+    console.log(credentials);
 
     const formBody = new URLSearchParams();
     formBody.append("username", credentials.username);
@@ -65,10 +64,13 @@ export const AuthService = {
         const errorData = await response.json();
         throw new Error(errorData.message || "Signup failed");
       }
-      const credentials: any = { username: userData.username, password: userData.hashed_password }
-      console.log(credentials)
+      const credentials: any = {
+        username: userData.username,
+        password: userData.hashed_password,
+      };
+      console.log(credentials);
 
-      await AuthService.login(credentials)
+      await AuthService.login(credentials);
       const data = await response.json();
       return data; // Return any data from the signup (e.g., success message)
     } catch (error: any) {
@@ -134,7 +136,7 @@ export const AuthService = {
         return null;
       }
 
-      return { username: decoded.sub, role: decoded.role };
+      return {username: decoded.sub, role: decoded.role };
     } catch (error) {
       console.error("Token Decode Error", error);
       return null;

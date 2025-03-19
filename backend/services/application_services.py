@@ -77,6 +77,7 @@ class ApplicationService:
         }
         return await ApplicationService.update_application(username, update_data)
 
+    # Email can be added here as well 
     @staticmethod
     async def accept_application(username: str, application_id: str):
         update_data = {

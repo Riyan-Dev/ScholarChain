@@ -35,3 +35,27 @@ export function getDaysRemaining(dateString: string): number {
 
   return differenceInDays;
 }
+
+export function formatTimestamp(timestamp: number): string {
+  const date = new Date(timestamp * 1000);
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  }).format(date);
+}
+
+// Format hash for display (truncate with ellipsis)
+export function formatHash(hash: string, length = 8): string {
+  if (!hash || hash.length <= length * 2) return hash;
+  return `${hash.substring(0, length)}...${hash.substring(hash.length - length)}`;
+}
+
+export function truncateAddress(address: string, chars = 6): string {
+  if (!address) return "";
+  return `${address.substring(0, chars)}...${address.substring(address.length - 4)}`;
+}

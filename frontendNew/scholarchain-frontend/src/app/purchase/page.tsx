@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { DashboardHeader } from "@/components/donor-dash/dashboard-header";
+// import { DashboardHeader } from "@/components/donor-dash/dashboard-header";
 import { Button } from "@/components/ui/button";
 import {
   CardContent,
@@ -27,6 +27,7 @@ import {
 import { toast, Toaster } from "sonner";
 import { buyTokens } from "@/services/donor.service";
 import { useRouter } from "next/navigation";
+import { DashboardHeader } from "@/components/admin/dashboard-header";
 
 export default function PurchasePage() {
   const [selectedPackage, setSelectedPackage] = useState("popular");
@@ -170,7 +171,7 @@ export default function PurchasePage() {
   }, [activeTab])
 
   return (
-    <div>
+    <div className="p-10">
       <DashboardHeader
         heading="Purchase Tokens"
         text="Buy tokens to use for donations on the platform."

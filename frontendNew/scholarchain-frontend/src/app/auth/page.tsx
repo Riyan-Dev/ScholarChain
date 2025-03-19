@@ -20,7 +20,7 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false); // <-- Loader State
 
-  const handleRouting = () => {
+x  const handleRouting = () => {
     const userRole = AuthService.getUserRole();
     console.log(userRole);
     if (userRole === "applicant") window.location.href = "/dashboard";

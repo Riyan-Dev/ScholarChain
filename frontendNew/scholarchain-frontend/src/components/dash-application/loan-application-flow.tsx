@@ -99,14 +99,14 @@ export function LoanApplicationFlow({
     return () => clearInterval(interval);
   };
   // Handle next stage navigation
-  const handleNextStage = async() => {
+  const handleNextStage = async () => {
     setPreviousStage(currentStage);
 
     if (currentStage === "start") {
-      await updateStage("upload"); 
+      await updateStage("upload");
     } else if (currentStage === "upload") {
       setCurrentStage("review");
-      await updateStage("review"); 
+      await updateStage("review");
     } else if (currentStage === "review") {
       setCurrentStage("repayment");
       await updateStage("repayment"); // and await here

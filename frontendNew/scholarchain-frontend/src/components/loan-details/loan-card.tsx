@@ -230,7 +230,7 @@ export function LoanCard({
           onClick={handlePayInstallment}
           disabled={isPaymentLoading || loan.pending === 0}
           size="sm"
-          className="w-full sm:w-auto flex items-center justify-center"
+          className="flex w-full items-center justify-center sm:w-auto"
         >
           {isPaymentLoading ? (
             <span className="flex items-center gap-2">

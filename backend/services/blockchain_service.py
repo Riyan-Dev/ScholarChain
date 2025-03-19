@@ -1,5 +1,7 @@
 
 from services.transaction_services import TransactionServices
+from decimal import Decimal
+from models.block_details import BlockDetails, TransactionDetails
 from config.config import Config
 from fastapi import HTTPException
 import json
@@ -146,3 +148,78 @@ class BlockchainService:
             raise HTTPException(status_code=500, detail="Transaction Incomplete, try again")
         
         return {"transaction_hash": tx_hash.hex(), "status": "success"} 
+
+
+    @staticmethod
+    async def get_complete_ledger():
+        """
+        Fetch the complete ledger (list of blocks) from the blockchain.
+        """
+        try:
+            # Get the latest block number
+            latest_block = web3.eth.block_number
+
+            # Fetch all blocks from the genesis block (0) to the latest block
+            ledger = []
+            for block_number in range(latest_block + 1):
+                block = web3.eth.get_block(block_number)
+                if block is None:
+                    continue
+
+                block_details = BlockDetails(
+                block_number=block['number'],
+                block_hash=block['hash'].hex(),  # Convert bytes to hex string
+                block_timestamp=block['timestamp'],
+                block_transactions=[tx.hex() if isinstance(tx, bytes) else tx for tx in block['transactions']],  # Convert each transaction to hex string if it's in bytes
+            )
+                ledger.append(block_details)
+
+            return ledger
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @staticmethod
+    async def get_transactions_for_account(account_address: str):
+        """
+        Fetch all transactions for a given Ethereum account address.
+        """
+        try:
+            # Validate the account address format
+            if not web3.is_address(account_address):
+                raise HTTPException(status_code=400, detail="Invalid Ethereum address format.")
+
+            # Get the latest block number using 'eth_blockNumber'
+            latest_block = web3.eth.block_number
+
+            # List to store all transactions for the user
+            transactions = []
+
+            # Iterate through all blocks and check transactions for the given address
+            for block_number in range(latest_block + 1):
+                block = web3.eth.get_block(block_number, full_transactions=True)  # Get full transactions in the block
+                if block is None:
+                    continue
+
+                # Check each transaction in the block
+                for tx in block['transactions']:
+                    # Check if the transaction involves the given account address
+                    if tx['from'].lower() == account_address.lower() or tx['to'] and tx['to'].lower() == account_address.lower():
+                        transaction_details = TransactionDetails(
+                            transaction_hash=tx['hash'].hex(),
+                            block_number=block['number'],
+                            from_address=tx['from'],
+                            to_address=tx['to'],
+                            value=str(web3.from_wei(Decimal(tx['value']), 'ether')),  # Convert value to Ether
+                            gas_used=tx['gas']
+                        )
+                        transactions.append(transaction_details)
+
+            if not transactions:
+                raise HTTPException(status_code=404, detail="No transactions found for this address.")
+
+            return transactions
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error fetching transactions: {str(e)}")
+

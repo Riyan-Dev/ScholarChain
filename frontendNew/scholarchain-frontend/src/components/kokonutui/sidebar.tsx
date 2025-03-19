@@ -9,6 +9,7 @@ import {
   Wallet,
   Users2,
   Shield,
+  EarthLock,
   MessagesSquare,
   Video,
   Settings,
@@ -77,6 +78,16 @@ export default function Sidebar() {
           label: "Transactions",
           onClick: () => {
             router.push("/transactions");
+          },
+        },
+      ],
+      blockchain: [
+        {
+          href: "/ledger",
+          icon: EarthLock,
+          label: "Ledger",
+          onClick: () => {
+            router.push("/ledger");
           },
         },
       ],
@@ -197,6 +208,19 @@ export default function Sidebar() {
                 </div>
                 <div className="space-y-1">
                   {sidebarItems[userRole].finance.map((item, index) => (
+                    <NavItem key={index} href={item.href} icon={item.icon}>
+                      {item.label}
+                    </NavItem>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-2 px-3 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                  Blockchain
+                </div>
+                <div className="space-y-1">
+                  {sidebarItems[userRole].blockchain.map((item, index) => (
                     <NavItem key={index} href={item.href} icon={item.icon}>
                       {item.label}
                     </NavItem>

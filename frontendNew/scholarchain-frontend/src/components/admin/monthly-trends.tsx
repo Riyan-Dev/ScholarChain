@@ -1,7 +1,15 @@
-"use client"
+/* eslint-disable prettier/prettier */
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEffect, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -15,9 +23,16 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from "recharts"
+} from "recharts";
 
 export function MonthlyTrends() {
+  // Client-side rendering control
+  const [isMounted, setIsMounted] = useState(false)
+  
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   // Sample data for the charts
   const monthlyData = [
     { name: "Jan", donations: 65000, loans: 45000, repayments: 30000 },
@@ -32,15 +47,22 @@ export function MonthlyTrends() {
     { name: "Oct", donations: 90000, loans: 72000, repayments: 55000 },
     { name: "Nov", donations: 95000, loans: 75000, repayments: 58000 },
     { name: "Dec", donations: 100000, loans: 80000, repayments: 60000 },
-  ]
+  ];
 
   return (
     <Card className="col-span-4">
       <CardHeader>
         <CardTitle>Monthly Trends</CardTitle>
-        <CardDescription>Track donations, loans, and repayments over time</CardDescription>
+        <CardDescription>
+          Track donations, loans, and repayments over time
+        </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent
+        style={{
+          height: "400px",
+          width: "100%",
+        }}
+      >
         <Tabs defaultValue="line">
           <div className="flex items-center justify-between">
             <TabsList>
@@ -49,7 +71,7 @@ export function MonthlyTrends() {
               <TabsTrigger value="area">Area</TabsTrigger>
             </TabsList>
           </div>
-          <TabsContent value="line" className="h-[300px] w-full">
+          <TabsContent key={`line-${Date.now()}`} value="line">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={monthlyData}
@@ -60,18 +82,27 @@ export function MonthlyTrends() {
                   bottom: 10,
                 }}
               >
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid />
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="donations" stroke="#8884d8" activeDot={{ r: 8 }} />
+                <Line
+                  type="monotone"
+                  dataKey="donations"
+                  stroke="#8884d8"
+                  activeDot={{ r: 8 }}
+                />
                 <Line type="monotone" dataKey="loans" stroke="#82ca9d" />
                 <Line type="monotone" dataKey="repayments" stroke="#ffc658" />
               </LineChart>
             </ResponsiveContainer>
           </TabsContent>
-          <TabsContent value="bar" className="h-[300px] w-full">
+          <TabsContent
+            key={`bar-${Date.now()}`}
+            value="bar"
+            className="h-[300px] w-full"
+          >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={monthlyData}
@@ -93,7 +124,11 @@ export function MonthlyTrends() {
               </BarChart>
             </ResponsiveContainer>
           </TabsContent>
-          <TabsContent value="area" className="h-[300px] w-full">
+          <TabsContent
+            key={`area-${Date.now()}`}
+            value="area"
+            className="h-[300px] w-full"
+          >
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={monthlyData}
@@ -109,15 +144,32 @@ export function MonthlyTrends() {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Area type="monotone" dataKey="donations" stackId="1" stroke="#8884d8" fill="#8884d8" />
-                <Area type="monotone" dataKey="loans" stackId="2" stroke="#82ca9d" fill="#82ca9d" />
-                <Area type="monotone" dataKey="repayments" stackId="3" stroke="#ffc658" fill="#ffc658" />
+                <Area
+                  type="monotone"
+                  dataKey="donations"
+                  stackId="1"
+                  stroke="#8884d8"
+                  fill="#8884d8"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="loans"
+                  stackId="2"
+                  stroke="#82ca9d"
+                  fill="#82ca9d"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="repayments"
+                  stackId="3"
+                  stroke="#ffc658"
+                  fill="#ffc658"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
-  )
+  );
 }
-

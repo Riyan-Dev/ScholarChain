@@ -11,12 +11,13 @@ from controller.user_controller import user_router
 from controller.application_controller import application_router
 from controller.admin_controller import admin_router
 from controller.donator_controller import donator_router
+from controller.blockchain_controller import blockchain_router
 
 from config.init_EM import get_embedding_model
 from config.init_gemini import get_gemini_client
 
-get_embedding_model()
-get_gemini_client()
+# get_embedding_model()
+# get_gemini_client()
 app = FastAPI()
 
 app.include_router(rag_router, prefix="/rag", tags=["rag"])
@@ -24,6 +25,7 @@ app.include_router(user_router, prefix="/user", tags=["user"])
 app.include_router(application_router, prefix="/application", tags=["application"])
 app.include_router(admin_router, prefix="/admin", tags=["admin"])
 app.include_router(donator_router, prefix="/donator", tags=["donator"])
+app.include_router(blockchain_router, prefix="/blockchain", tags=["Blockchain"])
 
 os.makedirs("static", exist_ok=True)
 app.mount("/pdfs", StaticFiles(directory="static"), name="pdfs")

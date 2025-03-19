@@ -5,6 +5,7 @@ from services.application_services import ApplicationService
 from services.risk_score_services import RiskScoreCalCulations
 from services.user_services import UserService
 from services.transaction_services import TransactionServices
+from services.loan_services import LoanService
 from middleware.JWT_authentication import TokenData, get_current_user
 
 from models.application import Application
@@ -31,6 +32,20 @@ async def get_all_application(current_user: TokenData = Depends(get_current_user
         raise HTTPException(status_code=401, detail="Only admin access allowed")
 
     return await ApplicationService.get_all_applications()
+
+@admin_router.get('/get-all-loans')
+async def get_all_loans(current_user: TokenData = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=401, detail="Only admin access allowed")
+    
+    return await LoanService.get_all_loans()
+
+@admin_router.get('/get-all-users')
+async def get_all_loans(current_user: TokenData = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=401, detail="Only admin access allowed")
+    
+    return await UserService.get_all_users()
 
 @admin_router.put('/update-plan/')
 async def update_plan(updated_data:Plan, application_id:str, current_user: TokenData = Depends(get_current_user)):

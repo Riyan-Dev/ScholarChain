@@ -8,7 +8,6 @@ import { redirect } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
-
 const LoginPage = () => {
   const [isActive, setIsActive] = useState(false);
   const { theme } = useTheme(); // Get the current theme
@@ -21,14 +20,12 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false); // <-- Loader State
 
-
   const handleRouting = () => {
     const userRole = AuthService.getUserRole();
     console.log(userRole);
     if (userRole === "applicant") window.location.href = "/dashboard";
     else if (userRole === "donator") window.location.href = "/donor";
     else if (userRole === "admin") window.location.href = "/admin";
-
   };
   // ✅ Handle login
   const handleLogin = async (event: React.FormEvent) => {
@@ -47,7 +44,6 @@ const LoginPage = () => {
     } finally {
       setLoading(false); // Stop loading state
     }
-
   };
 
   const handleSignup = async (event: React.FormEvent) => {
@@ -72,7 +68,7 @@ const LoginPage = () => {
     } finally {
       setLoading(false); // Stop loading state
     }
-  }
+  };
 
   return (
     <div>
@@ -164,7 +160,11 @@ const LoginPage = () => {
                 <option value="donator">Donator</option>
                 <option value="applicant">Applicant</option>
               </select>
-              <button type="submit" disabled={loading} className="mt-3 flex items-center justify-center gap-2 cursor-pointer rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-gray-500 dark:hover:bg-indigo-600 disabled:opacity-50">
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 disabled:opacity-50 dark:bg-gray-500 dark:hover:bg-indigo-600"
+              >
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" /> Processing...
@@ -242,7 +242,11 @@ const LoginPage = () => {
               >
                 Forgot Your Password ?
               </a>
-              <button type="submit" disabled={loading} className="mt-3 flex items-center justify-center gap-2 cursor-pointer rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 dark:bg-gray-500 dark:hover:bg-indigo-600 disabled:opacity-50">
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-gray-600 px-11 py-3 text-xs font-semibold tracking-wider text-white uppercase transition-colors hover:bg-indigo-700 disabled:opacity-50 dark:bg-gray-500 dark:hover:bg-indigo-600"
+              >
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" /> Processing...
@@ -288,7 +292,9 @@ const LoginPage = () => {
                   isActive ? "translate-x-[200%]" : "translate-x-0"
                 }`}
               >
-                <h1 className="mb-4 text-2xl font-bold">New to ScholarChain? </h1>
+                <h1 className="mb-4 text-2xl font-bold">
+                  New to ScholarChain?{" "}
+                </h1>
                 <p className="my-5 text-sm leading-5 tracking-wide">
                   Register with your personal details to use all of site
                   features

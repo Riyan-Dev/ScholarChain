@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Sidebar from "@/components/kokonutui//sidebar";
 import type React from "react";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ChatDock } from "@/components/chat-dock";
 import { Toaster } from "@/components/ui/sonner";
 import { cookies, headers } from "next/headers"; // ✅ Get current path on the server
 import "./globals.css";
@@ -107,7 +108,8 @@ export default async function RootLayout({
                 </div>
               </div>
             )}
-            <Toaster richColors position="top-right" /> {/* ADDED richColors */}
+            <Toaster className="z-[9999]" />
+            <ChatDock />
           </ThemeProvider>
         </Providers>
       </body>

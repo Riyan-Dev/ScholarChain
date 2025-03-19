@@ -1,4 +1,5 @@
 # services/user_service.py
+from itertools import chain
 import os
 import pathlib
 import base64
@@ -147,6 +148,13 @@ class UserService:
        
         return user_doc
     
+    @staticmethod 
+    async def get_all_users():
+        users = await user_collection.find().to_list(None)
+        for user in users:
+            user["_id"] = str(user["_id"])
+        # print(users)
+        return users
 
     @staticmethod 
     async def get_all_donars_username():
@@ -496,3 +504,37 @@ class UserService:
             dashData["wallet_data"] = wallet  #Consider removing, as we already have balance and transactions
 
         return dashData
+
+    @staticmethod
+    async def get_admin_dash():
+        from services.loan_services import LoanService
+        from services.application_services import ApplicationService
+        from services.admin_services import AdminService
+        try:
+            total_applications_future = ApplicationService.get_all_applications()
+            all_loans_future = LoanService.get_all_loans()
+            
+            total_donations_future = AdminService.get_total_donations()
+            available_funds_future = AdminService.get_available_funds()     
+        
+            total_applications, all_loans, total_donations, available_funds = await asyncio.gather(total_applications_future,
+                                                                                                   all_loans_future, 
+                                                                                                   total_donations_future, 
+                                                                                                   available_funds_future)
+            
+            total_donations_value = total_donations[0]["totalAmount"] if total_donations and total_donations[0] else 0
+            available_funds_value = available_funds[0]["availableFunds"] if available_funds and available_funds[0] else 0
+
+            active_loans = [loan for loan in all_loans if loan["status"] == "ongoing"]
+            dash_data = {
+                "total_donations": total_donations_value,
+                "available_funds": available_funds_value,
+                "active_loans": len(active_loans),
+                "total_applications": len(total_applications),
+            }
+
+            return dash_data
+
+        except Exception as e:
+            print(f"Error while getting Admin Dash: {e}")
+            return None

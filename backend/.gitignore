@@ -11,3 +11,4 @@ output_images/
 scholarchain/
 static/
 chromaDB/
+services/__init__.py

@@ -77,3 +77,56 @@ class AdminService:
         
         application_counts = await application_collection.aggregate(pipeline).to_list(length=None)
         return application_counts
+    
+    @staticmethod
+    async def get_monthly_transactions():
+        pipeline = [
+            {
+                "$unwind": "$transactions"
+            },
+            {
+                "$project": {
+                "month": { "$month": { "$dateFromString": { "dateString": "$transactions.timestamp", "format": "%Y-%m-%d %H:%M:%S" } } },
+                "transactionType": {
+                    "$switch": {
+                    "branches": [
+                        { "case": { "$eq": ["$transactions.description", "Donated to Scholarchain"] }, "then": "donations" },
+                        { "case": { "$eq": ["$transactions.description", "Loan Repayment"] }, "then": "repayments" },
+                        { "case": { "$eq": ["$transactions.description", "Loan Disbursement"] }, "then": "loans" }
+                    ],
+                    "default": "other"
+                    }
+                },
+                "amount": "$transactions.amount"
+                }
+            },
+            {
+                "$match": {
+                "transactionType": { "$in": ["donations", "repayments", "loans"] }
+                }
+            },
+            {
+                "$group": {
+                "_id": { "month": "$month", "transactionType": "$transactionType" },
+                "totalAmount": { "$sum": "$amount" }
+                }
+            },
+            {
+                "$project": {
+                "_id": 0,
+                "month": "$_id.month",
+                "transactionType": "$_id.transactionType",
+                "totalAmount": 1
+                }
+            },
+            {
+                "$sort": {
+                "month": 1,
+                "transactionType": 1
+                }
+            }
+        ]
+
+        monthly_transactions = await wallet_collection.aggregate(pipeline).to_list()
+        print(monthly_transactions)
+        return monthly_transactions

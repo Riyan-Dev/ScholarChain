@@ -514,37 +514,55 @@ class UserService:
         from services.loan_services import LoanService
         from services.application_services import ApplicationService
         from services.admin_services import AdminService
+
         try:
             total_applications_future = ApplicationService.get_all_applications()
             all_loans_future = LoanService.get_all_loans()
-            
             total_donations_future = AdminService.get_total_donations()
             available_funds_future = AdminService.get_available_funds()
-            application_count = AdminService.get_application_counts()     
-        
-            total_applications, all_loans, total_donations, available_funds, total_applications_count = await asyncio.gather(total_applications_future,
-                                                                                                   all_loans_future, 
-                                                                                                   total_donations_future, 
-                                                                                                   available_funds_future,
-                                                                                                   application_count)
-            
-            total_donations_value = total_donations[0]["totalAmount"] if total_donations and total_donations[0] else 0
-            available_funds_value = available_funds[0]["availableFunds"] if available_funds and available_funds[0] else 0
+            application_count_future = AdminService.get_application_counts()
+            monthly_transactions_future = AdminService.get_monthly_transactions() # Future
+
+            (
+                total_applications,
+                all_loans,
+                total_donations,
+                available_funds,
+                total_applications_count,
+                monthly_transactions_count,
+            ) = await asyncio.gather(
+                total_applications_future,
+                all_loans_future,
+                total_donations_future,
+                available_funds_future,
+                application_count_future,
+                monthly_transactions_future,
+            )
+
+            total_donations_value = (
+                total_donations[0]["totalAmount"] if total_donations and total_donations[0] else 0
+            )
+            available_funds_value = (
+                available_funds[0]["availableFunds"] if available_funds and available_funds[0] else 0
+            )
 
             active_loans = [loan for loan in all_loans if loan["status"] == "ongoing"]
+
             dash_data = {
                 "total_donations": total_donations_value,
                 "available_funds": available_funds_value,
                 "active_loans": len(active_loans),
                 "total_applications": len(total_applications),
                 "application_count": total_applications_count,
+                "monthly_transactions": monthly_transactions_count,
             }
 
             return dash_data
 
         except Exception as e:
-            print(f"Error while getting Admin Dash: {e}")
+            print(f"Error in get_admin_dash: {e}")  # Print the actual error
             return None
+
 
     @staticmethod
     async def get_user_details(username: str) -> dict:

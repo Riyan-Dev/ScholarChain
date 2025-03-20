@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminDash, getAdminDash } from "@/services/admin.service";
 import { DollarSign, CreditCard, LucidePersonStanding } from "lucide-react";
 import { useEffect, useState } from "react";
+import { formatCurrency } from "@/lib/utils"; // Import the utility function
 
 export function KeyMetrics() {
   const [dashData, setDashData] = useState<AdminDash | null>(null);
@@ -25,28 +26,28 @@ export function KeyMetrics() {
   const metrics = [
     {
       title: "Total Donations",
-      value: dashData ? dashData.total_donations : "$1,245,678",
+      value: dashData ? formatCurrency(dashData.total_donations) : formatCurrency(1245678), // Use formatCurrency
       icon: DollarSign,
       change: "+20.1%",
       changeType: "positive",
     },
     {
       title: "Available Funds",
-      value: dashData ? dashData.available_funds : "$845,392",
+      value: dashData ? formatCurrency(dashData.available_funds) : formatCurrency(845392),   // Use formatCurrency
       icon: DollarSign,
       change: "+4.3%",
       changeType: "positive",
     },
     {
       title: "Active Loans",
-      value: dashData ? dashData.active_loans : "2,345",
+      value: dashData ? dashData.active_loans.toString() : "2,345", // Convert number to string
       icon: CreditCard,
       change: "+12.5%",
       changeType: "positive",
     },
     {
       title: "Total Applications",
-      value: dashData ? dashData.total_applications : "3.2%",
+      value: dashData ? dashData.total_applications.toString() : "3.2%", // Convert number to string
       icon: LucidePersonStanding,
       change: "-0.5%",
       changeType: "positive",

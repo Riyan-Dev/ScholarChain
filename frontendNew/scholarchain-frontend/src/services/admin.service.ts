@@ -9,12 +9,19 @@ export interface ApplicationCount {
     count: number;
 }
 
+export interface MonthlyTransaction {
+    totalAmount: number;
+    month: number;
+    transactionType: string;
+}
+
 export interface AdminDash {
     total_donations: number,
     available_funds: number,
     active_loans: number,
     total_applications: number,
     application_count: ApplicationCount[];
+    monthly_transactions: MonthlyTransaction[];
 }
 
 export async function getAdminDash() {

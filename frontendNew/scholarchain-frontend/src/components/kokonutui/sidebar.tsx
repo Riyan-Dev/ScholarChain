@@ -267,8 +267,8 @@ export default function Sidebar() {
                 Help
               </NavItem>
             </div>
-          </div>
-        </div> */}
+          </div> */}
+        </div>
       </nav>
 
       {isMobileMenuOpen && (

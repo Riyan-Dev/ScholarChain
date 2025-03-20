@@ -57,7 +57,7 @@ export default function Sidebar() {
           },
         },
         {
-          href: "/application-form",
+          href: "#",
           icon: SquarePlus,
           label: "New Application",
           onClick: () => {},
@@ -76,6 +76,14 @@ export default function Sidebar() {
           href: "/transactions",
           icon: Wallet,
           label: "Transactions",
+          onClick: () => {
+            router.push("/transactions");
+          },
+        },
+        {
+          href: "/loan-details",
+          icon: Receipt,
+          label: "Current Loan",
           onClick: () => {
             router.push("/transactions");
           },

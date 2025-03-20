@@ -1,6 +1,7 @@
-"use client"
+/* eslint-disable prettier/prettier */
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -8,10 +9,18 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Filter } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import { Filter } from "lucide-react";
 
-export function LoanStatusFilter() {
+interface LoanStatusFilterProps {
+  filterStatus: string;
+  setFilterStatus: (status: string) => void;
+}
+
+export function LoanStatusFilter({
+  filterStatus,
+  setFilterStatus,
+}: LoanStatusFilterProps) {
   return (
     <div className="flex items-center gap-2">
       <DropdownMenu>
@@ -24,13 +33,28 @@ export function LoanStatusFilter() {
         <DropdownMenuContent align="start">
           <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuCheckboxItem checked>Active</DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem checked>Completed</DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem checked>Defaulted</DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={filterStatus == "all"}
+            onClick={() => setFilterStatus("all")}
+          >
+            all
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={filterStatus == "ongoing"}
+            onClick={() => setFilterStatus("ongoing")}
+          >
+            ongoing
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem
+            checked={filterStatus == "completed"}
+            onClick={() => setFilterStatus("completed")}
+          >
+            completed
+          </DropdownMenuCheckboxItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <DropdownMenu>
+      {/* <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="h-8 gap-1">
             <Filter className="h-4 w-4" />
@@ -46,9 +70,9 @@ export function LoanStatusFilter() {
           <DropdownMenuCheckboxItem checked>Defaulted</DropdownMenuCheckboxItem>
           <DropdownMenuCheckboxItem checked>Paid</DropdownMenuCheckboxItem>
         </DropdownMenuContent>
-      </DropdownMenu>
+      </DropdownMenu> */}
 
-      <DropdownMenu>
+      {/* <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="h-8 gap-1">
             <Filter className="h-4 w-4" />
@@ -58,17 +82,21 @@ export function LoanStatusFilter() {
         <DropdownMenuContent align="start">
           <DropdownMenuLabel>Filter by Amount</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuCheckboxItem checked>Under $1,000</DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem checked>$1,000 - $3,000</DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem checked>$3,000 - $5,000</DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem checked>Over $5,000</DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem checked>
+            Under $100,000
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem checked>
+            $100,000 - $150,000
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem checked>
+            Over $150,000
+          </DropdownMenuCheckboxItem>
         </DropdownMenuContent>
-      </DropdownMenu>
+      </DropdownMenu> */}
 
       <Button variant="ghost" size="sm" className="h-8 px-2">
         Reset Filters
       </Button>
     </div>
-  )
+  );
 }
-

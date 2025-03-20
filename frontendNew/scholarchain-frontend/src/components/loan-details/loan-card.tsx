@@ -172,7 +172,7 @@ export function LoanCard({
                 label="Paid"
                 count={loan.paid}
                 icon={<DollarSign className="h-3.5 w-3.5" />}
-                variant="success"
+                variant="default"
               />
               <InstallmentSummary
                 label="Pending"

@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -26,29 +26,21 @@ import {
   ChevronRight,
   MoreHorizontal,
   Search,
-  UserPlus,
 } from "lucide-react";
-import { getAllUsers } from "@/services/user.service";
 import { User } from "@/lib/types";
 
-export function UsersTable() {
+interface UsersTableProps {
+  filterChecked: string;
+  users: User[] | null;
+}
+
+export function UsersTable({ filterChecked, users }: UsersTableProps) {
   const [page, setPage] = useState(1);
-  const [users, setUsers] = useState<User[] | null>([]);
+  const [search, setSearch] = useState<string>("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const _dashData = await getAllUsers();
-        setUsers(_dashData);
-      } catch (error) {
-        console.error("Error while fetching admin dashboard:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Sample user data
+  const filterUsers = users?.filter((user) =>
+    user.username.toLowerCase().includes(search.toLocaleLowerCase())
+  );
 
   return (
     <div className="space-y-4">
@@ -58,6 +50,8 @@ export function UsersTable() {
           <Input
             placeholder="Search users..."
             className="h-9 w-[250px] md:w-[300px]"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
@@ -78,7 +72,7 @@ export function UsersTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users?.map((user) => (
+            {filterUsers?.map((user) => (
               <TableRow key={user._id}>
                 <TableCell className="font-medium">{user._id}</TableCell>
                 <TableCell>{user.username}</TableCell>

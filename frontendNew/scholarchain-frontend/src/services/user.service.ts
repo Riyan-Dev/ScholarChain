@@ -88,7 +88,7 @@ export const applicationOverview = async () => {
   return res.json();
 };
 
-export const fetchApplication = async ({ queryKey }) => {
+export const fetchApplication = async ({ queryKey }: { queryKey: any }) => {
   const [_key, id] = queryKey;
   const params = new URLSearchParams({
     application_id: id,
@@ -108,7 +108,7 @@ export const fetchApplication = async ({ queryKey }) => {
   return res.json();
 };
 
-export const fetchPlan = async ({ queryKey }) => {
+export const fetchPlan = async ({ queryKey }: { queryKey: any }) => {
   const [_key, id] = queryKey;
   const params = new URLSearchParams({
     application_id: id,

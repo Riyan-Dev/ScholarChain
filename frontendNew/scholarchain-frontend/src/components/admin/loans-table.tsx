@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -27,25 +27,19 @@ import {
   MoreHorizontal,
   Search,
 } from "lucide-react";
-import { getAllLoans } from "@/services/loan.services";
 import { Loan } from "@/lib/types";
 
-export function LoansTable() {
+interface LoansTableProps {
+  loans: Loan[];
+}
+
+export function LoansTable({ loans }: LoansTableProps) {
   const [page, setPage] = useState(1);
-  const [loans, setLoans] = useState<Loan[] | null>([]);
+  const [search, setSearch] = useState<string>("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const _dashData = await getAllLoans();
-        setLoans(_dashData);
-      } catch (error) {
-        console.error("Error while fetching admin dashboard:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const filterLoans = loans.filter((loan) =>
+    loan.username.toLowerCase().includes(search.toLocaleLowerCase())
+  );
 
   return (
     <div className="space-y-4">
@@ -53,8 +47,10 @@ export function LoansTable() {
         <div className="flex items-center gap-2">
           <Search className="text-muted-foreground h-4 w-4" />
           <Input
-            placeholder="Search loans..."
+            placeholder="Search borrower..."
             className="h-9 w-[250px] md:w-[300px]"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
@@ -79,7 +75,7 @@ export function LoansTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loans?.map((loan) => (
+            {filterLoans.map((loan) => (
               <TableRow key={loan.id}>
                 <TableCell className="text-center font-medium">
                   {loan.id}
@@ -100,7 +96,7 @@ export function LoansTable() {
                       loan.status === "ongoing"
                         ? "default"
                         : loan.status === "completed"
-                          ? "success"
+                          ? "outline" // Replaced "success" with "outline"
                           : "destructive"
                     }
                   >

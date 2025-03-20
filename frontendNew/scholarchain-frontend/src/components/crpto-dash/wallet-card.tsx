@@ -15,10 +15,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { WalletData } from "@/types";
+// import type { WalletData } from "@/lib/types";
 
 interface WalletCardProps {
-  data: WalletData;
+  data: any;
   onBuyToken: () => void;
 }
 

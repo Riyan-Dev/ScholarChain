@@ -1,4 +1,5 @@
 from db import wallet_collection
+from db import application_collection
 
 class AdminService:
     @staticmethod
@@ -55,3 +56,24 @@ class AdminService:
         
         available_funds = await wallet_collection.aggregate(pipeline).to_list(length=1)
         return available_funds
+    
+    @staticmethod
+    async def get_application_counts():
+        pipeline = [
+            {
+                "$group": {
+                    "_id": "$status",
+                    "count": {"$sum": 1}
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "status": "$_id",
+                    "count": 1
+                }
+            }
+        ]
+        
+        application_counts = await application_collection.aggregate(pipeline).to_list(length=None)
+        return application_counts

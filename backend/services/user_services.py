@@ -519,12 +519,14 @@ class UserService:
             all_loans_future = LoanService.get_all_loans()
             
             total_donations_future = AdminService.get_total_donations()
-            available_funds_future = AdminService.get_available_funds()     
+            available_funds_future = AdminService.get_available_funds()
+            application_count = AdminService.get_application_counts()     
         
-            total_applications, all_loans, total_donations, available_funds = await asyncio.gather(total_applications_future,
+            total_applications, all_loans, total_donations, available_funds, total_applications_count = await asyncio.gather(total_applications_future,
                                                                                                    all_loans_future, 
                                                                                                    total_donations_future, 
-                                                                                                   available_funds_future)
+                                                                                                   available_funds_future,
+                                                                                                   application_count)
             
             total_donations_value = total_donations[0]["totalAmount"] if total_donations and total_donations[0] else 0
             available_funds_value = available_funds[0]["availableFunds"] if available_funds and available_funds[0] else 0
@@ -535,6 +537,7 @@ class UserService:
                 "available_funds": available_funds_value,
                 "active_loans": len(active_loans),
                 "total_applications": len(total_applications),
+                "application_count": total_applications_count,
             }
 
             return dash_data

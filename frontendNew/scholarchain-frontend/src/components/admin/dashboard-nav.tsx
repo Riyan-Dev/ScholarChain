@@ -67,11 +67,11 @@ const navItems: NavItem[] = [
     href: "/transactions",
     icon: WalletIcon,
   },
-  {
-    title: "Settings",
-    href: "/admin/settings",
-    icon: Settings,
-  },
+  // {
+  //   title: "Settings",
+  //   href: "/admin/settings",
+  //   icon: Settings,
+  // },
 ];
 
 export function DashboardNav() {

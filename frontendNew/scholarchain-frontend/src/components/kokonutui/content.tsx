@@ -189,7 +189,7 @@ export default function Content() {
 
   const handleViewAllTransactions = () => {
     // This would typically navigate to a transactions page
-    console.log("View all transactions");
+    router.push("/transactions");
   };
 
   // if (isLoadingg) {

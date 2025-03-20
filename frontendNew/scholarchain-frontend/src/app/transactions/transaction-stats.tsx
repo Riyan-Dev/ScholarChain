@@ -76,7 +76,7 @@ export function TransactionStats() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">
-            Total ETH Transferred
+            Total ETH Recieved
           </CardTitle>
           <Activity className="text-muted-foreground h-4 w-4" />
         </CardHeader>
@@ -95,7 +95,7 @@ export function TransactionStats() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {(totalGas / 1000000).toFixed(2)}M
+            {(totalGas / 1000000).toFixed(2)}M Wei
           </div>
           <p className="text-muted-foreground text-xs">
             Average{" "}

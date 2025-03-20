@@ -1,0 +1,28 @@
+
+{
+    "admin": [
+        "/admin",
+        "/admin/applications/",
+        "/admin/applications/{id}",
+        "/admin/loans/",
+        "/admin/reports/",
+        "/admin/settings/",
+        "/admin/users/",
+        "/admin/wallet/",
+        "/ledger/",
+        "/transactions/",
+        "/loan-details/",
+        "/auth/"
+    ],
+    "applicant": [
+        "/dashboard/",
+        "/upload-doc/",
+        "/application-form/",
+        "/purchase/",
+        "/ledger/",
+        "/transactions/",
+        "/loan-details/",
+        "/auth/"
+    ]
+
+}

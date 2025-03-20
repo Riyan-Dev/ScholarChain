@@ -184,3 +184,42 @@ export async function getAllUsers(): Promise<User[]> {
     const data: User[] = await response.json();
     return data;
 }
+
+export async function getChatResponse(query: string): Promise<string> {
+    const response = await fetch(`${API_BASE_URL}/rag/chat`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${AuthService.getToken()}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: query
+        })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to fetch applications: ${errorData}`);
+    };
+
+    const data = await response.json();
+    return data["response"];
+}
+
+export async function updateStore() {
+    const response = await fetch(`${API_BASE_URL}/rag/`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${AuthService.getToken()}`,
+            "Content-Type": "application/json",
+        },
+    });
+
+    if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to fetch applications: ${errorData}`);
+    };
+
+    const data = await response.json();
+    return data
+}

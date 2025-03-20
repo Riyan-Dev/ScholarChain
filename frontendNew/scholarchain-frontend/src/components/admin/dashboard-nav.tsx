@@ -13,6 +13,8 @@ import {
   FileBarChart,
   Wallet,
   FileCheck,
+  EarthLock,
+  WalletIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -40,11 +42,11 @@ const navItems: NavItem[] = [
     href: "/admin/applications",
     icon: FileCheck,
   },
-  {
-    title: "Wallet & Transactions",
-    href: "/admin/wallet",
-    icon: Wallet,
-  },
+  // {
+  //   title: "Wallet & Transactions",
+  //   href: "/admin/wallet",
+  //   icon: Wallet,
+  // },
   // {
   //   title: "Reports",
   //   href: "/admin/reports",
@@ -54,6 +56,16 @@ const navItems: NavItem[] = [
     title: "Users",
     href: "/admin/users",
     icon: Users,
+  },
+  {
+    title: "Ledger",
+    href: "/ledger",
+    icon: EarthLock,
+  },
+  {
+    title: "Transactions",
+    href: "/transactions",
+    icon: WalletIcon,
   },
   {
     title: "Settings",

@@ -7,7 +7,7 @@ import base64
 
 
 
-from models.wallet import TokenTransaction
+from models.wallet import TokenTransaction, Wallet
 
 class TransactionServices:
     
@@ -59,6 +59,12 @@ class TransactionServices:
         return result
     
     @staticmethod
+    async def get_transactions(username):
+        wallet_data = await TransactionServices.get_wallet(username) 
+        if wallet_data:
+            return wallet_data["transactions"]
+
+    @staticmethod
     async def get_wallet(username: str):
         wallet = await wallet_collection.find_one({"username": username})
         if wallet:
@@ -103,3 +109,24 @@ class TransactionServices:
         wallet = await TransactionServices.get_wallet(username)
 
         return { "balance": wallet["balance"] }
+
+    @staticmethod
+    async def get_all_transactions():    
+        pipeline = [{
+            "$unwind": "$transactions"
+            },
+            {
+            "$project": {
+                "_id": 0,
+                "username": "$transactions.username",
+                "action": "$transactions.action",
+                "amount": "$transactions.amount",
+                "description": "$transactions.description",
+                "timestamp": "$transactions.timestamp",
+                } 
+            }
+        ]
+
+        results = await wallet_collection.aggregate(pipeline).to_list()
+
+        return results

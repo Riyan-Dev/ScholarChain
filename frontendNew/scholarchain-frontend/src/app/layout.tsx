@@ -74,7 +74,7 @@ export default async function RootLayout({
                   <header className="h-16 border-b border-gray-200 dark:border-[#1F1F23]">
                     <TopNav />
                   </header>
-                  <main className="flex-1 overflow-auto bg-white dark:bg-[#0F0F12]">
+                  <main className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950">
                     {children}
                   </main>
                 </div>
@@ -89,7 +89,7 @@ export default async function RootLayout({
                   <header className="h-16 border-b border-gray-200 dark:border-[#1F1F23]">
                     <TopNav />
                   </header>
-                  <main className="flex-1 overflow-auto bg-white dark:bg-[#0F0F12]">
+                  <main className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950">
                     {children}
                   </main>
                 </div>
@@ -102,14 +102,14 @@ export default async function RootLayout({
                   <header className="h-16 border-b border-gray-200 dark:border-[#1F1F23]">
                     <TopNav />
                   </header>
-                  <main className="flex-1 overflow-auto bg-white p-6 dark:bg-[#0F0F12]">
+                  <main className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950">
                     {children}
                   </main>
                 </div>
+                <ChatDock />
               </div>
             )}
             <Toaster className="z-[9999]" />
-            <ChatDock />
           </ThemeProvider>
         </Providers>
       </body>

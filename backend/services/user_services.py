@@ -377,10 +377,10 @@ class UserService:
         wallet_data = await TransactionServices.get_wallet(username)
 
         mongo_data = {
-            "users": convert_mongo_to_json_string(user_data.dict()),
-            "application": convert_mongo_to_json_string(application_data),
-            "loan": convert_mongo_to_json_string(loan_data),
-            "wallet": convert_mongo_to_json_string(wallet_data)
+            "users": await convert_mongo_to_json_string(user_data.dict()),
+            "application": await convert_mongo_to_json_string(application_data),
+            "loan": await convert_mongo_to_json_string(loan_data),
+            "wallet": await convert_mongo_to_json_string(wallet_data)
         }
 
          

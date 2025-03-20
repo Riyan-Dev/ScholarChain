@@ -217,6 +217,10 @@ export default function PurchasePage() {
         JSON.stringify(paymentDetails)
       );
       router.push(`/payment?type=token&paymentDetails=${paymentDetailsString}`);
+      // router.push(`/payment?type=token&paymentDetails=${paymentDetailsString}`);
+      router.replace(
+        `/payment?type=token&paymentDetails=${paymentDetailsString}`
+      );
     } else {
       toast.error("Please select a package or enter a custom amount.");
     }
@@ -326,7 +330,7 @@ export default function PurchasePage() {
                         onChange={handleCustomAmountChange}
                       />
                       <p className="text-muted-foreground text-sm">
-                        You'll receive 1 token(s) per PKR 1 spent
+                        You&apos;ll receive 1 token(s) per PKR 1 spent
                       </p>
                     </div>
                     <div className="bg-muted rounded-md p-4">

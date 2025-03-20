@@ -20,6 +20,23 @@ env = Environment(loader=FileSystemLoader(templates_dir))
 class EmailService: 
 
     @staticmethod
+    async def send_disbursement_email(loan):
+        """Sends an email confirming loan disbursement."""
+        current_year = datetime.now().year
+
+        email_data = EmailSchema(
+            to=["i210428@nu.edu.pk"],
+            subject="Loan Disbursement Confirmation - ScholarChain",
+            template_name="disbursement.html",  # Create this template
+            context={
+                "loan": loan,
+                "current_year": current_year,
+            },
+        )
+        await send_email(email_data)
+
+
+    @staticmethod
     async def send_repayment_email(username, loan, recieved, next):
         from services.user_services import UserService
 

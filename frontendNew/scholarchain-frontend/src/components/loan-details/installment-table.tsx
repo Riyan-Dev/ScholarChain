@@ -56,7 +56,7 @@ interface InstallmentStatusBadgeProps {
 function InstallmentStatusBadge({ status }: InstallmentStatusBadgeProps) {
   const statusConfig = {
     pending: { label: "Pending", variant: "outline" as const },
-    paid: { label: "Paid", variant: "success" as const },
+    paid: { label: "Paid", variant: "default" as const },
     overdue: { label: "Overdue", variant: "destructive" as const },
   };
 

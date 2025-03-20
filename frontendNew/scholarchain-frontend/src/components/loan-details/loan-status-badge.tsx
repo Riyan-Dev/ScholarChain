@@ -9,7 +9,7 @@ export function LoanStatusBadge({ status }: LoanStatusBadgeProps) {
     case "ongoing":
       return <Badge variant="secondary">Active</Badge>
     case "completed":
-      return <Badge variant="success">Completed</Badge>
+      return <Badge variant="default">Completed</Badge>
     case "defaulted":
       return <Badge variant="destructive">Defaulted</Badge>
     default:

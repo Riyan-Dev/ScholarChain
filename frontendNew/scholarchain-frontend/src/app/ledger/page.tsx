@@ -5,14 +5,13 @@ import BlockExplorer from "./block-explorer";
 import BlockchainStats from "./blockchain-stats";
 import RecentBlocks from "./recent-blocks";
 import RecentTransactions from "./recent-transactions";
-import SearchBar from "./search-bar";
 
 export default function Home() {
   return (
     <main className="container mx-auto px-4 py-6 md:px-6">
       <h1 className="mb-6 text-3xl font-bold">Blockchain Explorer</h1>
 
-      <SearchBar />
+      {/* <SearchBar /> */}
 
       <Suspense fallback={<Skeleton className="mt-6 h-[200px] w-full" />}>
         <BlockchainStats />

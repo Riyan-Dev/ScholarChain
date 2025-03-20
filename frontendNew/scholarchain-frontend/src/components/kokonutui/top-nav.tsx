@@ -10,10 +10,35 @@ import { Bell, ChevronRight } from "lucide-react";
 import { ChatBubbleIcon } from "@radix-ui/react-icons";
 import Profile01 from "./profile-01";
 import { ThemeToggle } from "../theme-toggle";
+import Link from "next/link";
+import { AuthService } from "@/services/auth.service";
 
 export default function TopNav() {
+  const role = AuthService.getUserRole();
   return (
-    <nav className="flex h-full items-center justify-end border-b border-gray-200 bg-white px-3 sm:px-6 dark:border-[#1F1F23] dark:bg-[#0F0F12]">
+    <nav className="flex h-full items-center justify-between border-b border-gray-200 bg-white px-3 sm:px-6 dark:border-[#1F1F23] dark:bg-[#0F0F12]">
+      {role === "donator" ? (
+        <Link
+          href="/donor"
+          rel="noopener noreferrer"
+          className="flex h-16 items-center border-b border-gray-200 px-6 dark:border-[#1F1F23]"
+        >
+          <div className="flex items-center gap-3">
+            <Image
+              src="/logo.png"
+              alt="Acme"
+              width={64}
+              height={64}
+              className="block flex-shrink-0"
+            />
+            <span className="text-lg font-semibold text-gray-900 hover:cursor-pointer dark:text-white">
+              ScholarChain
+            </span>
+          </div>
+        </Link>
+      ) : (
+        <div> </div>
+      )}
       <div className="ml-auto flex items-center gap-2 sm:ml-0 sm:gap-4">
         <button
           type="button"

@@ -11,12 +11,13 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import type { Transaction } from "@/types";
+// import type { Transaction } from "@/lib/types";
 import { TransactionItem } from "./transaction-item";
 import { useMemo } from "react"; // Import useMemo
+import { motion } from "framer-motion";
 
 interface TransactionsCardProps {
-  transactions: Transaction[];
+  transactions: any[]; // Use Transaction type
   onViewAll: () => void;
 }
 
@@ -68,9 +69,13 @@ export function TransactionsCard({
         </div>
       </CardContent>
       <CardFooter>
-        <Button onClick={onViewAll} className="w-full" variant="outline">
+      <motion.div className="w-full" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
+        
+        <Button onClick={onViewAll} className="w-full" variant="default">
           View All Transactions
         </Button>
+                  </motion.div>
+        
       </CardFooter>
     </Card>
   );

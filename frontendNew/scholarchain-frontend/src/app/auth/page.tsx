@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes"; // Import useTheme
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AuthService } from "@/services/auth.service";
-import { redirect } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
@@ -20,7 +19,7 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false); // <-- Loader State
 
-x  const handleRouting = () => {
+  const handleRouting = () => {
     const userRole = AuthService.getUserRole();
     console.log(userRole);
     if (userRole === "applicant") window.location.href = "/dashboard";

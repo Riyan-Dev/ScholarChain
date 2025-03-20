@@ -96,7 +96,7 @@ export function LoansTable({ loans }: LoansTableProps) {
                       loan.status === "ongoing"
                         ? "default"
                         : loan.status === "completed"
-                          ? "success"
+                          ? "outline" // Replaced "success" with "outline"
                           : "destructive"
                     }
                   >

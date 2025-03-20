@@ -14,7 +14,7 @@ import { BlockchainTransactionsTable } from "./blockchain-transactions-table";
 
 export default function TransactionsPage() {
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto p-8">
       <h1 className="mb-6 text-3xl font-bold">Transaction Dashboard</h1>
 
       <Suspense fallback={<Skeleton className="h-[120px] w-full rounded-lg" />}>

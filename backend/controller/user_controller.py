@@ -1,5 +1,6 @@
 import os
 
+from services.transaction_services import TransactionServices
 from fastapi import Depends, HTTPException, status, APIRouter, UploadFile, File, Form, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
@@ -62,7 +63,22 @@ async def get_dash(token: TokenData = Depends(get_current_user)):
 async def set_upload(token: TokenData = Depends(get_current_user)):
     return await UserService.set_upload(token.username)
 
-
+@user_router.get("/transactions/")
+async def get_transaction(token: TokenData = Depends(get_current_user)):
+    try:
+        if (token.role != "admin"):
+            transactions = await TransactionServices.get_transactions(token.username)
+            return JSONResponse(content=transactions, status_code = 200)
+        else:
+            transactions = await TransactionServices.get_all_transactions()
+            return JSONResponse(content=transactions, status_code = 200)
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=404,
+            detail="Wallet not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 

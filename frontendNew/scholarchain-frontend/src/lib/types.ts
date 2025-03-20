@@ -7,6 +7,17 @@ export interface Installment {
   amount_due: number;
 }
 
+export interface LoanData {
+  id: string;
+  borrower: string;
+  loan_amount: number;
+  interest_rate: number;
+  loan_term: number;
+  start_date: string;
+  no_of_installments: number;
+  installments: Installment[];
+}
+
 export interface Loan {
   _id: string;
   id: string | null;
@@ -20,6 +31,10 @@ export interface Loan {
   status: "ongoing" | "completed" | "defaulted";
   created_at: string;
   installments: Installment[];
+  borrower: string;
+  interest_rate: number;
+  loan_term: number;
+  start_date: string;
 }
 
 export interface LoanDashData {
@@ -73,6 +88,7 @@ export interface User {
   application_stage: string[];
   chroma_path: string[];
   documents: DocumentsList;
+}
 export interface Block {
   block_number: number;
   block_hash: string;
@@ -106,7 +122,7 @@ export interface PaginatedResponse<T> {
 export interface TokenTransaction {
   username: string;
   amount: number;
-  action: "buy" | "burn";
+  action: "buy" | "burn" | "credit" | "debit";
   timestamp: string;
   description?: string;
 }
@@ -126,4 +142,5 @@ export interface BlockchainTransaction {
   to_address: string;
   value: string;
   gas_used: number;
+  type: string;
 }

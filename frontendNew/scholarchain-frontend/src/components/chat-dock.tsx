@@ -20,6 +20,7 @@ import {
     QueryClient,
     QueryClientProvider,
 } from "@tanstack/react-query";
+import { getChatResponse, updateStore } from "@/services/user.service";
 
 interface ChatSkeletonProps {
     isUser?: boolean
@@ -84,42 +85,41 @@ interface ChatMessage {
     isStreaming?: boolean;
 }
 
-// Mock responses for the bot
-const BOT_RESPONSES = [
-    "Based on the transcript information, you were in the 5th semester (BCS-5A) as of the provided data. The transcript also shows courses from the 4th semester (BCS-4A and BCS-4B) and previous semesters. Therefore, you are likely in a later semester now.",
-];
 
 // Mock API function to simulate fetching a response from the backend
 const fetchBotResponse = async (userMessage: string): Promise<string> => {
     // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const response = await getChatResponse(userMessage)
 
     // Choose a random response
-    const responseIndex = Math.floor(Math.random() * BOT_RESPONSES.length);
-    return BOT_RESPONSES[responseIndex];
+    return response
 };
 
 // Mock streaming API function
 const streamBotResponse = async (
     userMessage: string,
     onChunk: (chunk: string) => void
-): Promise<string> => {
+) => {
     // Simulate initial connection delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
 
-    // Choose a random response
-    const responseIndex = Math.floor(Math.random() * BOT_RESPONSES.length);
-    const fullResponse = BOT_RESPONSES[responseIndex];
+    try {
+        const response = await getChatResponse(userMessage)
 
-    // Stream the response character by character
-    let currentResponse = "";
-    for (let i = 0; i < fullResponse.length; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 30)); // Delay between characters
-        currentResponse += fullResponse[i];
-        onChunk(currentResponse);
+        // Choose a random response
+        const fullResponse = response;
+
+        // Stream the response character by character
+        let currentResponse = "";
+        for (let i = 0; i < fullResponse.length; i++) {
+            await new Promise((resolve) => setTimeout(resolve, 20)); // Delay between characters
+            currentResponse += fullResponse[i];
+            onChunk(currentResponse);
+        }
+
+        return fullResponse;
+    } catch (e) {
+        
     }
-
-    return fullResponse;
 };
 
 function ChatDockInner() {
@@ -179,8 +179,10 @@ function ChatDockInner() {
         },
     });
 
-    const toggleChat = () => {
+    const toggleChat = async () => {
         setIsOpen(!isOpen);
+        await updateStore()
+
     };
 
     const handleSendMessage = (e: React.FormEvent) => {

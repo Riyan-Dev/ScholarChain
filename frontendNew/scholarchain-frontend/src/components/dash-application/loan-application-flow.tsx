@@ -159,7 +159,7 @@ export function LoanApplicationFlow({
         </Card> */}
 
           {/* Application Timeline */}
-          {currentStage !== "accepted" && (
+          {(
             <ApplicationTimeline currentStage={currentStage} />
           )}
           {/* Application Cards */}

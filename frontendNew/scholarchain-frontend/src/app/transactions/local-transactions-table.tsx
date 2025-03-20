@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -47,6 +47,12 @@ import type { TokenTransaction } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
 
+interface DataTableColumnHeader {
+  title: string;
+  sortable?: boolean;
+  value: keyof TokenTransaction;
+}
+
 export function LocalTransactionsTable() {
   const { transactions, isLoading, error } = useLocalTransactions();
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,6 +60,8 @@ export function LocalTransactionsTable() {
   const [selectedTransaction, setSelectedTransaction] =
     useState<TokenTransaction | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<keyof TokenTransaction | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   if (error) {
     return (
@@ -63,17 +71,64 @@ export function LocalTransactionsTable() {
     );
   }
 
-  const filteredTransactions = transactions.filter((transaction) => {
-    const matchesSearch =
-      transaction.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      transaction.description
-        ?.toLowerCase()
-        .includes(searchQuery.toLowerCase());
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((transaction) => {
+      const matchesSearch =
+        transaction.username
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        transaction.description
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase());
 
-    const matchesAction = !actionFilter || transaction.action === actionFilter;
+      const matchesAction =
+        !actionFilter || transaction.action === actionFilter;
 
-    return matchesSearch && matchesAction;
-  });
+      return matchesSearch && matchesAction;
+    });
+  }, [transactions, searchQuery, actionFilter]);
+
+  const sortedTransactions = useMemo(() => {
+    if (!sortBy) {
+      return filteredTransactions;
+    }
+
+    return [...filteredTransactions].sort((a, b) => {
+      const aValue = a[sortBy];
+      const bValue = b[sortBy];
+
+      if (aValue === undefined || bValue === undefined) {
+        return 0;
+      }
+
+      let comparison = 0;
+      if (sortBy === "timestamp") {
+        // Sort by full timestamp (including time)
+        const dateA = new Date(aValue as string).getTime();
+        const dateB = new Date(bValue as string).getTime();
+        comparison = dateA - dateB;
+      } else if (sortBy === "amount") {
+        // Sort by amount (assuming it's a number)
+        comparison = (aValue as number) - (bValue as number);
+      } else if (typeof aValue === "string" && typeof bValue === "string") {
+        comparison = aValue.localeCompare(bValue);
+      } else {
+        // Fallback if types are different and not handled above
+        comparison = String(aValue).localeCompare(String(bValue));
+      }
+
+      return sortDirection === "asc" ? comparison : comparison * -1;
+    });
+  }, [filteredTransactions, sortBy, sortDirection]);
+
+  const handleSort = (column: keyof TokenTransaction) => {
+    if (sortBy === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(column);
+      setSortDirection("desc"); // Default to descending on new sort
+    }
+  };
 
   const handleViewDetails = (transaction: TokenTransaction) => {
     setSelectedTransaction(transaction);
@@ -83,6 +138,27 @@ export function LocalTransactionsTable() {
   const handleExportCSV = () => {
     toast.success("Transaction exported successfully");
   };
+
+  const columns: DataTableColumnHeader[] = [
+    {
+      title: "Username",
+      value: "username",
+    },
+    {
+      title: "Action",
+      value: "action",
+    },
+    {
+      title: "Amount",
+      sortable: true,
+      value: "amount",
+    },
+    {
+      title: "Timestamp",
+      sortable: true,
+      value: "timestamp",
+    },
+  ];
 
   return (
     <div className="space-y-4">
@@ -107,14 +183,16 @@ export function LocalTransactionsTable() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All actions</SelectItem>
+              <SelectItem value="credit">Credit</SelectItem>
+              <SelectItem value="debit">Debit</SelectItem>
               <SelectItem value="buy">Buy</SelectItem>
               <SelectItem value="burn">Burn</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={handleExportCSV}>
+          {/* <Button variant="outline" onClick={handleExportCSV}>
             <Download className="mr-2 h-4 w-4" />
             Export
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -129,37 +207,43 @@ export function LocalTransactionsTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Username</TableHead>
-                <TableHead>
-                  <div className="flex items-center">
-                    Action
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center">
-                    Amount
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center">
-                    Timestamp
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </div>
-                </TableHead>
+                {columns.map((column) => (
+                  <TableHead key={column.value}>
+                    {column.sortable ? (
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start p-0"
+                        onClick={() => handleSort(column.value)}
+                      >
+                        {column.title}
+                        {sortBy === column.value && (
+                          <ArrowUpDown
+                            className={`ml-2 h-4 w-4 ${
+                              sortDirection === "desc" ? "rotate-180" : ""
+                            }`}
+                          />
+                        )}
+                      </Button>
+                    ) : (
+                      column.title
+                    )}
+                  </TableHead>
+                ))}
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTransactions.length === 0 ? (
+              {sortedTransactions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
+                  <TableCell
+                    colSpan={columns.length + 1}
+                    className="h-24 text-center"
+                  >
                     No transactions found.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredTransactions.map((transaction, index) => (
+                sortedTransactions.map((transaction, index) => (
                   <TableRow key={index}>
                     <TableCell className="font-medium">
                       {transaction.username}
@@ -167,9 +251,13 @@ export function LocalTransactionsTable() {
                     <TableCell>
                       <Badge
                         variant={
-                          transaction.action === "buy"
+                          transaction.action === "credit"
                             ? "default"
-                            : "destructive"
+                            : transaction.action === "buy"
+                              ? "outline"
+                              : transaction.action === "burn"
+                                ? "secondary"
+                                : "destructive"
                         }
                       >
                         {transaction.action}
@@ -178,28 +266,7 @@ export function LocalTransactionsTable() {
                     <TableCell>{transaction.amount}</TableCell>
                     <TableCell>{formatDate(transaction.timestamp)}</TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => handleViewDetails(transaction)}
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            View details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={handleExportCSV}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Export
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      {transaction.description}
                     </TableCell>
                   </TableRow>
                 ))

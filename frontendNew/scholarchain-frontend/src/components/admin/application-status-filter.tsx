@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -8,8 +8,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Filter } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import { Filter } from "lucide-react";
 
 export function ApplicationStatusFilter() {
   return (
@@ -24,8 +24,12 @@ export function ApplicationStatusFilter() {
         <DropdownMenuContent align="start">
           <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuCheckboxItem checked>Pending Review</DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem checked>Under Review</DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem checked>
+            Pending Review
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem checked>
+            Under Review
+          </DropdownMenuCheckboxItem>
           <DropdownMenuCheckboxItem checked>Approved</DropdownMenuCheckboxItem>
           <DropdownMenuCheckboxItem checked>Rejected</DropdownMenuCheckboxItem>
         </DropdownMenuContent>
@@ -58,8 +62,12 @@ export function ApplicationStatusFilter() {
           <DropdownMenuLabel>Filter by Purpose</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuCheckboxItem checked>Tuition</DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem checked>Books & Supplies</DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem checked>Living Expenses</DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem checked>
+            Books & Supplies
+          </DropdownMenuCheckboxItem>
+          <DropdownMenuCheckboxItem checked>
+            Living Expenses
+          </DropdownMenuCheckboxItem>
           <DropdownMenuCheckboxItem checked>Other</DropdownMenuCheckboxItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -68,6 +76,5 @@ export function ApplicationStatusFilter() {
         Reset Filters
       </Button>
     </div>
-  )
+  );
 }
-

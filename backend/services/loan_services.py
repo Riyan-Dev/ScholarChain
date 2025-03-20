@@ -1,5 +1,6 @@
 import math
 
+from services.email_service import EmailService
 from fastapi import HTTPException
 from datetime import datetime
 import dateutil.relativedelta

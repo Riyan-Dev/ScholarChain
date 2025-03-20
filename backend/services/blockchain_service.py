@@ -205,6 +205,14 @@ class BlockchainService:
 
                 # Check each transaction in the block
                 for tx in block['transactions']:
+                    to_address = tx.get('to')
+                    data = tx.get('input', '')
+
+                    transaction_type = "Ether Transfer"
+                    if to_address is None:
+                        transaction_type = "Contract Creation"
+                    elif data and data != '0x':
+                        transaction_type = "Contract Interaction"
                     # Check if the transaction involves the given account address
                     if tx['from'].lower() == account_address.lower() or tx['to'] and tx['to'].lower() == account_address.lower():
                         transaction_details = TransactionDetails(
@@ -213,9 +221,60 @@ class BlockchainService:
                             from_address=tx['from'],
                             to_address=tx['to'],
                             value=str(web3.from_wei(Decimal(tx['value']), 'ether')),  # Convert value to Ether
-                            gas_used=tx['gas']
+                            gas_used=tx['gas'],
+                            type=transaction_type
                         )
                         transactions.append(transaction_details)
+            transactions.sort(key=lambda transaction : transaction.block_number, reverse=True)
+            if not transactions:
+                raise HTTPException(status_code=404, detail="No transactions found for this address.")
+
+            return transactions
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error fetching transactions: {str(e)}")
+        
+
+    @staticmethod
+    async def get_all_transactions():
+        """
+        Fetch all transactions for a given Ethereum account address.
+        """
+        try:
+            # Get the latest block number using 'eth_blockNumber'
+            latest_block = web3.eth.block_number
+
+            # List to store all transactions for the user
+            transactions = []
+
+            # Iterate through all blocks and check transactions for the given address
+            for block_number in range(latest_block + 1):
+                block = web3.eth.get_block(block_number, full_transactions=True)  # Get full transactions in the block
+                if block is None:
+                    continue
+
+                # Check each transaction in the block
+                for tx in block['transactions']:
+                    # Check if the transaction involves the given account address
+                    to_address = tx.get('to')
+                    data = tx.get('input', '')
+
+                    transaction_type = "Ether Transfer"
+                    if to_address is None:
+                        transaction_type = "Contract Creation"
+                    elif data and data != '0x':
+                        transaction_type = "Contract Interaction"
+
+                    transaction_details = TransactionDetails(
+                        transaction_hash=tx['hash'].hex(),
+                        block_number=block['number'],
+                        from_address=tx['from'],
+                        to_address=tx['to'],
+                        value=str(web3.from_wei(Decimal(tx['value']), 'ether')),  # Convert value to Ether
+                        gas_used=tx['gas'],
+                        type=transaction_type
+                    )
+                    transactions.append(transaction_details)
 
             if not transactions:
                 raise HTTPException(status_code=404, detail="No transactions found for this address.")

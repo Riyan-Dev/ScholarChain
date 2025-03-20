@@ -4,11 +4,17 @@ import { AuthService } from "@/services/auth.service";
 
 const API_BASE_URL = config.fastApi.baseUrl;
 
+export interface ApplicationCount {
+    status: string;
+    count: number;
+}
+
 export interface AdminDash {
     total_donations: number,
     available_funds: number,
     active_loans: number,
     total_applications: number,
+    application_count: ApplicationCount[];
 }
 
 export async function getAdminDash() {

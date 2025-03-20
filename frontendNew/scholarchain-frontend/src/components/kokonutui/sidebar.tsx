@@ -258,7 +258,7 @@ export default function Sidebar() {
             </div>
           </div>
 
-          <div className="border-t border-gray-200 px-4 py-4 dark:border-[#1F1F23]">
+          {/* <div className="border-t border-gray-200 px-4 py-4 dark:border-[#1F1F23]">
             <div className="space-y-1">
               <NavItem href="#" icon={Settings}>
                 Settings
@@ -268,7 +268,7 @@ export default function Sidebar() {
               </NavItem>
             </div>
           </div>
-        </div>
+        </div> */}
       </nav>
 
       {isMobileMenuOpen && (

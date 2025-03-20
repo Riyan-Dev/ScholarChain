@@ -110,7 +110,7 @@ class ApplicationService:
         return {"Message": "Application Stage Updated"}
 
     @staticmethod
-    async def verify_application(application_id: str, verified: bool, background_tasks):
+    async def verify_application(application_id: str, verified: bool, reason: str,  background_tasks):
         if verified:
             update_data = {
                 "updated_at": datetime.now(),
@@ -119,7 +119,8 @@ class ApplicationService:
         else:
             update_data = {
                 "updated_at": datetime.now(),
-                "status": "rejected"
+                "status": "rejected",
+                "reason": reason
             }
         
 
@@ -136,7 +137,7 @@ class ApplicationService:
             if verified:
                 background_tasks.add_task(EmailService.send_verified_email, application_id)
             else:
-                background_tasks.add_task(EmailService.send_rejection_email, application_id)
+                background_tasks.add_task(EmailService.send_rejection_email, application_id, reason)
 
             return {"message": "Application successfully Verified."}
         

@@ -62,7 +62,13 @@ class TransactionServices:
     async def get_transactions(username):
         wallet_data = await TransactionServices.get_wallet(username) 
         if wallet_data:
-            return wallet_data["transactions"]
+            wallet = Wallet(**wallet_data)
+            transactions = wallet.transactions
+            transactions.sort(key=lambda transaction : transaction.timestamp, reverse=True)
+
+            return wallet.dict()["transactions"]
+
+
 
     @staticmethod
     async def get_wallet(username: str):

@@ -63,7 +63,7 @@ export function UpcomingRepayments() {
                 <TableCell>{repayment.amount}</TableCell>
                 <TableCell>{repayment.dueDate}</TableCell>
                 <TableCell>
-                  <Badge variant={repayment.status === "On Time" ? "success" : "destructive"}>{repayment.status}</Badge>
+                  <Badge variant={repayment.status === "On Time" ? "outline" : "destructive"}>{repayment.status}</Badge>
                 </TableCell>
               </TableRow>
             ))}

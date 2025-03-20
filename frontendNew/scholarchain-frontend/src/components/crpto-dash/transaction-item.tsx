@@ -1,10 +1,10 @@
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import type { Transaction } from "@/types";
+import type { TokenTransaction } from "@/lib/types";
 import { TransactionIcon } from "./transaction-icon";
 
 interface TransactionItemProps {
-  transaction: Transaction;
+  transaction: TokenTransaction; // Use TokenTransaction type
 }
 
 export function TransactionItem({ transaction }: TransactionItemProps) {

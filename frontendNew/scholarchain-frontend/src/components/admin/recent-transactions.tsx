@@ -99,7 +99,7 @@ export function RecentTransactions() {
                 </TableCell>
                 <TableCell>{transaction.amount}</TableCell>
                 <TableCell>
-                  <Badge variant={transaction.status === "Completed" ? "success" : "secondary"}>
+                  <Badge variant={transaction.status === "Completed" ? "outline" : "secondary"}>
                     {transaction.status}
                   </Badge>
                 </TableCell>

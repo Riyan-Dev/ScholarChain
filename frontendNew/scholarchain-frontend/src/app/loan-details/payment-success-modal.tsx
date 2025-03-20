@@ -30,7 +30,7 @@ interface PaymentSuccessModalProps {
     paymentDate: string;
     remainingInstallments: number;
     totalInstallments: number;
-    nextDueDate?: string;
+    nextDueDate: string | undefined;
   };
 }
 

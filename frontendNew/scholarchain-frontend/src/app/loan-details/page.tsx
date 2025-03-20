@@ -5,7 +5,7 @@ import { Suspense } from "react";
 export default function Page() {
   return (
     <div className="container py-10">
-      <h1 className="mb-6 text-3xl font-bold">Loan Details</h1>
+      <h1 className="text-4xl font-bold p-2 md:p-10">Loan Details</h1>
       <Suspense fallback={<LoanDetailsSkeleton />}>
         <LoanDetails />
       </Suspense>

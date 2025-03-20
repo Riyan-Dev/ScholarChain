@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-// import { DashboardHeader } from "@/components/donor-dash/dashboard-header";
 import { Button } from "@/components/ui/button";
 import {
   CardContent,
@@ -27,20 +26,42 @@ import { toast, Toaster } from "sonner";
 import { buyTokens } from "@/services/donor.service";
 import { useRouter } from "next/navigation";
 import { DashboardHeader } from "@/components/admin/dashboard-header";
+import { motion, AnimatePresence } from "framer-motion";
+
+const tabVariants = {
+  initial: { opacity: 0, x: 30 },
+  animate: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.2, ease: "easeInOut" },
+  },
+  exit: {
+    opacity: 0,
+    x: -30,
+    transition: { duration: 0.2, ease: "easeInOut" },
+  },
+};
+
+interface Package {
+  value: string;
+  label: string;
+  price: string;
+  tokens: number;
+}
 
 export default function PurchasePage() {
-  const [selectedPackage, setSelectedPackage] = useState("popular");
+  const [selectedPackage, setSelectedPackage] = useState<string>("popular");
   const [customAmount, setCustomAmount] = useState<number | undefined>();
-  const [activeTab, setActiveTab] = useState("packages");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [cvc, setCvc] = useState("");
-  const [name, setName] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false); // New state for loading
+  const [activeTab, setActiveTab] = useState<string>("packages");
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [cardNumber, setCardNumber] = useState<string>("");
+  const [expiryDate, setExpiryDate] = useState<string>("");
+  const [cvc, setCvc] = useState<string>("");
+  const [name, setName] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false); // New state for loading
   const router = useRouter();
 
-  const packages = useMemo(
+  const packages = useMemo<Package[]>(
     () => [
       {
         value: "starter",
@@ -71,10 +92,9 @@ export default function PurchasePage() {
   );
 
   // Find the selected package details.  Handles undefined case gracefully.
-  const selectedPackageDetails = useMemo(
-    () => packages.find((pkg) => pkg.value === selectedPackage),
-    [packages, selectedPackage]
-  );
+  const selectedPackageDetails = useMemo(() => {
+    return packages.find((pkg) => pkg.value === selectedPackage);
+  }, [packages, selectedPackage]);
 
   // Calculate estimated tokens for custom amount
   const estimatedTokens = useMemo(() => {
@@ -104,7 +124,6 @@ export default function PurchasePage() {
   // Update selected package when radio button changes
   const handlePackageChange = (value: string) => {
     setSelectedPackage(value);
-    setActiveTab("packages");
   };
 
   // Update custom amount when input changes, include input validation
@@ -121,7 +140,6 @@ export default function PurchasePage() {
         setCustomAmount(numValue);
       }
     }
-    setActiveTab("custom");
   };
 
   const handlePaymentSubmit = async () => {
@@ -198,6 +216,7 @@ export default function PurchasePage() {
       const paymentDetailsString = encodeURIComponent(
         JSON.stringify(paymentDetails)
       );
+      router.push(`/payment?type=token&paymentDetails=${paymentDetailsString}`);
       // router.push(`/payment?type=token&paymentDetails=${paymentDetailsString}`);
       router.replace(
         `/payment?type=token&paymentDetails=${paymentDetailsString}`
@@ -232,55 +251,99 @@ export default function PurchasePage() {
                 <TabsTrigger value="packages">Packages</TabsTrigger>
                 <TabsTrigger value="custom">Custom Amount</TabsTrigger>
               </TabsList>
-              <TabsContent value="packages" className="space-y-4">
-                <RadioGroup
-                  value={selectedPackage}
-                  onValueChange={handlePackageChange}
-                >
-                  {packages.map((pkg) => (
-                    <div
-                      key={pkg.value}
-                      className="flex items-center space-x-2"
+              <AnimatePresence initial={false} mode="wait">
+                {activeTab === "packages" && (
+                  <motion.div
+                    key="packages"
+                    variants={{
+                      initial: { opacity: 0, x: -30 },
+                      animate: {
+                        opacity: 1,
+                        x: 0,
+                        transition: { duration: 0.2, ease: "easeInOut" },
+                      },
+                      exit: {
+                        opacity: 0,
+                        x: 30,
+                        transition: { duration: 0.2, ease: "easeInOut" },
+                      },
+                    }}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-4"
+                  >
+                    <RadioGroup
+                      value={selectedPackage || undefined}
+                      onValueChange={handlePackageChange}
                     >
-                      <RadioGroupItem value={pkg.value} id={pkg.value} />
-                      <Label
-                        htmlFor={pkg.value}
-                        className="flex flex-1 cursor-pointer justify-between"
-                      >
-                        <span>
-                          {pkg.label} - {pkg.tokens} tokens
-                        </span>
-                        <span className="font-semibold">{pkg.price}</span>
-                      </Label>
+                      {packages.map((pkg) => (
+                        <div
+                          key={pkg.value}
+                          className="flex items-center space-x-2"
+                        >
+                          <RadioGroupItem value={pkg.value} id={pkg.value} />
+                          <Label
+                            htmlFor={pkg.value}
+                            className="flex flex-1 cursor-pointer justify-between"
+                          >
+                            <span>
+                              {pkg.label} - {pkg.tokens} tokens
+                            </span>
+                            <span className="font-semibold">{pkg.price}</span>
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </motion.div>
+                )}
+                {activeTab === "custom" && (
+                  <motion.div
+                    key="custom"
+                    variants={{
+                      initial: { opacity: 0, x: 30 },
+                      animate: {
+                        opacity: 1,
+                        x: 0,
+                        transition: { duration: 0.2, ease: "easeInOut" },
+                      },
+                      exit: {
+                        opacity: 0,
+                        x: -30,
+                        transition: { duration: 0.2, ease: "easeInOut" },
+                      },
+                    }}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    className="space-y-4"
+                  >
+                    <div className="space-y-2">
+                      <Label htmlFor="custom-amount">Amount in PKR</Label>
+                      <Input
+                        id="custom-amount"
+                        placeholder="Enter amount..."
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={customAmount === undefined ? "" : customAmount}
+                        onChange={handleCustomAmountChange}
+                      />
+                      <p className="text-muted-foreground text-sm">
+                        You&apos;ll receive 1 token(s) per PKR 1 spent
+                      </p>
                     </div>
-                  ))}
-                </RadioGroup>
-              </TabsContent>
-              <TabsContent value="custom" className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="custom-amount">Amount in PKR</Label>
-                  <Input
-                    id="custom-amount"
-                    placeholder="Enter amount..."
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={customAmount === undefined ? "" : customAmount}
-                    onChange={handleCustomAmountChange}
-                  />
-                  <p className="text-muted-foreground text-sm">
-                    You&apos;ll receive 1 token(s) per PKR 1 spent
-                  </p>
-                </div>
-                <div className="bg-muted rounded-md p-4">
-                  <div className="flex justify-between text-sm">
-                    <span>Estimated tokens:</span>
-                    <span className="font-medium">
-                      {estimatedTokens} tokens
-                    </span>
-                  </div>
-                </div>
-              </TabsContent>
+                    <div className="bg-muted rounded-md p-4">
+                      <div className="flex justify-between text-sm">
+                        <span>Estimated tokens:</span>
+                        <span className="font-medium">
+                          {estimatedTokens} tokens
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </Tabs>
           </CardContent>
           <CardFooter>

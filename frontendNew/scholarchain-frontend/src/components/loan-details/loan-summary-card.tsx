@@ -85,7 +85,7 @@ interface StatusBadgeProps {
 function StatusBadge({ status }: StatusBadgeProps) {
   const statusConfig = {
     ongoing: { label: "Ongoing", variant: "outline" as const },
-    completed: { label: "Completed", variant: "success" as const },
+    completed: { label: "Completed", variant: "default" as const },
     defaulted: { label: "Defaulted", variant: "destructive" as const },
   };
 

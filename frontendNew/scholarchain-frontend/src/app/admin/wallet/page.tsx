@@ -1,4 +1,3 @@
-import { BlockchainTransactions } from "@/components/admin/blockchain-transactions";
 import { TransactionFilter } from "@/components/admin/transaction-filter";
 import { TransactionsTable } from "@/components/admin/transactions-table";
 import { WalletOverview } from "@/components/admin/wallet-overview";
@@ -29,10 +28,10 @@ export default function WalletPage() {
           <h3 className="mb-4 text-lg font-medium">Transaction History</h3>
           <TransactionsTable />
         </div>
-        <div>
+        {/* <div>
           <h3 className="mb-4 text-lg font-medium">Blockchain Transactions</h3>
           <BlockchainTransactions />
-        </div>
+        </div> */}
       </div>
     </DashboardShell>
   );

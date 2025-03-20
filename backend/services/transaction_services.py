@@ -130,7 +130,8 @@ class TransactionServices:
                 "description": "$transactions.description",
                 "timestamp": "$transactions.timestamp",
                 } 
-            }
+            },
+            { "$sort": {"timestamp": -1}}
         ]
 
         results = await wallet_collection.aggregate(pipeline).to_list()

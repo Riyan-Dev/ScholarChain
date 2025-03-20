@@ -275,7 +275,7 @@ class BlockchainService:
                         type=transaction_type
                     )
                     transactions.append(transaction_details)
-
+            transactions.sort(key=lambda transaction : transaction.block_number, reverse=True)
             if not transactions:
                 raise HTTPException(status_code=404, detail="No transactions found for this address.")
 

@@ -208,6 +208,11 @@ export default function InternalApplicationFormComponent({
     console.log(data);
   }, [data]);
 
+  const handleButtonClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Prevent the default form submission
+    await handleSubmit(formData); // Call the async handleSubmit function
+  };
+
   const handleAddIncomeSource = useCallback(() => {
     setIncomeSources((prevSources) => [
       ...prevSources,
@@ -338,7 +343,7 @@ export default function InternalApplicationFormComponent({
   // Use useEffect to check form validity whenever formData changes
   useEffect(() => {
     checkFormValidity();
-  }, [checkFormValidity, formData]);
+  }, [formData, incomeSources, debts, achievements, checkFormValidity]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -463,7 +468,7 @@ export default function InternalApplicationFormComponent({
 
       if (result.success) {
         toast.success(result.message);
-        router.push("/dashboard");
+        href("/dashboard");
       } else {
         toast.error(result.message);
       }
@@ -485,7 +490,7 @@ export default function InternalApplicationFormComponent({
     );
   }
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-8">
       <div className="text-left">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
           Application Form
@@ -1209,6 +1214,7 @@ export default function InternalApplicationFormComponent({
             type="submit"
             className="bg-indigo-700 px-8 text-white hover:bg-indigo-800"
             disabled={isSubmitting || !isFormValid} // Disable if submitting or form is invalid
+            onClick={handleSubmit}
           >
             {isSubmitting ? (
               <>

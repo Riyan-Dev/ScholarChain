@@ -523,14 +523,28 @@ class UserService:
             available_funds_future = AdminService.get_available_funds()   
             pending_applications_future = ApplicationService.get_pending_application()  
             upcoming_repayments_future = LoanService.get_upcoming_payments()
+            monthly_transactions_future = AdminService.get_monthly_transactions()
+            application_count_future = AdminService.get_application_counts()
         
-            total_applications, all_loans, total_donations, available_funds, top_transactions, pending_applications, upcoming_repayments= await asyncio.gather(total_applications_future,
-                                                                                                   all_loans_future, 
-                                                                                                   total_donations_future, 
-                                                                                                   available_funds_future,
-                                                                                                   top_transactions_future,
-                                                                                                   pending_applications_future,
-                                                                                                   upcoming_repayments_future)
+            (total_applications,
+             all_loans,
+             total_donations,
+             available_funds,
+             top_transactions,
+             pending_applications,
+             upcoming_repayments,
+             monthly_transactions_count,
+             total_applications_count) = await asyncio.gather(
+                total_applications_future,
+                all_loans_future,
+                total_donations_future,
+                available_funds_future,
+                top_transactions_future,
+                pending_applications_future,
+                upcoming_repayments_future,
+                monthly_transactions_future,
+                application_count_future
+            )
             
             total_donations_value = total_donations[0]["totalAmount"] if total_donations and total_donations[0] else 0
             available_funds_value = available_funds[0]["availableFunds"] if available_funds and available_funds[0] else 0

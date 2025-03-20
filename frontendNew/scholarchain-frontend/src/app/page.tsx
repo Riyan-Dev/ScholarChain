@@ -101,7 +101,7 @@ export default function LandingPage() {
             <Button
               size="lg"
               onClick={() => router.push("/auth")}
-              className="group bg-white px-8 py-6 text-lg font-semibold text-gray-900 hover:bg-gray-100"
+              className="group bg-white px-8 py-6 text-lg font-semibold text-gray-900 hover:bg-gray-100 cursor-pointer"
             >
               Get Started
               <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />

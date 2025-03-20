@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -1204,10 +1205,10 @@ export default function InternalApplicationFormComponent({
           </AccordionItem>
         </Accordion>
 
-        <div className="flex justify-end">
+        <motion.div className="flex justify-end" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
           <Button
             type="submit"
-            className="bg-indigo-700 px-8 text-white hover:bg-indigo-800"
+            className="bg-indigo-700 px-8 text-white hover:bg-indigo-800 cursor-pointer"
             disabled={isSubmitting || !isFormValid} // Disable if submitting or form is invalid
           >
             {isSubmitting ? (
@@ -1219,7 +1220,7 @@ export default function InternalApplicationFormComponent({
               "Submit Application"
             )}
           </Button>
-        </div>
+        </motion.div>
       </form>
     </div>
   );

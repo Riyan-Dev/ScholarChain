@@ -9,6 +9,7 @@ import { Button } from "../ui/button";
 import { redirect } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
 
@@ -40,14 +41,14 @@ export function StartApplicationCard({ onNext }: StartApplicationCardProps) {
       icon={FileText}
       showFooter={false}
     >
-      <div className="flex flex-grow items-center justify-center space-y-6">
+      <motion.div className=" flex flex-grow items-center justify-center space-y-6 " whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
       <Button
         type="button"
         variant="default"
         size="lg"
         onClick={handleStartApplication}
         disabled={loading} // Disable button while loading
-        className="flex items-center justify-center gap-2 disabled:opacity-50"
+        className="flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
       >
         {loading ? (
           <>
@@ -60,7 +61,7 @@ export function StartApplicationCard({ onNext }: StartApplicationCardProps) {
           </>
         )}
       </Button>
-      </div>
+      </motion.div>
     </ApplicationCard>
   );
 }

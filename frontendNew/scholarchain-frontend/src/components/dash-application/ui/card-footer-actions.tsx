@@ -25,8 +25,8 @@ export function CardFooterActions({
         onClick={onNext}
         disabled={isNextDisabled}
         className={cn(
-          "gap-1",
-          isProcessing && "text-primary bg-white hover:bg-white/90"
+          "gap-1 cursor-pointer",
+          isProcessing && "text-primary bg-white hover:bg-white/90 "
         )}
       >
         {nextLabel}

@@ -219,7 +219,7 @@ export default function DocumentUploadPage() {
                         ) : (
                           <Button
                             variant="outline"
-                            className="w-full"
+                            className="w-full cursor-pointer"
                             onClick={() => setCurrentDocumentType(document.id)}
                           >
                             Upload Document

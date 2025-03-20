@@ -542,3 +542,17 @@ class UserService:
         except Exception as e:
             print(f"Error while getting Admin Dash: {e}")
             return None
+
+    @staticmethod
+    async def get_user_details(username: str) -> dict:
+        user_doc = await user_collection.find_one({"username": username})
+
+        if user_doc:
+            return {
+                "name": user_doc.get("name"),
+                "username": user_doc.get("username"),
+                "email": user_doc.get("email"),
+                "role": user_doc.get("role"),
+            }
+        else:
+            return None

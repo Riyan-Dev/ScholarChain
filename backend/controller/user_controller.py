@@ -81,4 +81,14 @@ async def get_transaction(token: TokenData = Depends(get_current_user)):
         )
 
 
+@user_router.get("/me")
+async def get_user_details(token: TokenData = Depends(get_current_user)):
+    user_info = await UserService.get_user_details(token.username)
 
+    if user_info:
+        return user_info
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )

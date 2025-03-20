@@ -46,7 +46,7 @@ export default function LoanDetails() {
   if (!loan) return <div className="text-red-500">No loan data found</div>;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-4 md:p-10">
       <LoanSummaryCard loan={loan} />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

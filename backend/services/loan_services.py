@@ -2,7 +2,7 @@ import math
 
 from services.email_service import EmailService
 from fastapi import HTTPException
-from datetime import datetime
+from datetime import datetime, timedelta
 import dateutil.relativedelta
 
 from services.transaction_services import TransactionServices
@@ -305,6 +305,39 @@ class LoanService:
         )
 
         return loan
+    
+    async def get_upcoming_payments():
+        sixty_days_from_now = datetime.now() + timedelta(days=60)
+
+        pipeline = [
+            {
+                "$match": {
+                    "installments.installment_status": "pending",
+                    "installments.installment_date": {
+                        "$gte": datetime.now(),
+                        "$lte": sixty_days_from_now,
+                    },
+                },
+            },
+            {"$unwind": "$installments"},
+            {
+                "$match": {
+                    "installments.installment_status": "pending",
+                    "installments.installment_date": {
+                        "$gte": datetime.now(),
+                        "$lte": sixty_days_from_now,
+                    },
+                },
+            },
+            {"$sort": {"installments.installment_date": -1}},
+            {"$limit": 3},
+            { "$project": {
+                "_id": 0
+            }}
+        ]
+
+        result = await loan_collection.aggregate(pipeline).to_list(length=1)
+        return result
 
     async def fetch_repay_details(username):
 

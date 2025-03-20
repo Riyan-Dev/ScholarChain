@@ -305,7 +305,24 @@ class ApplicationService:
             print(f"Error parsing JSON: {e}")
             print("Raw response text:")
             print(response.text)
-        
+
+    async def get_pending_application():
+
+        pipeline = [
+            { "$match":
+                {"status": "pending"}
+            },
+            { "$sort": {"application_date": -1}},
+            {"$limit": 3},
+            { "$project": {
+                "_id": 0
+            } }
+        ]
+
+        result = await application_collection.aggregate(pipeline).to_list()
+        if result: 
+            return result
+                
     async def application_overview(username):
         pipeline = [
             { "$match": { "username": username } },

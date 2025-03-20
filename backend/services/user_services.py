@@ -520,13 +520,17 @@ class UserService:
             all_loans_future = LoanService.get_all_loans()
             top_transactions_future = TransactionServices.get_all_transactions(10)
             total_donations_future = AdminService.get_total_donations()
-            available_funds_future = AdminService.get_available_funds()     
+            available_funds_future = AdminService.get_available_funds()   
+            pending_applications_future = ApplicationService.get_pending_application()  
+            upcoming_repayments_future = LoanService.get_upcoming_payments()
         
-            total_applications, all_loans, total_donations, available_funds, top_transactions = await asyncio.gather(total_applications_future,
+            total_applications, all_loans, total_donations, available_funds, top_transactions, pending_applications, upcoming_repayments= await asyncio.gather(total_applications_future,
                                                                                                    all_loans_future, 
                                                                                                    total_donations_future, 
                                                                                                    available_funds_future,
-                                                                                                   top_transactions)
+                                                                                                   top_transactions_future,
+                                                                                                   pending_applications_future,
+                                                                                                   upcoming_repayments_future)
             
             total_donations_value = total_donations[0]["totalAmount"] if total_donations and total_donations[0] else 0
             available_funds_value = available_funds[0]["availableFunds"] if available_funds and available_funds[0] else 0
@@ -538,6 +542,8 @@ class UserService:
                 "active_loans": len(active_loans),
                 "total_applications": len(total_applications),
                 "transactions": top_transactions,
+                "pending_application": pending_applications,
+                "upcoming_repayments": upcoming_repayments,
             }
 
             return dash_data

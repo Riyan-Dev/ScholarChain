@@ -1,11 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Brain, FileCode, Percent } from "lucide-react";
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useRef } from "react";
+import { RefObject } from "react"; // Import RefObject
 import NetworkBackground from "@/components/landing-page/network-background";
 import { useRouter } from "next/navigation";
 
@@ -39,11 +39,11 @@ const popIn = {
 };
 
 // Custom animation hook
-function useAnimateOnScroll(threshold = 0.2) {
-  const ref = useRef(null);
+function useAnimateOnScroll(threshold = 0.2): [RefObject<HTMLDivElement>, boolean] {  // Explicit return type
+  const ref = useRef<HTMLDivElement>(null); // Specify type of useRef
   const isInView = useInView(ref, { once: false, amount: threshold });
 
-  return [ref, isInView];
+  return [ref as RefObject<HTMLDivElement>, isInView];
 }
 
 export default function LandingPage() {
@@ -75,7 +75,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative z-10 flex min-h-[80vh] w-full flex-col items-center justify-center px-4 text-center text-white">
         <motion.div
-          // ref={heroRef}
+          ref={heroRef}
           className="max-w-4xl space-y-6"
           initial="hidden"
           animate={heroInView ? "visible" : "hidden"}
@@ -123,7 +123,7 @@ export default function LandingPage() {
         </motion.h2>
 
         <motion.div
-          // ref={featuresRef}
+          ref={featuresRef}
           className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
           initial="hidden"
           animate={featuresInView ? "visible" : "hidden"}
@@ -192,7 +192,7 @@ export default function LandingPage() {
           </motion.h2>
 
           <motion.div
-            // ref={processRef}
+            ref={processRef}
             className="grid grid-cols-1 gap-8 md:grid-cols-3"
             initial="hidden"
             animate={processInView ? "visible" : "hidden"}
@@ -261,7 +261,7 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="relative z-10 mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <motion.div
-          // ref={ctaRef}
+          ref={ctaRef}
           className="flex flex-col items-center justify-between rounded-2xl bg-gradient-to-r from-gray-800 to-gray-700 p-8 text-center md:flex-row md:text-left"
           initial={{ opacity: 0, y: 30 }}
           animate={ctaInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}

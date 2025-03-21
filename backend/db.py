@@ -9,7 +9,7 @@ load_dotenv()
 
 
 client = AsyncIOMotorClient(Config.mongo_uri)
-db = client["ScholarChain"]
+db = client[Config.mongo_name]
 
 user_collection = db["users"]
 application_collection = db["application"]

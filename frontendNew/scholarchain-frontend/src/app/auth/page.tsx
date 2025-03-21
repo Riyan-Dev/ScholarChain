@@ -235,12 +235,6 @@ const LoginPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="mb-2 w-full rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-800 outline-none dark:bg-gray-700 dark:text-gray-200"
               />
-              <a
-                href="#"
-                className="my-4 text-sm text-gray-700 dark:text-gray-400"
-              >
-                Forgot Your Password ?
-              </a>
               <button
                 type="submit"
                 disabled={loading}

@@ -9,6 +9,7 @@ class Config:
     mistral_api_key = os.getenv("MISTRAL_API_KEY", "")
     gemini_api_key = os.getenv("GEMINI_API_KEY", "")
     mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+    mongo_name = os.getenv("MONGO_NAME", "ScholarChain")
     encryption_key = os.getenv("ENCRYPTION_KEY", "my_secret_key")
     factory_address = os.getenv("FACTORY_ADDRESS", "")
     rpc_url = os.getenv("RPC_URL", "http://localhost:8545")

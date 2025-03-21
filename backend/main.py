@@ -32,7 +32,7 @@ app.mount("/pdfs", StaticFiles(directory="static"), name="pdfs")
 
 origins = [
     "http://localhost:3000",
-    # "http://localhost:5173",  # Add other origins as needed
+    "http://localhost:3001",  # Add other origins as needed
 ]
 
 # Add CORSMiddleware to the application instance

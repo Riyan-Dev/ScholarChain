@@ -46,38 +46,38 @@ export default function DashboardPage() {
           {/* Key Metrics Skeletons */}
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i}>
-              <Skeleton className="h-4 w-32 mb-2" />
+              <Skeleton className="mb-2 h-4 w-32" />
               <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-4 w-16 mt-2" />
+              <Skeleton className="mt-2 h-4 w-16" />
             </div>
           ))}
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
           <div className="col-span-4">
             {/* Monthly Trends Skeleton */}
-            <Skeleton className="h-4 w-32 mb-2" />
+            <Skeleton className="mb-2 h-4 w-32" />
             <Skeleton className="h-[300px] w-full" />
           </div>
           <div className="col-span-3">
             {/* Fund Distribution Skeleton */}
-            <Skeleton className="h-4 w-32 mb-2" />
+            <Skeleton className="mb-2 h-4 w-32" />
             <Skeleton className="h-[300px] w-full" />
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
           <div className="col-span-4">
             {/* Recent Transactions Skeleton */}
-            <Skeleton className="h-4 w-32 mb-2" />
+            <Skeleton className="mb-2 h-4 w-32" />
             <Skeleton className="h-[300px] w-full" />
           </div>
           <div className="col-span-3">
             <div className="grid gap-4">
               {/* Upcoming Repayments Skeleton */}
-              <Skeleton className="h-4 w-32 mb-2" />
+              <Skeleton className="mb-2 h-4 w-32" />
               <Skeleton className="h-[150px] w-full" />
 
               {/* Pending Applications Skeleton */}
-              <Skeleton className="h-4 w-32 mb-2" />
+              <Skeleton className="mb-2 h-4 w-32" />
               <Skeleton className="h-[150px] w-full" />
             </div>
           </div>
@@ -118,20 +118,30 @@ export default function DashboardPage() {
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <div className="col-span-4">
-          <MonthlyTrends monthlyTransactions={adminDashData.monthly_transactions} />
+          <MonthlyTrends
+            monthlyTransactions={adminDashData.monthly_transactions}
+          />
         </div>
         <div className="col-span-3">
-          <FundDistribution applicationCount={adminDashData.application_count} />
+          <FundDistribution
+            applicationCount={adminDashData.application_count}
+          />
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <div className="col-span-4">
-          <RecentTransactionsComponent transactions={adminDashData.transactions} />
+          <RecentTransactionsComponent
+            transactions={adminDashData.transactions}
+          />
         </div>
         <div className="col-span-3">
           <div className="grid gap-4">
-            <UpcomingRepaymentsComponent upcomingRepayments={adminDashData.upcoming_repayments} />
-            <PendingApplicationsComponent pendingApplications={adminDashData.pending_application} />
+            <UpcomingRepaymentsComponent
+              upcomingRepayments={adminDashData.upcoming_repayments}
+            />
+            <PendingApplicationsComponent
+              pendingApplications={adminDashData.pending_application}
+            />
           </div>
         </div>
       </div>

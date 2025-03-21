@@ -17,6 +17,8 @@ import { LocalTransactionsTable } from "@/app/transactions/local-transactions-ta
 import { TransactionStats } from "@/app/transactions/transaction-stats";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
+import DashboardShell from "../admin/dashboard-shell";
+import { DashboardHeader } from "./dashboard-header";
 
 interface Transaction {
   username: string;
@@ -76,8 +78,53 @@ export function DonorDashboard() {
 
 
   if (loading) {
-    return <div>Loading...</div>;
-  }
+      return (
+        <div className="p-8">
+        <DashboardShell>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* Key Metrics Skeletons */}
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i}>
+                <Skeleton className="mb-2 h-4 w-32" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="mt-2 h-4 w-16" />
+              </div>
+            ))}
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            <div className="col-span-4">
+              {/* Monthly Trends Skeleton */}
+              <Skeleton className="mb-2 h-4 w-32" />
+              <Skeleton className="h-[300px] w-full" />
+            </div>
+            <div className="col-span-3">
+              {/* Fund Distribution Skeleton */}
+              <Skeleton className="mb-2 h-4 w-32" />
+              <Skeleton className="h-[300px] w-full" />
+            </div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            <div className="col-span-4">
+              {/* Recent Transactions Skeleton */}
+              <Skeleton className="mb-2 h-4 w-32" />
+              <Skeleton className="h-[300px] w-full" />
+            </div>
+            <div className="col-span-3">
+              <div className="grid gap-4">
+                {/* Upcoming Repayments Skeleton */}
+                <Skeleton className="mb-2 h-4 w-32" />
+                <Skeleton className="h-[150px] w-full" />
+  
+                {/* Pending Applications Skeleton */}
+                <Skeleton className="mb-2 h-4 w-32" />
+                <Skeleton className="h-[150px] w-full" />
+              </div>
+            </div>
+          </div>
+        </DashboardShell>
+        </div>
+      );
+    }
 
   if (error) {
     return <div>Error: {error}</div>;

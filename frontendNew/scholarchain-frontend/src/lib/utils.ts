@@ -59,3 +59,40 @@ export function truncateAddress(address: string, chars = 6): string {
   if (!address) return "";
   return `${address.substring(0, chars)}...${address.substring(address.length - 4)}`;
 }
+
+function parseMonthYear(monthYearString: string): Date | undefined {
+  if (!monthYearString) {
+    return undefined; // Handle empty or null input
+  }
+
+  const [monthName, yearStr] = monthYearString.split("-");
+
+  if (!monthName || !yearStr) {
+    return undefined; // Handle invalid string format
+  }
+
+  const monthMapping = {
+    jan: 0,
+    feb: 1,
+    mar: 2,
+    apr: 3,
+    may: 4,
+    jun: 5,
+    jul: 6,
+    aug: 7,
+    sep: 8,
+    oct: 9,
+    nov: 10,
+    dec: 11,
+  } as const;
+
+  const monthIndex =
+    monthMapping[monthName.toLowerCase() as keyof typeof monthMapping];
+  const year = parseInt(yearStr, 10);
+
+  if (monthIndex === undefined || isNaN(year)) {
+    return undefined; // Handle invalid month or year
+  }
+
+  return new Date(year, monthIndex);
+}

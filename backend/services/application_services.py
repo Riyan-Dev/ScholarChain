@@ -333,6 +333,7 @@ class ApplicationService:
                 "current_education": "$academic_info.current_education_level",
                 "institute": "$academic_info.college_or_university",
                 "status": 1,
+                "reason": 1,
                 "application_date": 1
             }}
         ]

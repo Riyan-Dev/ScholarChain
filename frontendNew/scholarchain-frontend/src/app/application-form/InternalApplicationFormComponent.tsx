@@ -308,17 +308,20 @@ export default function InternalApplicationFormComponent({
       personal_info.permanent_address !== ""; // Added back permanent_address
 
     const isFinancialInfoValid =
-      incomeSources.some((item) => item.source !== "" && item.amount !== "") &&
+      incomeSources.length === 0 ||
+      (incomeSources.some((item) => item.source !== "" && item.amount !== "") &&
+        debts.length === 0) ||
       debts.some((item) => item.description !== "" && item.amount !== "");
 
     const isAcademicInfoValid =
-      academic_info.current_education_level !== "" && // Added back current_education_level
-      academic_info.college_or_university !== "" && // Added back college_or_university
-      academic_info.student_id !== "" && // Added back student_id
-      academic_info.program_name_degree !== "" && // Added back program_name_degree
-      academic_info.duration_of_course !== "" && // Added back duration_of_course
-      academic_info.year_or_semester !== "" && // Added back year_or_semester
-      academic_info.gpa !== "";
+      academic_info.current_education_level !== "" &&
+      academic_info.college_or_university !== "" &&
+      academic_info.student_id !== "" &&
+      academic_info.program_name_degree !== "" &&
+      academic_info.duration_of_course !== "" &&
+      academic_info.year_or_semester !== "" &&
+      academic_info.gpa !== "" &&
+      (achievements.length === 0 || achievements.some((item) => item !== ""));
 
     const isLoanDetailsValid =
       loan_details.loan_amount_requested !== "" && // Added back loan_amount_requested
@@ -469,9 +472,7 @@ export default function InternalApplicationFormComponent({
 
       if (result.success) {
         toast.success(result.message);
-        <link>
-          href{`/dashboard`};
-        </link>
+        router.push("/dashboard");
       } else {
         toast.error(result.message);
       }
@@ -882,7 +883,9 @@ export default function InternalApplicationFormComponent({
                       <SelectItem value="bachelors">
                         Bachelor&apos;s Degree
                       </SelectItem>
-                      <SelectItem value="masters">Master&apos;s Degree</SelectItem>
+                      <SelectItem value="masters">
+                        Master&apos;s Degree
+                      </SelectItem>
                       <SelectItem value="phd">PhD</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
@@ -1212,23 +1215,21 @@ export default function InternalApplicationFormComponent({
           </AccordionItem>
         </Accordion>
 
-        <motion.div className="flex justify-end" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
-          <Button
-            type="submit"
-            className="bg-indigo-700 px-8 text-white hover:bg-indigo-800 cursor-pointer"
-            disabled={isSubmitting || !isFormValid} // Disable if submitting or form is invalid
-            onClick={handleSubmit}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              "Submit Application"
-            )}
-          </Button>
-        </motion.div>
+        <Button
+          type="submit"
+          className="cursor-pointer bg-indigo-700 px-8 text-white hover:bg-indigo-800"
+          disabled={isSubmitting || !isFormValid} // Disable if submitting or form is invalid
+          onClick={handleSubmit}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Submitting...
+            </>
+          ) : (
+            "Submit Application"
+          )}
+        </Button>
       </form>
     </div>
   );

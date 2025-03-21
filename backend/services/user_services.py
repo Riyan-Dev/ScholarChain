@@ -551,6 +551,8 @@ class UserService:
 
             active_loans = [loan for loan in all_loans if loan["status"] == "ongoing"]
 
+            pending_applications_list = pending_applications if pending_applications is not None else []
+
             dash_data = {
                 "total_donations": total_donations_value,
                 "available_funds": available_funds_value,
@@ -559,7 +561,7 @@ class UserService:
                 "application_count": total_applications_count,
                 "monthly_transactions": monthly_transactions_count,
                 "transactions": top_transactions,
-                "pending_application": pending_applications,
+                "pending_application": pending_applications_list,
                 "upcoming_repayments": upcoming_repayments,
             }
 

@@ -59,11 +59,6 @@ export function KeyMetrics({ totalDonations, availableFunds, activeLoans, totalA
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{metric.value}</div>
-                            <p
-                                className={`text-xs ${metric.changeType === "positive" ? "text-green-500" : "text-red-500"}`}
-                            >
-                                {metric.change} from last month
-                            </p>
                         </CardContent>
                     </Card>
                 );

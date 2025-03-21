@@ -82,11 +82,10 @@ class EmailService:
         await send_email(email_data)
 
     @staticmethod 
-    async def send_rejection_email(application_id):
+    async def send_rejection_email(application_id, reason):
         from services.application_services import ApplicationService
         from services.user_services import UserService
         
-        plan = await ApplicationService.get_plan_db(application_id)
         application = await ApplicationService.get_application_by_id(application_id)
         user = await UserService.get_user_doc_by_username(application["username"])
 
@@ -98,7 +97,7 @@ class EmailService:
             template_name="application_rejected.html", # Save this as a new HTML file
             context={
                 "user": user,
-                # "reason": plan["reasoning"], # Optional: Provide the reason
+                "reason": reason, # Optional: Provide the reason
                 "current_year": current_year,
             },
         )

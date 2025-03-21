@@ -229,7 +229,12 @@ export default function Content() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <WalletCard data={data.wallet_data} onBuyToken={() => {}} />
+        <WalletCard
+          data={data.wallet_data}
+          onBuyToken={() => {
+            router.push("/purchase");
+          }}
+        />
         <TransactionsCard
           transactions={data.wallet_data.transactions}
           onViewAll={handleViewAllTransactions}

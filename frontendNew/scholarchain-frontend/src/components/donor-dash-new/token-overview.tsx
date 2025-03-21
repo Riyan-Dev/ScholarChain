@@ -154,8 +154,10 @@ export function TokenOverview({ userData }: TokenOverviewProps) {
           </CardContent>
         </Card>
       </div>
-      <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <WalletCard data={userData.wallet_data} onBuyToken={() => {}} />
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mt-4">
+        <WalletCard data={userData.wallet_data}  onBuyToken={() => {
+            router.push("/purchase");
+          }}/>
         <TransactionsCard
           transactions={userData.transactions}
           onViewAll={() => {

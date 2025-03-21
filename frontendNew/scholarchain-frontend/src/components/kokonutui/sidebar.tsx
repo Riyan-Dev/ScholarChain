@@ -57,7 +57,7 @@ export default function Sidebar() {
           },
         },
         {
-          href: "/application-form",
+          href: "#",
           icon: SquarePlus,
           label: "New Application",
           onClick: () => {},
@@ -76,6 +76,14 @@ export default function Sidebar() {
           href: "/transactions",
           icon: Wallet,
           label: "Transactions",
+          onClick: () => {
+            router.push("/transactions");
+          },
+        },
+        {
+          href: "/loan-details",
+          icon: Receipt,
+          label: "Current Loan",
           onClick: () => {
             router.push("/transactions");
           },
@@ -250,7 +258,7 @@ export default function Sidebar() {
             </div>
           </div>
 
-          <div className="border-t border-gray-200 px-4 py-4 dark:border-[#1F1F23]">
+          {/* <div className="border-t border-gray-200 px-4 py-4 dark:border-[#1F1F23]">
             <div className="space-y-1">
               <NavItem href="#" icon={Settings}>
                 Settings
@@ -259,7 +267,7 @@ export default function Sidebar() {
                 Help
               </NavItem>
             </div>
-          </div>
+          </div> */}
         </div>
       </nav>
 

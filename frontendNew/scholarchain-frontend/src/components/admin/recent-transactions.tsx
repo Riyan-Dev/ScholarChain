@@ -1,69 +1,82 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ArrowUpRight } from "lucide-react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ArrowUpRight } from "lucide-react";
+import { TransactionAPI } from "@/services/admin.service";
+import { useRouter } from "next/navigation";
 
-export function RecentTransactions() {
-  // Sample transaction data
-  const transactions = [
-    {
-      id: "TX123456",
-      type: "Donation",
-      amount: "$5,000.00",
-      status: "Completed",
-      date: "2023-03-15",
-      from: "John Doe",
-      to: "System Wallet",
-    },
-    {
-      id: "TX123457",
-      type: "Loan Disbursement",
-      amount: "$2,500.00",
-      status: "Completed",
-      date: "2023-03-14",
-      from: "System Wallet",
-      to: "Sarah Johnson",
-    },
-    {
-      id: "TX123458",
-      type: "Repayment",
-      amount: "$750.00",
-      status: "Completed",
-      date: "2023-03-13",
-      from: "Michael Smith",
-      to: "System Wallet",
-    },
-    {
-      id: "TX123459",
-      type: "Donation",
-      amount: "$10,000.00",
-      status: "Pending",
-      date: "2023-03-12",
-      from: "Corporate Donor Inc.",
-      to: "System Wallet",
-    },
-    {
-      id: "TX123460",
-      type: "Loan Disbursement",
-      amount: "$3,000.00",
-      status: "Completed",
-      date: "2023-03-11",
-      from: "System Wallet",
-      to: "David Williams",
-    },
-  ]
+interface RecentTransactionsComponentProps {
+  transactions: TransactionAPI[];
+}
+
+interface RecentTransactions {
+  id: string;
+  type: string;
+  amount: number;
+  status: string;
+  date: string;
+  from: string;
+  to: string;
+}
+
+export function RecentTransactionsComponent({
+  transactions,
+}: RecentTransactionsComponentProps) {
+  const router = useRouter();
+
+  const recentTransactions: RecentTransactions[] = transactions.map((tx) => {
+    // Determine transaction type and from/to information
+    let type = tx.description; // Default
+    let from = "";
+    let to = "";
+
+    if (tx.action === "credit") {
+      type = "Credit";
+      from = tx.username;
+      to = "System Wallet";
+    } else if (tx.action === "debit") {
+      type = "Debit";
+      from = "System Wallet";
+      to = tx.username;
+    }
+
+    return {
+      id: tx.description, // Use description as ID but consider a better unique key
+      type: type,
+      amount: tx.amount,
+      status: "Completed", // Assuming all transactions are completed in this example.  Adapt based on actual API data.
+      date: tx.timestamp,
+      from: from,
+      to: to,
+    };
+  });
 
   return (
     <Card className="col-span-4">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Recent Transactions</CardTitle>
-          <CardDescription>Latest financial activities in the system</CardDescription>
+          <CardDescription>
+            Latest financial activities in the system
+          </CardDescription>
         </div>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" onClick={() => router.push("/transactions")}>
           View All
           <ArrowUpRight className="ml-2 h-4 w-4" />
         </Button>
@@ -81,15 +94,17 @@ export function RecentTransactions() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.map((transaction) => (
+            {recentTransactions.map((transaction) => (
               <TableRow key={transaction.id}>
                 <TableCell className="font-medium">{transaction.id}</TableCell>
                 <TableCell>
                   <Badge
                     variant={
-                      transaction.type === "Donation"
+                      transaction.type === "Donation" ||
+                      transaction.type === "Credit"
                         ? "default"
-                        : transaction.type === "Loan Disbursement"
+                        : transaction.type === "Loan Disbursement" ||
+                            transaction.type === "Debit"
                           ? "destructive"
                           : "outline"
                     }
@@ -99,15 +114,25 @@ export function RecentTransactions() {
                 </TableCell>
                 <TableCell>{transaction.amount}</TableCell>
                 <TableCell>
-                  <Badge variant={transaction.status === "Completed" ? "outline" : "secondary"}>
+                  <Badge
+                    variant={
+                      transaction.status === "Completed"
+                        ? "outline"
+                        : "secondary"
+                    }
+                  >
                     {transaction.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="hidden md:table-cell">{transaction.date}</TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {transaction.date}
+                </TableCell>
                 <TableCell className="hidden lg:table-cell">
-                  {transaction.type === "Donation"
+                  {transaction.type === "Donation" ||
+                  transaction.type === "Credit"
                     ? `From: ${transaction.from}`
-                    : transaction.type === "Loan Disbursement"
+                    : transaction.type === "Loan Disbursement" ||
+                        transaction.type === "Debit"
                       ? `To: ${transaction.to}`
                       : `From: ${transaction.from}`}
                 </TableCell>
@@ -117,6 +142,5 @@ export function RecentTransactions() {
         </Table>
       </CardContent>
     </Card>
-  )
+  );
 }
-

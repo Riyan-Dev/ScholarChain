@@ -117,7 +117,7 @@ class TransactionServices:
         return { "balance": wallet["balance"] }
 
     @staticmethod
-    async def get_all_transactions():    
+    async def get_all_transactions(limit = 0):    
         pipeline = [{
             "$unwind": "$transactions"
             },
@@ -130,9 +130,13 @@ class TransactionServices:
                 "description": "$transactions.description",
                 "timestamp": "$transactions.timestamp",
                 } 
-            }
+            },
+            { "$sort": {"timestamp": -1}}
         ]
-
+        if (limit != 0):
+            pipeline.append(
+                {"$limit": limit}
+            )
         results = await wallet_collection.aggregate(pipeline).to_list()
 
         return results

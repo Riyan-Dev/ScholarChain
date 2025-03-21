@@ -166,7 +166,7 @@ export async function fetchApplicationDetails(applicationId: string): Promise<Ap
 }
 
 // Added: Function to verify an application
-export async function verifyApplication(applicationId: string, verified: boolean): Promise<void> {
+export async function verifyApplication(applicationId: string, verified: boolean, reason: string = ""): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/admin/verify/?application_id=${applicationId}&verified=${verified}`, {
         method: "PUT",
         headers: {
@@ -174,6 +174,7 @@ export async function verifyApplication(applicationId: string, verified: boolean
             "Content-Type": "application/json", // IMPORTANT:  Include Content-Type
             "accept": "application/json",
         },
+        body: JSON.stringify({"reason": reason})
     });
 
     if (!response.ok) {

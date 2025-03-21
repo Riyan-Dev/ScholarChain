@@ -20,6 +20,23 @@ env = Environment(loader=FileSystemLoader(templates_dir))
 class EmailService: 
 
     @staticmethod
+    async def send_disbursement_email(loan):
+        """Sends an email confirming loan disbursement."""
+        current_year = datetime.now().year
+
+        email_data = EmailSchema(
+            to=["i210428@nu.edu.pk"],
+            subject="Loan Disbursement Confirmation - ScholarChain",
+            template_name="disbursement.html",  # Create this template
+            context={
+                "loan": loan,
+                "current_year": current_year,
+            },
+        )
+        await send_email(email_data)
+
+
+    @staticmethod
     async def send_repayment_email(username, loan, recieved, next):
         from services.user_services import UserService
 
@@ -65,11 +82,10 @@ class EmailService:
         await send_email(email_data)
 
     @staticmethod 
-    async def send_rejection_email(application_id):
+    async def send_rejection_email(application_id, reason):
         from services.application_services import ApplicationService
         from services.user_services import UserService
         
-        plan = await ApplicationService.get_plan_db(application_id)
         application = await ApplicationService.get_application_by_id(application_id)
         user = await UserService.get_user_doc_by_username(application["username"])
 
@@ -81,7 +97,7 @@ class EmailService:
             template_name="application_rejected.html", # Save this as a new HTML file
             context={
                 "user": user,
-                # "reason": plan["reasoning"], # Optional: Provide the reason
+                "reason": reason, # Optional: Provide the reason
                 "current_year": current_year,
             },
         )

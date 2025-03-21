@@ -13,8 +13,8 @@ from models.plan import Plan
 application_router = APIRouter()
 
 @application_router.post('/accept-plan/')
-async def accept_plan(application_id: str, current_user: TokenData = Depends(get_current_user)):
-    return await ApplicationService.accept_application(current_user.username, application_id)
+async def accept_plan(application_id: str, background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
+    return await ApplicationService.accept_application(current_user.username, application_id, background_tasks)
 
 @application_router.put('/update-stage/{stage}')
 async def accept_plan(stage: str, current_user: TokenData = Depends(get_current_user)):

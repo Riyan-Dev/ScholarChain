@@ -52,21 +52,21 @@ export function WalletCard({ data, onBuyToken }: WalletCardProps) {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="grid grid-cols-2 gap-8">
+      <CardFooter className="flex flex-grow items-center justify-center">
         <Button
           onClick={onBuyToken}
-          className="flex h-16 flex-col items-center justify-center bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+          className="max-w flex h-16 w-64 flex-col items-center justify-center bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
         >
           <PlusCircle className="mb-1 h-5 w-5" />
           <span className="text-xs">Buy</span>
         </Button>
-        <Button
+        {/* <Button
           variant="outline"
           className="flex h-16 flex-col items-center justify-center"
         >
           <Send className="mb-1 h-5 w-5 text-green-500" />
           <span className="text-xs">Donate</span>
-        </Button>
+        </Button> */}
         {/* <Button
           variant="outline"
           className="flex h-16 flex-col items-center justify-center"

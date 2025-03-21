@@ -79,7 +79,7 @@ class ApplicationService:
 
     # Email can be added here as well 
     @staticmethod
-    async def accept_application(username: str, application_id: str):
+    async def accept_application(username: str, application_id: str, background_task):
         update_data = {
             "updated_at": datetime.now(),
             "status": "accepted"
@@ -92,7 +92,7 @@ class ApplicationService:
 
         deploy_result = await BlockchainService.deploy_loan_contract(username, plan_data["total_loan_amount"])
         print(deploy_result)
-        await LoanService.create_loan(plan_data["total_loan_amount"], plan_data["start_date"], plan_data["end_date"], plan_data["repayment_frequency"], username, deploy_result["contract_address"])
+        await LoanService.create_loan(plan_data["total_loan_amount"], plan_data["start_date"], plan_data["end_date"], plan_data["repayment_frequency"], username, deploy_result["contract_address"], background_task)
         return {"transaction_id": deploy_result["transaction_hash"]}
 
     @staticmethod
@@ -110,7 +110,7 @@ class ApplicationService:
         return {"Message": "Application Stage Updated"}
 
     @staticmethod
-    async def verify_application(application_id: str, verified: bool, background_tasks):
+    async def verify_application(application_id: str, verified: bool, reason: str,  background_tasks):
         if verified:
             update_data = {
                 "updated_at": datetime.now(),
@@ -119,7 +119,8 @@ class ApplicationService:
         else:
             update_data = {
                 "updated_at": datetime.now(),
-                "status": "rejected"
+                "status": "rejected",
+                "reason": reason
             }
         
 
@@ -136,7 +137,7 @@ class ApplicationService:
             if verified:
                 background_tasks.add_task(EmailService.send_verified_email, application_id)
             else:
-                background_tasks.add_task(EmailService.send_rejection_email, application_id)
+                background_tasks.add_task(EmailService.send_rejection_email, application_id, reason)
 
             return {"message": "Application successfully Verified."}
         
@@ -275,6 +276,7 @@ class ApplicationService:
                     Note: 
                     1. You do not have to strictly follow the user's porposed plan and preferrred repayment instead based on financial analysis of user situation give a better suited plan which is managebale by the user.
                     2. Take user preference for the repayment frequency into account as well
+                    3. Make sure that start_date is in the future (later than todays date)
                     Restrictions:
                     1. Loan Amount must be in PKR
                     2. Do not add Comments in the JSON Object response
@@ -304,7 +306,24 @@ class ApplicationService:
             print(f"Error parsing JSON: {e}")
             print("Raw response text:")
             print(response.text)
-        
+
+    async def get_pending_application():
+
+        pipeline = [
+            { "$match":
+                {"status": "pending"}
+            },
+            { "$sort": {"application_date": -1}},
+            {"$limit": 3},
+            { "$project": {
+                "_id": 0
+            } }
+        ]
+
+        result = await application_collection.aggregate(pipeline).to_list()
+        if result: 
+            return result
+                
     async def application_overview(username):
         pipeline = [
             { "$match": { "username": username } },

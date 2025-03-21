@@ -180,7 +180,7 @@ export default function PurchasePage() {
         heading="Purchase Tokens"
         text="Buy tokens to use for donations on the platform."
       />
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid gap-8 md:grid-cols-2 p-8">
         {/* Token Packages Card */}
         <Card>
           <CardHeader>

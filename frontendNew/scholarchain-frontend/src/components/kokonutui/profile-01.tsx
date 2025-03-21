@@ -23,10 +23,10 @@ interface Profile01Props {
 // Sample avatars
 const sampleAvatars = [
   "https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-02-albo9B0tWOSLXCVZh9rX9KFxXIVWMr.png",
-  "https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-7dJ5Yz0QTlQlvIQZRLuQl8n2GvBTt6.png",
-  "https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-03-QwU5QnrCIGlAMZkWQ9A5UHmIzHKGf2.png",
-  "https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-04-0yCR9yTe7Xw9TaLPHzWzfQvHGOQHmP.png",
-  "https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-05-KIjD4l8UVpqWuO8EXrBrfaWNlYEEFi.png",
+//   "https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-01-7dJ5Yz0QTlQlvIQZRLuQl8n2GvBTt6.png",
+//   "https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-03-QwU5QnrCIGlAMZkWQ9A5UHmIzHKGf2.png",
+//   "https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-04-0yCR9yTe7Xw9TaLPHzWzfQvHGOQHmP.png",
+//   "https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-05-KIjD4l8UVpqWuO8EXrBrfaWNlYEEFi.png",
 ]
 
 const defaultProfile = {

@@ -127,6 +127,7 @@ export function ReviewApplicationCard({ onNext }: ReviewApplicationCardProps) {
           <ul className="space-y-2 text-sm text-red-700 dark:text-red-300">
             {[
               "Feasibility report did not pass the criteria",
+              data.reason,
               "Contact our customer service to be eligible for applying again",
               "Or, Try Again in 6 months",
             ].map((item, index) => (

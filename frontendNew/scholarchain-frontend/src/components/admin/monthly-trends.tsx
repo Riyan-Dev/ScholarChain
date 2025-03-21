@@ -150,7 +150,7 @@ export function MonthlyTrends({ monthlyTransactions }: MonthlyTrendsProps) {
                     width: "100%",
                 }}
             >
-                <Tabs defaultValue="line">
+                <Tabs defaultValue="bar">
                     <div className="flex items-center justify-between">
                         <TabsList>
                             <TabsTrigger value="line">Line</TabsTrigger>

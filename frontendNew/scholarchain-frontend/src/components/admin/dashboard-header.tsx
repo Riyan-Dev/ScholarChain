@@ -1,8 +1,9 @@
 import type React from "react"
+
 interface DashboardHeaderProps {
-  heading: string
-  text?: string
-  children?: React.ReactNode
+  heading: string | React.ReactNode;  // Modified type
+  text: string | React.ReactNode;     // Modified type
+  children?: React.ReactNode;
 }
 
 export function DashboardHeader({ heading, text, children }: DashboardHeaderProps) {

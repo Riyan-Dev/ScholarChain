@@ -15,6 +15,11 @@ interface UserDetails {
   role: string
 }
 
+interface Profile01Props {
+    avatar?: string; // Make avatar optional, as the component generates a random one
+}
+
+
 // Sample avatars
 const sampleAvatars = [
   "https://ferf1mheo22r9ira.public.blob.vercel-storage.com/avatar-02-albo9B0tWOSLXCVZh9rX9KFxXIVWMr.png",
@@ -29,7 +34,7 @@ const defaultProfile = {
   role: "Prompt Engineer",
 }
 
-export default function Profile01() {
+const Profile01: React.FC<Profile01Props> = ({ avatar }) => {
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -122,3 +127,4 @@ export default function Profile01() {
   )
 }
 
+export default Profile01;

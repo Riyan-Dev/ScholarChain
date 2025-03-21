@@ -68,7 +68,7 @@ export function UsersTable({ filterChecked, users }: UsersTableProps) {
               {/* <TableHead className="hidden md:table-cell">
                 Last Active
               </TableHead> */}
-              <TableHead className="text-right">Actions</TableHead>
+              {/* <TableHead className="text-right">Actions</TableHead> */}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -103,7 +103,7 @@ export function UsersTable({ filterChecked, users }: UsersTableProps) {
                 {/* <TableCell className="hidden md:table-cell">
                   {user.lastActive}
                 </TableCell> */}
-                <TableCell className="text-right">
+                {/* <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">
@@ -120,7 +120,7 @@ export function UsersTable({ filterChecked, users }: UsersTableProps) {
                       <DropdownMenuItem>Deactivate User</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                </TableCell>
+                </TableCell> */}
               </TableRow>
             ))}
           </TableBody>

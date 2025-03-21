@@ -208,10 +208,10 @@ export default function InternalApplicationFormComponent({
     console.log(data);
   }, [data]);
 
-  const handleButtonClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault(); // Prevent the default form submission
-    await handleSubmit(formData); // Call the async handleSubmit function
-  };
+  // const handleButtonClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  //   e.preventDefault(); // Prevent the default form submission
+  //   await handleSubmit(formData); // Call the async handleSubmit function
+  // };
 
   const handleAddIncomeSource = useCallback(() => {
     setIncomeSources((prevSources) => [
@@ -468,7 +468,9 @@ export default function InternalApplicationFormComponent({
 
       if (result.success) {
         toast.success(result.message);
-        href("/dashboard");
+        <link>
+          href{`/dashboard`};
+        </link>
       } else {
         toast.error(result.message);
       }

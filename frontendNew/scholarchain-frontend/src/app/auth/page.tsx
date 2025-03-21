@@ -92,14 +92,14 @@ const LoginPage = () => {
               <h1 className="mb-4 text-2xl font-bold text-gray-800 dark:text-gray-200">
                 Create Account
               </h1>
-              <div className="my-5 flex gap-3">
+              {/* <div className="my-5 flex gap-3">
                 <a
                   href="#"
                   className="flex h-10 w-10 items-center justify-center rounded-[20%] border border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400"
                 >
                   <i className="fa-brands fa-google-plus-g"></i>
                 </a>
-                {/* ... other social icons (similarly themed) */}
+                {/* ... other social icons (similarly themed) }
                 <a
                   href="#"
                   className="flex h-10 w-10 items-center justify-center rounded-[20%] border border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400"
@@ -118,7 +118,7 @@ const LoginPage = () => {
                 >
                   <i className="fa-brands fa-linkedin-in"></i>
                 </a>
-              </div>
+              </div> */}
               <span className="mb-4 text-sm text-gray-600 dark:text-gray-400">
                 or use your email for registration
               </span>
@@ -191,14 +191,14 @@ const LoginPage = () => {
                 Sign In
               </h1>
               {error && <p className="mb-3 text-sm text-red-500">{error}</p>}
-              <div className="my-5 flex gap-3">
+              {/* <div className="my-5 flex gap-3">
                 <a
                   href="#"
                   className="flex h-10 w-10 items-center justify-center rounded-[20%] border border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400"
                 >
                   <i className="fa-brands fa-google-plus-g"></i>
                 </a>
-                {/* ... other social icons (similarly themed) */}
+                {/* ... other social icons (similarly themed) }
                 <a
                   href="#"
                   className="flex h-10 w-10 items-center justify-center rounded-[20%] border border-gray-300 text-gray-600 dark:border-gray-600 dark:text-gray-400"
@@ -217,8 +217,8 @@ const LoginPage = () => {
                 >
                   <i className="fa-brands fa-linkedin-in"></i>
                 </a>
-              </div>
-              <span className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+              </div>*/}
+              <span className="mb-4 text-sm text-gray-600 dark:text-gray-400"> 
                 or use your username password
               </span>
               <input

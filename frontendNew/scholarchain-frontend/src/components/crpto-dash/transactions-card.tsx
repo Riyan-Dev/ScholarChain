@@ -71,7 +71,7 @@ export function TransactionsCard({
       <CardFooter>
       <motion.div className="w-full" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
         
-        <Button onClick={onViewAll} className="w-full" variant="default">
+        <Button onClick={onViewAll} className="w-full cursor-pointer" variant="default">
           View All Transactions
         </Button>
                   </motion.div>

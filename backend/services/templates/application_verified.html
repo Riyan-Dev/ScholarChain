@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject }}</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo img {
+            max-width: 150px; /* Adjust as needed */
+            height: auto;
+        }
+        .platform-name {
+            color: #007bff; /* Blue */
+            background-image: linear-gradient(to right, #007bff, #00ffff); /* Blue to Cyan */
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: bold;
+        }
+        h1 {
+            color: #28a745; /* Green for success */
+            margin-top: 0;
+        }
+        .verification-message {
+            margin-bottom: 20px;
+        }
+        .loan-summary {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .loan-summary h2 {
+            color: #555;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .loan-summary p {
+            margin-bottom: 8px;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #777;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="your_logo_url_here.png" alt="ScholarChain Logo">
+        </div>
+        <h1>Your Loan Application Has Been Verified!</h1>
+        <div class="verification-message">
+            <p>Dear {{ user.name }},</p>
+            <p>We are pleased to inform you that your loan application submitted through <span class="platform-name">ScholarChain</span> has been successfully <strong style="color: #28a745;">VERIFIED</strong>.</p>
+            <p>Please find a summary of your loan plan below:</p>
+        </div>
+
+        <div class="loan-summary">
+            <h2>Loan Plan Summary</h2>
+            <p><strong>Applicant Name:</strong> {{ user.name }}</p>
+            <p><strong>Application ID:</strong> {{ plan.application_id }}</p>
+            <p><strong>Total Loan Amount:</strong> {{ plan.total_loan_amount }}</p>
+            <p><strong>Start Date:</strong> {{ plan.start_date }}</p>
+            <p><strong>End Date:</strong> {{ plan.end_date }}</p>
+            <p><strong>Repayment Frequency:</strong> {{ plan.repayment_frequency }}</p>
+            <p><strong>Installment Amount:</strong> {{ plan.installment_amount }}</p>
+            <p><strong>Platform:</strong> <span class="platform-name">ScholarChain</span></p>
+        </div>
+
+        <p>You can now proceed to the next steps in your <span class="platform-name">ScholarChain</span> account.</p>
+
+        <div class="button-container">
+            <a href="{{ dashboard_url }}" class="button">Go to Your Dashboard</a>
+        </div>
+
+        <div class="footer">
+            <p>Thank you for using <span class="platform-name">ScholarChain</span>.</p>
+            <p>&copy; {{ current_year }} ScholarChain. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

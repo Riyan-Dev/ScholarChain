@@ -1,11 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Brain, FileCode, Percent } from "lucide-react";
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useRef } from "react";
+import { RefObject } from "react"; // Import RefObject
 import NetworkBackground from "@/components/landing-page/network-background";
 import { useRouter } from "next/navigation";
 
@@ -39,11 +39,11 @@ const popIn = {
 };
 
 // Custom animation hook
-function useAnimateOnScroll(threshold = 0.2) {
-  const ref = useRef(null);
+function useAnimateOnScroll(threshold = 0.2): [RefObject<HTMLDivElement>, boolean] {  // Explicit return type
+  const ref = useRef<HTMLDivElement>(null); // Specify type of useRef
   const isInView = useInView(ref, { once: false, amount: threshold });
 
-  return [ref, isInView];
+  return [ref as RefObject<HTMLDivElement>, isInView];
 }
 
 export default function LandingPage() {
@@ -101,7 +101,7 @@ export default function LandingPage() {
             <Button
               size="lg"
               onClick={() => router.push("/auth")}
-              className="group bg-white px-8 py-6 text-lg font-semibold text-gray-900 hover:bg-gray-100"
+              className="group bg-white px-8 py-6 text-lg font-semibold text-gray-900 hover:bg-gray-100 cursor-pointer"
             >
               Get Started
               <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />

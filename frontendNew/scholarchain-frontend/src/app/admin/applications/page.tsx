@@ -48,11 +48,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   getAllApplications,
   Application,
+  retriggerAiFlow
 } from "@/services/application.service";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
 export default function ApplicationsListPage() {
   const [applications, setApplications] = useState<Application[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,32 +64,81 @@ export default function ApplicationsListPage() {
   }>({ key: null, direction: "ascending" });
   const [currentTab, setCurrentTab] = useState("all"); // Track current tab
   const applicationsPerPage = 5;
+  const [pollingEnabled, setPollingEnabled] = useState(true);
+  const [retriggeringApplicationId, setRetriggeringApplicationId] = useState<string | null>(null);
+
+  const queryClient = useQueryClient();
+
+  const {
+    data: fetchedApplications,
+    isLoading,
+    isError,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: ["applications"],
+    queryFn: getAllApplications,
+    refetchInterval: pollingEnabled ? 5000 : false,
+    refetchOnWindowFocus: false,
+  });
+
+  // Now you can use isLoading
+  const isLoadingData = isLoading;
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await getAllApplications();
-        console.log("Fetched data:", data); // Keep for debugging
+    if (fetchedApplications) {
+      setApplications(fetchedApplications);
+    }
+  }, [fetchedApplications]);
 
-        const applicationsWithRiskScore = data.filter(
-          (app) =>
-            app.riskScore !== undefined &&
-            app.riskScore !== null &&
-            app.riskScore !== "N/A"
-        );
-        setApplications(applicationsWithRiskScore);
-      } catch (err: any) {
-        setError(
-          err.message || "An error occurred while fetching applications."
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+  const {
+    mutate: retriggerMutation,
+    isPending,
+    error: retriggerError,
+    reset,
+  } = useMutation({
+    mutationFn: (applicationId: string) => retriggerAiFlow(applicationId),
+    onMutate: (applicationId) => {
+      // Set the retriggering ID when the mutation starts
+      setRetriggeringApplicationId(applicationId);
+      
+      // Optimistically update the application status from "ai-failure" to "submitted"
+      setApplications(prev => 
+        prev.map(app => 
+          app.id === applicationId 
+            ? { ...app, status: "submitted", riskScore: null } 
+            : app
+        )
+      );
+      
+      return { applicationId };
+    },
+    onSuccess: (data, variables) => {
+      console.log("AI Flow Retriggered:", data);
+      // Invalidate and refetch to get the updated status
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+    },
+    onError: (error: Error) => {
+      setError(error.message || "Failed to retrigger AI flow.");
+      // Revert the optimistic update on error
+      setApplications(prev => 
+        prev.map(app => 
+          app.id === retriggeringApplicationId 
+            ? { ...app, status: "ai-failure" } 
+            : app
+        )
+      );
+      setRetriggeringApplicationId(null);
+    },
+    onSettled: () => {
+      // Clear the retriggering state
+      setRetriggeringApplicationId(null);
+    },
+  });
+
+  const handleRetrigger = (applicationId: string) => {
+    retriggerMutation(applicationId);
+  };
 
   // --- Filtering, Sorting, and Pagination Logic ---
 
@@ -169,7 +220,21 @@ export default function ApplicationsListPage() {
             <CheckCircle2 className="mr-1 h-3 w-3" />
             Accepted
           </Badge>
-        )
+        );
+      case "ai-failure":
+      return (
+        <Badge className="bg-red-800 text-white hover:bg-red-700">
+          <XCircle className="mr-1 h-3 w-3" />
+          AI Failure
+        </Badge>
+      );
+      case "submitted":
+      return (
+        <Badge className="bg-blue-800 text-white hover:bg-blue-700">
+          <XCircle className="mr-1 h-3 w-3" />
+          Submitted
+        </Badge>
+      );
       case "pending":
       default:
         return (
@@ -178,7 +243,6 @@ export default function ApplicationsListPage() {
             Pending
           </Badge>
         );
-      
     }
   };
 
@@ -250,6 +314,7 @@ export default function ApplicationsListPage() {
             <TabsTrigger value="verified">Approved</TabsTrigger>
             <TabsTrigger value="rejected">Rejected</TabsTrigger>
             <TabsTrigger value="accepted">Accepted</TabsTrigger>
+            <TabsTrigger value="ai-failure">AI Failure</TabsTrigger>
           </TabsList>
 
           <div className="flex w-full items-center gap-2 sm:w-auto">
@@ -479,12 +544,35 @@ export default function ApplicationsListPage() {
                             {getStatusBadge(application.status)}
                           </TableCell>
                           <TableCell className="px-2">
-                            <span
-                              className={getRiskColor(application.riskScore)}
-                            >
-                              {application.riskScore}
-                            </span>
+                            {application.status === "ai-failure" ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={retriggeringApplicationId === application.id}
+                                onClick={() => {
+                                  retriggerMutation(application.id);
+                                }}
+                              >
+                                {retriggeringApplicationId === application.id ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Retriggering...
+                                  </>
+                                ) : (
+                                  "Retrigger AI Flow"
+                                )}
+                              </Button>
+                            ) : application.riskScore === undefined ||
+                              application.riskScore === null ||
+                              application.riskScore === "N/A" ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <span className={getRiskColor(application.riskScore)}>
+                                {application.riskScore}
+                              </span>
+                            )}
                           </TableCell>
+
                           <TableCell className="px-2">
                             {formatDate(application.submittedDate)}
                           </TableCell>
@@ -1273,6 +1361,193 @@ export default function ApplicationsListPage() {
                     (app) => app.status.toLowerCase() === "verified"
                   ).length
                 }
+                )
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={endIndex >= sortedApplications.length}
+                >
+                  Next
+                </Button>
+              </div>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        {/* --- AI Failure Applications Tab --- */}
+        <TabsContent value="ai-failure" className="mt-6">
+          <Card>
+            <CardHeader className="px-6 py-4">
+              <div className="flex items-center justify-between">
+                <CardTitle>AI Failure Applications</CardTitle>
+                <CardDescription>
+                  {isLoading
+                    ? "Loading AI Failure applications..."
+                    : error
+                      ? `Error: ${error}`
+                      : `${
+                          tabFilteredApplications.length
+                        } AI Failure applications found`}
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              {isLoading ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Applicant</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Risk Score</TableHead>
+                      <TableHead>Submitted</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[...Array(5)].map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <Skeleton className="h-8 w-40" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-8 w-20" />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Skeleton className="h-8 w-10" />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : error ? (
+                <div className="p-4 text-red-500">Error: {error}</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="px-2">Applicant</TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Amount
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Status
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Risk Score
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="px-2">
+                        <div className="flex items-center gap-1">
+                          Submitted
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="px-2 text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedApplications.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="h-24 text-center">
+                          No AI Failure applications found.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      paginatedApplications.map((application) => (
+                        <TableRow key={application.id}>
+                          <TableCell className="pl-4">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage
+                                  src="/placeholder.svg?height=32&width=32"
+                                  alt={application.applicant}
+                                />
+                                <AvatarFallback>
+                                  {application.applicant
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">
+                                  {application.applicant}
+                                </p>
+                                <p className="text-muted-foreground text-xs">
+                                  {application.email}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-2">
+                            ${application.amount.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="px-2">
+                            {getStatusBadge(application.status)}
+                          </TableCell>
+                          <TableCell className="px-2">
+                            <span
+                              className={getRiskColor(application.riskScore)}
+                            >
+                              {application.riskScore}
+                            </span>
+                          </TableCell>
+                          <TableCell className="px-2">
+                            {formatDate(application.submittedDate)}
+                          </TableCell>
+                          <TableCell className="px-2 text-right">
+                            <Button variant="ghost" size="icon" asChild>
+                              <Link
+                                href={`/admin/applications/${application.id}`}
+                              >
+                                <FileText className="h-4 w-4" />
+                                <span className="sr-only">View</span>
+                              </Link>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+
+            <CardFooter className="flex items-center justify-between border-t px-6 py-4">
+              <div className="text-muted-foreground text-sm">
+                Showing <strong>{paginatedApplications.length}</strong> of{" "}
+                <strong>{tabFilteredApplications.length}</strong> AI Failure
+                applications (Total:{' '}
+                {applications.filter((app) => app.status.toLowerCase() === 'ai-failure').length}
                 )
               </div>
               <div className="flex items-center gap-2">

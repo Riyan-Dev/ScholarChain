@@ -82,10 +82,9 @@ export function LoanCard({
     return null;
   }
 
-  const percentComplete =
-    (loan.installments_completed / loan.no_of_installments) * 100;
-  const installmentAmount = loan.loan_amount / loan.no_of_installments;
+  const percentComplete = (loan.loan_amount_repaid / loan.loan_amount) * 100;
   const remainingAmount = loan.loan_amount - loan.loan_amount_repaid;
+  const installmentAmount = remainingAmount / loan.pending;
   const nextPaymentDue = loan.overdue > 0 ? "Overdue" : "Next month";
 
   return (
@@ -108,7 +107,7 @@ export function LoanCard({
                   Total Loan Amount
                 </div>
                 <div className="font-semibold">
-                  ${loan.loan_amount.toLocaleString()}
+                  PKR {loan.loan_amount.toLocaleString()}
                 </div>
               </div>
               <div className="mt-2 flex items-center justify-between">
@@ -116,7 +115,7 @@ export function LoanCard({
                   Amount Repaid
                 </div>
                 <div className="font-medium">
-                  ${loan.loan_amount_repaid.toLocaleString()}
+                  PKR {loan.loan_amount_repaid.toLocaleString()}
                 </div>
               </div>
               <div className="mt-2 flex items-center justify-between">
@@ -124,7 +123,7 @@ export function LoanCard({
                   Remaining Balance
                 </div>
                 <div className="font-medium">
-                  ${remainingAmount.toLocaleString()}
+                  PKR {remainingAmount.toLocaleString()}
                 </div>
               </div>
             </div>
@@ -137,7 +136,7 @@ export function LoanCard({
                   Installment Amount
                 </div>
                 <div className="font-medium">
-                  ${installmentAmount.toLocaleString()}
+                  PKR {installmentAmount.toLocaleString()}
                 </div>
               </div>
               <div className="mt-2 flex items-center justify-between">
@@ -173,7 +172,7 @@ export function LoanCard({
                 label="Paid"
                 count={loan.paid}
                 icon={<DollarSign className="h-3.5 w-3.5" />}
-                variant="success"
+                variant="default"
               />
               <InstallmentSummary
                 label="Pending"
@@ -231,17 +230,18 @@ export function LoanCard({
           onClick={handlePayInstallment}
           disabled={isPaymentLoading || loan.pending === 0}
           size="sm"
+          className="flex w-full items-center justify-center sm:w-auto"
         >
           {isPaymentLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing
-            </>
+            <span className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Processing...
+            </span>
           ) : (
-            <>
+            <span className="flex items-center gap-2">
               Pay Next Installment
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
+              <ArrowRight className="h-4 w-4" />
+            </span>
           )}
         </Button>
       </CardFooter>

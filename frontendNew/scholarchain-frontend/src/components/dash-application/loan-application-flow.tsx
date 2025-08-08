@@ -8,7 +8,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentUploadCard } from "./document-upload-card";
 import { ApplicationTimeline } from "./application-timeline";
 import { ReviewApplicationCard } from "./review-application-card";
-import { RepaymentPlanCard } from "./repayment-plan-card";
 import { StartApplicationCard } from "./start-application-card";
 import { updateStage } from "@/services/user.service";
 import { LoanDashData } from "@/lib/types";
@@ -100,22 +99,22 @@ export function LoanApplicationFlow({
     return () => clearInterval(interval);
   };
   // Handle next stage navigation
-  const handleNextStage = () => {
+  const handleNextStage = async () => {
     setPreviousStage(currentStage);
 
     if (currentStage === "start") {
-      updateStage("upload");
+      await updateStage("upload");
     } else if (currentStage === "upload") {
       setCurrentStage("review");
-      updateStage("review");
+      await updateStage("review");
     } else if (currentStage === "review") {
       setCurrentStage("repayment");
-      updateStage("repayment");
+      await updateStage("repayment"); // and await here
     } else if (currentStage === "repayment") {
       setCurrentStage("complete");
-      updateStage("complete");
+      await updateStage("complete"); // and await here
     } else if (currentStage === "complete") {
-      updateStage("accepted");
+      await updateStage("accepted"); // and await here
       router.push("/loan-details");
     }
   };
@@ -160,7 +159,7 @@ export function LoanApplicationFlow({
         </Card> */}
 
           {/* Application Timeline */}
-          {currentStage !== "accepted" && (
+          {(
             <ApplicationTimeline currentStage={currentStage} />
           )}
           {/* Application Cards */}

@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/dialog";
 import { toast, Toaster } from "sonner";
 import { buyTokens } from "@/services/donor.service";
+import { useRouter } from "next/navigation";
+import {AuthService} from "@/services/auth.service"
 
 export default function PurchasePage() {
   const [selectedPackage, setSelectedPackage] = useState("popular");
@@ -37,6 +39,8 @@ export default function PurchasePage() {
   const [cvc, setCvc] = useState("");
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false); // New state for loading
+  const router = useRouter();
+  const role = AuthService.getUserRole()
 
   const packages = useMemo(
     () => [
@@ -145,10 +149,13 @@ export default function PurchasePage() {
         if (result.new_balance !== undefined) {
           // You would have a state variable for the user's balance, e.g., setUserBalance
           // setUserBalance(result.new_balance);
-          console.log("new balance", result.new_balance)
+          // console.log("new balance", result.new_balance)
         }
       }
-
+      if (role === "/donator")
+        router.push("/donor"); // Redirect to dashboard
+      else if (role === "applicant")
+        router.push("/dashboard");
 
     } catch (error) {
       // This should ideally not be reached due to error handling in buyTokens,
@@ -168,12 +175,12 @@ export default function PurchasePage() {
   }, [activeTab])
 
   return (
-    <div>
+    <div className="p-8">
       <DashboardHeader
         heading="Purchase Tokens"
         text="Buy tokens to use for donations on the platform."
       />
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid gap-8 md:grid-cols-2 p-8">
         {/* Token Packages Card */}
         <Card>
           <CardHeader>
@@ -339,7 +346,7 @@ export default function PurchasePage() {
                   your contributions.
                 </p>
               </div>
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <h4 className="font-medium">Premium Features Access</h4>
                 <p className="text-muted-foreground text-sm">
                   Gain access to detailed reports, ledgers, and application
@@ -352,7 +359,7 @@ export default function PurchasePage() {
                   Administrators may top up your account with bonus tokens based
                   on your donation activity.
                 </p>
-              </div>
+              </div> */}
             </CardContent>
           </Card>
         </div>

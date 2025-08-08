@@ -21,8 +21,8 @@ export function MonthYearPicker({ value, onChange, className }: MonthYearPickerP
     const [open, setOpen] = React.useState(false)
 
     // Get the current view year
+    console.log(value)
     const [viewYear, setViewYear] = React.useState(date.getFullYear())
-
     // Update internal state when value changes
     React.useEffect(() => {
         if (value) {

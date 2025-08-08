@@ -1,4 +1,5 @@
 # services/user_service.py
+from itertools import chain
 import os
 import pathlib
 import base64
@@ -6,12 +7,16 @@ import json
 import time
 
 import asyncio
+
+from typing import List
 from fastapi import HTTPException
 from web3 import Web3
+
 from middleware.JWT_authentication import get_password_hash, verify_password
 from db import user_collection, wallet_collection
-from utility import transform_user_document
+from utility import transform_user_document, convert_mongo_to_json_string
 
+from models.application import Document
 from models.user import User, DocumentsList
 from models.wallet import Wallet
 
@@ -19,8 +24,8 @@ from google.genai import types
 from services.gemini_services import GeminiServices
 
 
-
 from services.encrption_services import EncrptionServices
+from services.rag_services import pdf_to_images, vision_model
 from services.documents import document
 from services.transaction_services import TransactionServices
 
@@ -51,7 +56,6 @@ class UserService:
                 documents.append({"type": ids[idx], "url": file_url})
             file_paths.append(file_path)
         return documents, file_paths
-        # return await ApplicationService.update_application(token.username, {"documents": documents})
 
     
 
@@ -78,6 +82,7 @@ class UserService:
             hashed_password = get_password_hash(user_data.hashed_password)
             
             new_user = {
+                "name": user_data.name,
                 "username": user_data.username,
                 "email": user_data.email,
                 "hashed_password": hashed_password,
@@ -147,6 +152,13 @@ class UserService:
        
         return user_doc
     
+    @staticmethod 
+    async def get_all_users():
+        users = await user_collection.find().to_list(None)
+        for user in users:
+            user["_id"] = str(user["_id"])
+        # print(users)
+        return users
 
     @staticmethod 
     async def get_all_donars_username():
@@ -197,6 +209,9 @@ class UserService:
                                         Note: page content must contain the extracted text and tables for each image
                                         Note: The length of the returned list of documetns should equals the number of images in the input
                                         Final_note: I have already provided the source of Data use it as given in the response format
+
+                                        Restriction: If you cannot infer data for the metadata return empty strings instead on None 
+
                                         response format:
                                         {{
                                             "documents": [
@@ -240,6 +255,7 @@ class UserService:
                     
                     print(parsed_response)
                     new_documents[ids[i]].extend(parsed_response["documents"])
+                    await UserService.add_documents(token.username, new_documents)
                 else:
                     raise HTTPException(status_code=500, detail=f"Unable to fetch response, Try Again")
             except json.JSONDecodeError:
@@ -248,7 +264,7 @@ class UserService:
 
         await LangChainService.store_user_documents(token.username, new_documents, ids)
         await ApplicationService.auto_fill_fields(token,  documents)
-        return await UserService.add_documents(token.username, new_documents)
+        # return await UserService.add_documents(token.username, new_documents)
 
     async def check_all_document_types_present(username: str):
         """
@@ -284,6 +300,9 @@ class UserService:
                 "electricity_bills_present": {
                     "$gt": [{ "$size": { "$ifNull": ["$documents.electricity_bills", []] } }, 0]
                 },
+                "transcript_present": {
+                    "$gt": [{ "$size": { "$ifNull": ["$documents.undergrad_transcript", []] } }, 0]
+                },
                 "gas_bills_present": {
                     "$gt": [{ "$size": { "$ifNull": ["$documents.gas_bills", []] } }, 0]
                 },
@@ -308,6 +327,7 @@ class UserService:
                     { "$cond": [{ "$eq": ["$CNIC_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$guardian_CNIC_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$electricity_bills_present", True] }, 1, 0] },
+                    { "$cond": [{ "$eq": ["$transcript_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$gas_bills_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$intermediate_result_present", True] }, 1, 0] },
                     { "$cond": [{ "$eq": ["$salary_slips_present", True] }, 1, 0] },
@@ -315,7 +335,7 @@ class UserService:
                     { "$cond": [{ "$eq": ["$reference_letter_present", True] }, 1, 0] }
                     ]
                 },
-                "total_arrays": 8 
+                "total_arrays": 9 
                 },
             },
                 {
@@ -344,11 +364,35 @@ class UserService:
             return result[0]
         else:
             return {"status": False, "progress": 0}  # User not found or no documents field
-        
+    
+    @staticmethod
+    async def update_mongo_vector_store(username):
+        from services.application_services import ApplicationService
+        from services.loan_services import LoanService
+        from services.langchain_services import LangChainService
+
+        user_data = await UserService.get_user_by_username(username)
+        application_data = await ApplicationService.get_application(username)
+        loan_data = await LoanService.get_loan(username)
+        wallet_data = await TransactionServices.get_wallet(username)
+
+        mongo_data = {
+            "users": await convert_mongo_to_json_string(user_data.dict()),
+            "application": await convert_mongo_to_json_string(application_data),
+            "loan": await convert_mongo_to_json_string(loan_data),
+            "wallet": await convert_mongo_to_json_string(wallet_data)
+        }
+
+         
+        await LangChainService.overwrite_vector_store_from_mongo(username, mongo_data)
+
     @staticmethod
     async def get_applicant_dash(username): 
         from services.application_services import ApplicationService
         from services.loan_services import LoanService
+
+        # await UserService.update_mongo_vector_store(username)
+
         pipeline = [
             {
                 "$match": {
@@ -464,3 +508,80 @@ class UserService:
             dashData["wallet_data"] = wallet  #Consider removing, as we already have balance and transactions
 
         return dashData
+
+    @staticmethod
+    async def get_admin_dash():
+        from services.loan_services import LoanService
+        from services.application_services import ApplicationService
+        from services.admin_services import AdminService
+        # from services.transaction_services import TransactionServices
+        try:
+            total_applications_future = ApplicationService.get_all_applications()
+            all_loans_future = LoanService.get_all_loans()
+            top_transactions_future = TransactionServices.get_all_transactions(10)
+            total_donations_future = AdminService.get_total_donations()
+            available_funds_future = AdminService.get_available_funds()   
+            pending_applications_future = ApplicationService.get_pending_application()  
+            upcoming_repayments_future = LoanService.get_upcoming_payments()
+            monthly_transactions_future = AdminService.get_monthly_transactions()
+            application_count_future = AdminService.get_application_counts()
+        
+            (total_applications,
+             all_loans,
+             total_donations,
+             available_funds,
+             top_transactions,
+             pending_applications,
+             upcoming_repayments,
+             monthly_transactions_count,
+             total_applications_count) = await asyncio.gather(
+                total_applications_future,
+                all_loans_future,
+                total_donations_future,
+                available_funds_future,
+                top_transactions_future,
+                pending_applications_future,
+                upcoming_repayments_future,
+                monthly_transactions_future,
+                application_count_future
+            )
+            
+            total_donations_value = total_donations[0]["totalAmount"] if total_donations and total_donations[0] else 0
+            available_funds_value = available_funds[0]["availableFunds"] if available_funds and available_funds[0] else 0
+
+            active_loans = [loan for loan in all_loans if loan["status"] == "ongoing"]
+
+            pending_applications_list = pending_applications if pending_applications is not None else []
+
+            dash_data = {
+                "total_donations": total_donations_value,
+                "available_funds": available_funds_value,
+                "active_loans": len(active_loans),
+                "total_applications": len(total_applications),
+                "application_count": total_applications_count,
+                "monthly_transactions": monthly_transactions_count,
+                "transactions": top_transactions,
+                "pending_application": pending_applications_list,
+                "upcoming_repayments": upcoming_repayments,
+            }
+
+            return dash_data
+
+        except Exception as e:
+            print(f"Error in get_admin_dash: {e}")  # Print the actual error
+            return None
+
+
+    @staticmethod
+    async def get_user_details(username: str) -> dict:
+        user_doc = await user_collection.find_one({"username": username})
+
+        if user_doc:
+            return {
+                "name": user_doc.get("name"),
+                "username": user_doc.get("username"),
+                "email": user_doc.get("email"),
+                "role": user_doc.get("role"),
+            }
+        else:
+            return None

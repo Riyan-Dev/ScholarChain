@@ -1,20 +1,22 @@
 import math
 
+from services.email_service import EmailService
 from fastapi import HTTPException
-from datetime import datetime
+from datetime import datetime, timedelta
 import dateutil.relativedelta
 
 from services.transaction_services import TransactionServices
 from services.blockchain_service import BlockchainService
+from services.email_service import EmailService
 
-from models.loan import Loan
+from models.loan import Loan, Installment
 from db import loan_collection
+from bson import ObjectId
 
 from pymongo import UpdateOne
-
 class LoanService:
     @staticmethod
-    async def create_loan(loan_amount, start_date, end_date, repayement_frequecy, username, address):
+    async def create_loan(loan_amount, start_date, end_date, repayement_frequecy, username, address, background_task):
         print("yolo")
         loan = await LoanService.create_loan_object(total_loan_amount=loan_amount, 
                                               start_date=start_date, 
@@ -24,6 +26,7 @@ class LoanService:
                                               contract_address=address)
         try:
             result = await loan_collection.insert_one(loan.dict())
+            background_task.add_task(EmailService.send_disbursement_email, loan.dict())
             print(result)
             return {
                 "message": "Loan successfully created.",
@@ -66,16 +69,16 @@ class LoanService:
 
 
     @staticmethod
-    async def repay_loan(username): 
+    async def repay_loan(username, background_tasks): 
         loan_data = await LoanService.get_loan_details(username)
         loan = Loan(**loan_data)
         
         amount_remaining = loan.loan_amount - loan.loan_amount_repaid
         
         first_pending = next((inst for inst in loan.installments if inst.installment_status == "pending"), None)
-        installments_remaining = loan.no_of_installments - first_pending.installment_id - 1
-        amount_to_pay = math.ceil(amount_remaining / installments_remaining)
+        installments_remaining = loan.no_of_installments - (first_pending.installment_id - 1)
 
+        amount_to_pay = math.ceil(amount_remaining / installments_remaining)
         first_pending.installment_status = "paid"
         first_pending.amount_paid = amount_to_pay
         first_pending.installment_paid_date = datetime.now()
@@ -87,15 +90,15 @@ class LoanService:
         deploy_result = await BlockchainService.repay_loan(username, loan.contract_address, amount_to_pay)
         first_pending.transaction_id = deploy_result["transaction_hash"]
 
+        next_pending = next((inst for inst in loan.installments if inst.installment_status == "pending"), None)
         
-        
-
         await LoanService.update_loan(username, loan.dict())
+        background_tasks.add_task(EmailService.send_repayment_email, username, loan, first_pending, next_pending)
         return {"transaction_id": deploy_result["transaction_hash"]}
     
     @staticmethod
     async def get_all_loans():
-        loans = loan_collection.find().to_list()
+        loans = await loan_collection.find().to_list()
         for loan in loans:
             loan["_id"] = str(loan["_id"])
         return loans
@@ -264,7 +267,7 @@ class LoanService:
         # --- 2. Calculate Number of Installments ---
         delta = dateutil.relativedelta.relativedelta(end_date_dt, start_date_dt)
         total_months = delta.months + (delta.years * 12)
-
+        print(total_months)
         if repayment_frequency == "monthly":
             installment_months = 1
             no_of_installments = total_months + 1
@@ -280,6 +283,7 @@ class LoanService:
         else:  # Should never happen
             raise ValueError("Internal Error: Invalid frequency.")
 
+        no_of_installments -= 1
         # --- 3. Create Installment Objects ---
         installments = []
         current_installment_date = start_date_dt
@@ -301,6 +305,39 @@ class LoanService:
         )
 
         return loan
+    
+    async def get_upcoming_payments():
+        sixty_days_from_now = datetime.now() + timedelta(days=60)
+
+        pipeline = [
+            {
+                "$match": {
+                    "installments.installment_status": "pending",
+                    "installments.installment_date": {
+                        "$gte": datetime.now(),
+                        "$lte": sixty_days_from_now,
+                    },
+                },
+            },
+            {"$unwind": "$installments"},
+            {
+                "$match": {
+                    "installments.installment_status": "pending",
+                    "installments.installment_date": {
+                        "$gte": datetime.now(),
+                        "$lte": sixty_days_from_now,
+                    },
+                },
+            },
+            {"$sort": {"installments.installment_date": -1}},
+            {"$limit": 3},
+            { "$project": {
+                "_id": 0
+            }}
+        ]
+
+        result = await loan_collection.aggregate(pipeline).to_list(length=1)
+        return result
 
     async def fetch_repay_details(username):
 
@@ -332,7 +369,7 @@ class LoanService:
                             {
                                 "$subtract": [
                                     "$loanDetails.no_of_installments",
-                                    {"$add": ["$nextInstallment.installment_id", 1]}
+                                    {"$subtract": ["$nextInstallment.installment_id", 1]}
                                 ]
                             }
                         ]

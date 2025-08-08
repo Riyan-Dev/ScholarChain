@@ -35,13 +35,13 @@ export const AuthService = {
         },
         body: formBody.toString(),
       });
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || "Login failed");
       }
 
       const data = await response.json();
+      console.log(data)
       AuthService.setToken(data.access_token);
       return data;
     } catch (error: any) {
@@ -83,7 +83,7 @@ export const AuthService = {
   setToken: (token: string) => {
     Cookies.set(TOKEN_KEY, token, {
       expires: 1, // Expires in 1 day (adjust as needed)
-      secure: process.env.NODE_ENV === "production", // Use HTTPS in production
+      secure: false, // Use HTTPS in production
       sameSite: "strict", // CSRF protection
       path: "/", // Available on all paths
     });
@@ -121,9 +121,7 @@ export const AuthService = {
   },
 
   // --- Get User Information (from the token) ---
-  getUserInfo: (
-    tokenPara = null
-  ): { username: string; role: string } | null => {
+  getUserInfo: (tokenPara: string | null = null): { username: string; role: string } | null => {
     const token = tokenPara || AuthService.getToken();
 
     if (!token) {
@@ -138,7 +136,7 @@ export const AuthService = {
         return null;
       }
 
-      return { username: decoded.sub, role: decoded.role };
+      return {username: decoded.sub!, role: decoded.role };
     } catch (error) {
       console.error("Token Decode Error", error);
       return null;

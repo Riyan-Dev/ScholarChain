@@ -1,5 +1,6 @@
 import os
 
+from services.transaction_services import TransactionServices
 from fastapi import Depends, HTTPException, status, APIRouter, UploadFile, File, Form, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
@@ -8,7 +9,10 @@ from typing import List
 
 from middleware.JWT_authentication import create_access_token, TokenData, get_current_user
 from services.user_services import UserService
+from services.email_service import send_email
 from models.user import User
+from models.email import EmailSchema
+
 
 user_router = APIRouter()
 
@@ -44,7 +48,7 @@ async def get_documents_status(token: TokenData = Depends(get_current_user)):
 
 @user_router.get("/get-dash")
 async def get_dash(token: TokenData = Depends(get_current_user)):
-
+    print("Getting Dash")
     if token.role == "applicant":
         dash = await UserService.get_applicant_dash(token.username)
         return dash
@@ -52,12 +56,39 @@ async def get_dash(token: TokenData = Depends(get_current_user)):
         dash = await UserService.get_donator_dash(token.username)
         return dash
     elif token.role == "admin":
-        pass
+        dash = await UserService.get_admin_dash()
+        return dash
 
 @user_router.post("/set-upload")
 async def set_upload(token: TokenData = Depends(get_current_user)):
     return await UserService.set_upload(token.username)
 
+@user_router.get("/transactions/")
+async def get_transaction(token: TokenData = Depends(get_current_user)):
+    try:
+        if (token.role != "admin"):
+            transactions = await TransactionServices.get_transactions(token.username)
+            return JSONResponse(content=transactions, status_code = 200)
+        else:
+            transactions = await TransactionServices.get_all_transactions()
+            return JSONResponse(content=transactions, status_code = 200)
+    except Exception as e:
+        print(e)
+        raise HTTPException(
+            status_code=404,
+            detail="Wallet not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
+@user_router.get("/me")
+async def get_user_details(token: TokenData = Depends(get_current_user)):
+    user_info = await UserService.get_user_details(token.username)
 
+    if user_info:
+        return user_info
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )

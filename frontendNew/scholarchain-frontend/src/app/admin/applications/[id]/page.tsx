@@ -89,6 +89,7 @@ import {
   updateRepaymentPlan,
 } from "@/services/application.service"
 import config from "@/config/config"
+import RejectionModal from "./rejection-modal"
 
 interface RiskData {
   risk_assessment: RiskAssessment | null
@@ -198,7 +199,7 @@ export default function ApplicationReviewPage() {
   })
   const [error, setError] = useState<string | null>(null)
   const [isUpdatingPlan, setIsUpdatingPlan] = useState(false)
-
+  const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false)
 
   const USER_DOCUMENTS: UserDocument[] = [
     { id: "CNIC", label: "CNIC", description: "National Identity Card" },
@@ -257,32 +258,64 @@ export default function ApplicationReviewPage() {
     [applicationId, riskData, setRiskData, setIsUpdatingPlan]
   )
 
-  const fetchData = async () => {
-    setIsLoading(true)
-    try {
-      if (applicationId) {
-        const [appDetails, fetchedRiskData] = await Promise.all([
-          getApplicationDetailsById(applicationId),
-          fetchApplicationDetails(applicationId),
-        ])
-        setApplicationData(appDetails)
-        setRiskData({
-          risk_assessment: fetchedRiskData.risk_assessment,
-          plan: fetchedRiskData.plan,
-          total_score: fetchedRiskData.total_score,
-        })
-      }
-    } catch (error: any) {
-      console.error("Error fetching data:", error)
-      setError(error.message || "Failed to load data.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // const fetchData = async () => {
+  //   setIsLoading(true)
+  //   try {
+  //     if (applicationId) {
+  //       const [appDetails, fetchedRiskData] = await Promise.all([
+  //         getApplicationDetailsById(applicationId),
+  //         fetchApplicationDetails(applicationId),
+  //       ])
+  //       setApplicationData(appDetails)
+  //       setRiskData({
+  //         risk_assessment: fetchedRiskData.risk_assessment,
+  //         plan: fetchedRiskData.plan,
+  //         total_score: fetchedRiskData.total_score,
+  //       })
+  //     }
+  //   } catch (error: any) {
+  //     console.error("Error fetching data:", error)
+  //     setError(error.message || "Failed to load data.")
+  //   } finally {
+  //     setIsLoading(false)
+  //   }
+  // }
 
   useEffect(() => {
-    fetchData()
-  }, [applicationId])
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        if (applicationId) {
+          const [appDetails, fetchedRiskData] = await Promise.all([
+            getApplicationDetailsById(applicationId),
+            fetchApplicationDetails(applicationId),
+          ]);
+          setApplicationData(appDetails);
+          setRiskData({
+            risk_assessment: fetchedRiskData.risk_assessment,
+            plan: fetchedRiskData.plan,
+            total_score: fetchedRiskData.total_score,
+          });
+  
+          // ADD THIS BLOCK HERE
+          if (appDetails?.documents) { //Check that appDetails AND documents exist
+            USER_DOCUMENTS.forEach(doc => {
+              const matchingDoc = appDetails.documents.find(d => d.type === doc.id); //No need for optional chaining
+              doc.url = matchingDoc ? config.fastApi.baseUrl + matchingDoc.url : null; // Add url directly
+            });
+          }
+  
+        }
+      } catch (error: any) {
+        console.error("Error fetching data:", error);
+        setError(error.message || "Failed to load data.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchData();
+  }, [applicationId]);
 
   // Helper functions moved after hooks
   const getStatusBadge = (status: string) => {
@@ -388,7 +421,7 @@ export default function ApplicationReviewPage() {
     }
   }
 
-  const handleReject = async () => {
+  const handleReject = async (reason: any) => {
     if (!applicationId) {
       toast.error("Application ID is missing.")
       return
@@ -396,7 +429,7 @@ export default function ApplicationReviewPage() {
 
     setIsLoading(true)
     try {
-      await verifyApplication(applicationId, false)
+      await verifyApplication(applicationId, false, reason)
       toast.success("Application rejected successfully!")
       setApplicationData((prevData) => prevData ? { ...prevData, status: "rejected" } : prevData)
     } catch (error: any) {
@@ -436,7 +469,7 @@ export default function ApplicationReviewPage() {
                 <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />
                 Approve Application
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleReject}>
+              <DropdownMenuItem onClick={() => setIsRejectionModalOpen(true)}>
                 <XCircle className="mr-2 h-4 w-4 text-red-600" />
                 Reject Application
               </DropdownMenuItem>
@@ -1089,7 +1122,7 @@ export default function ApplicationReviewPage() {
       </Tabs>
 
       <div className="flex items-center justify-end gap-4">
-        <Button variant="destructive" onClick={handleReject} disabled={isLoading}>
+        <Button variant="destructive" onClick={() => setIsRejectionModalOpen(true)} disabled={isLoading}>
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1116,6 +1149,11 @@ export default function ApplicationReviewPage() {
           )}
         </Button>
       </div>
+       <RejectionModal
+        isOpen={isRejectionModalOpen}
+        onClose={() => setIsRejectionModalOpen(false)}
+        onSubmit={handleReject}
+        />
     </div>
   )
 }
@@ -1165,6 +1203,8 @@ function UpdateRepaymentPlanForm({ plan, onSubmit, isLoading, riskData }: Update
     form.watch("repayment_frequency"),
     form,
   ])
+
+  
 
   // Wrap form.handleSubmit(onSubmit) with an arrow function:
   const handleSubmit = async (data: z.infer<typeof formSchema>) => {
@@ -1270,7 +1310,6 @@ function UpdateRepaymentPlanForm({ plan, onSubmit, isLoading, riskData }: Update
         <div className="text-sm font-medium">
           Installment Amount: PKR {installmentAmount.toFixed(2)}
         </div>
-
         <SheetFooter>
           <Button type="submit" disabled={isLoading}>
             {isLoading ? (

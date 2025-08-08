@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Sidebar from "@/components/kokonutui//sidebar";
 import type React from "react";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ChatDock } from "@/components/chat-dock";
 import { Toaster } from "@/components/ui/sonner";
 import { cookies, headers } from "next/headers"; // ✅ Get current path on the server
 import "./globals.css";
@@ -10,6 +11,7 @@ import TopNav from "@/components/kokonutui/top-nav";
 import { Providers } from "./proviers";
 import { AuthService } from "@/services/auth.service";
 import config from "@/config/config";
+import { DashboardNav } from "@/components/admin/dashboard-nav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,7 +74,22 @@ export default async function RootLayout({
                   <header className="h-16 border-b border-gray-200 dark:border-[#1F1F23]">
                     <TopNav />
                   </header>
-                  <main className="flex-1 overflow-auto bg-white p-6 dark:bg-[#0F0F12]">
+                  <main className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950">
+                    {children}
+                  </main>
+                </div>
+              </div>
+            ) : userRole && userRole === "admin" ? (
+              // Layout for donor pages
+              <div className="flex h-screen">
+                <aside className="bg-muted/40 hidden border-r md:block">
+                  <DashboardNav />
+                </aside>
+                <div className="flex w-full flex-1 flex-col">
+                  <header className="h-16 border-b border-gray-200 dark:border-[#1F1F23]">
+                    <TopNav />
+                  </header>
+                  <main className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950">
                     {children}
                   </main>
                 </div>
@@ -85,10 +102,11 @@ export default async function RootLayout({
                   <header className="h-16 border-b border-gray-200 dark:border-[#1F1F23]">
                     <TopNav />
                   </header>
-                  <main className="flex-1 overflow-auto bg-white p-6 dark:bg-[#0F0F12]">
+                  <main className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-950">
                     {children}
                   </main>
                 </div>
+                <ChatDock />
               </div>
             )}
             <Toaster className="z-[9999]" />

@@ -7,36 +7,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { TransactionsCard } from "@/components/crpto-dash/transactions-card";
 import { WalletCard } from "@/components/crpto-dash/wallet-card";
+import { useRouter } from "next/navigation";
 // No need to import fetchDash here anymore
 //import { fetchDash } from "@/services/user.service";
 
-interface Transaction {  // Define the Transaction type
+interface Transaction {
+  // Define the Transaction type
   username: string;
   amount: number;
   action: string;
   timestamp: string;
 }
 
-
 interface TokenOverviewProps {
   userData: {
     username: string;
     public_key: string;
     balance: number;
-    transactions: Transaction[];  // Use the Transaction type
+    transactions: Transaction[]; // Use the Transaction type
     totalCredit?: number;
     totalDebit?: number;
     loan?: any; //  Use a more specific type if you have one
-    wallet_data?: any;  // Use a more specific type if you have one
+    wallet_data?: any; // Use a more specific type if you have one
   };
 }
 
-
 export function TokenOverview({ userData }: TokenOverviewProps) {
-
   // No need for local state, we're receiving data via props
   const { totalCredit = 0, totalDebit = 0 } = userData;
-
+  const router = useRouter();
 
   return (
     <div>
@@ -57,13 +56,19 @@ export function TokenOverview({ userData }: TokenOverviewProps) {
             </p>
             <div className="mt-4">
               <Progress
-                value={totalDebit === 0 && userData.balance === 0 ? 0 : (userData.balance / (userData.balance + totalDebit)) * 100}
+                value={
+                  totalDebit === 0 && userData.balance === 0
+                    ? 0
+                    : (userData.balance / (userData.balance + totalDebit)) * 100
+                }
                 className="h-2"
               />
               <p className="text-muted-foreground mt-1 text-xs">
-                {totalDebit === 0 && userData.balance === 0 ? 0 : Math.round(
-                  (userData.balance / (userData.balance + totalDebit)) * 100
-                )}
+                {totalDebit === 0 && userData.balance === 0
+                  ? 0
+                  : Math.round(
+                      (userData.balance / (userData.balance + totalDebit)) * 100
+                    )}
                 % of your total tokens
               </p>
             </div>
@@ -83,13 +88,19 @@ export function TokenOverview({ userData }: TokenOverviewProps) {
             </p>
             <div className="mt-4">
               <Progress
-                value={totalDebit === 0 && userData.balance === 0 ? 0 : (totalDebit / (userData.balance + totalDebit)) * 100}
+                value={
+                  totalDebit === 0 && userData.balance === 0
+                    ? 0
+                    : (totalDebit / (userData.balance + totalDebit)) * 100
+                }
                 className="h-2"
               />
               <p className="text-muted-foreground mt-1 text-xs">
-                {totalDebit === 0 && userData.balance === 0 ? 0 : Math.round(
-                  (totalDebit / (userData.balance + totalDebit)) * 100
-                )}
+                {totalDebit === 0 && userData.balance === 0
+                  ? 0
+                  : Math.round(
+                      (totalDebit / (userData.balance + totalDebit)) * 100
+                    )}
                 % of your total tokens
               </p>
             </div>
@@ -118,29 +129,40 @@ export function TokenOverview({ userData }: TokenOverviewProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round(totalDebit / 100)}
+              {totalDebit.toLocaleString()} Tokens
             </div>
             <p className="text-muted-foreground text-xs">
               Your contribution is making a difference
             </p>
             <div className="mt-4">
               <Progress
-                value={Math.min((totalDebit / 5000) * 100, 100)}
+                value={Math.min(((totalDebit % 10000) / 10000) * 100, 100)}
                 className="h-2"
               />
               <p className="text-muted-foreground mt-1 text-xs">
-                {Math.min(Math.round((totalDebit / 5000) * 100), 100)}% to
-                next level
+                {Math.min(
+                  Math.round(((totalDebit % 10000) / 10000) * 100),
+                  100
+                )}
+                % to next level
               </p>
+            </div>
+            {/* Display Current Level */}
+            <div className="mt-2 text-lg font-semibold">
+              Level: {Math.floor(totalDebit / 10000)}
             </div>
           </CardContent>
         </Card>
       </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 mt-4">
-        <WalletCard data={userData.wallet_data} onBuyToken={() => { }} />
+        <WalletCard data={userData.wallet_data}  onBuyToken={() => {
+            router.push("/purchase");
+          }}/>
         <TransactionsCard
           transactions={userData.transactions}
-          onViewAll={() => { }}
+          onViewAll={() => {
+            router.push("/transactions");
+          }}
         />
       </div>
     </div>

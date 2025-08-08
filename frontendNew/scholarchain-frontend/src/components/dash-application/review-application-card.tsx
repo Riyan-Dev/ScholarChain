@@ -41,10 +41,10 @@ export function ReviewApplicationCard({ onNext }: ReviewApplicationCardProps) {
   });
 
   useEffect(() => {
-    if (data && data.status === "submitted") {
+    if (data && (data.status === "submitted" || data.status === "ai-failure")) {
       setPollingEnabled(true);
       setIsProcessing(true); // Set card to inactive
-      setProgress(50);
+      setProgress(33);
     } else if (
       data &&
       (data.status === "verified" || data.status === "rejected")
@@ -52,8 +52,12 @@ export function ReviewApplicationCard({ onNext }: ReviewApplicationCardProps) {
       setPollingEnabled(false);
       setIsProcessing(false);
       setProgress(100);
-    } else if (data && data.status === "pending") {
+    } else if (data && data.status === "inprogress") {
       setPollingEnabled(false);
+    } else if (data && data.status === "pending") {
+      setPollingEnabled(true);
+      setIsProcessing(true); // Set card to inactive
+      setProgress(66);
     }
   }, [data]);
   const getDescription = () => {
@@ -80,7 +84,7 @@ export function ReviewApplicationCard({ onNext }: ReviewApplicationCardProps) {
       isProcessing={isProcessing}
       progress={progress}
       footer={
-        data && data.status === "pending" ? (
+        data && data.status === "inprogress" ? (
           <CardFooterActions
             onNext={() => {
               router.push(`/application-form?id=${data._id}`);
@@ -123,6 +127,7 @@ export function ReviewApplicationCard({ onNext }: ReviewApplicationCardProps) {
           <ul className="space-y-2 text-sm text-red-700 dark:text-red-300">
             {[
               "Feasibility report did not pass the criteria",
+              data.reason,
               "Contact our customer service to be eligible for applying again",
               "Or, Try Again in 6 months",
             ].map((item, index) => (
@@ -134,7 +139,7 @@ export function ReviewApplicationCard({ onNext }: ReviewApplicationCardProps) {
           </ul>
         </div>
       )}
-      {data && data.status === "pending" && (
+      {data && data.status === "inprogress" && (
         <div className="space-y-4">
           <h3 className="font-medium">Application Summary</h3>
 

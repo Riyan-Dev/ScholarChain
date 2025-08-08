@@ -1,46 +1,18 @@
 "use client";
 import { Calendar, CreditCard, Wallet } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import List01 from "./list-01";
-import List02 from "./list-02";
 import { LoanApplicationFlow } from "../dash-application/loan-application-flow";
 import { fetchDash } from "@/services/user.service";
 import { useQuery } from "@tanstack/react-query";
 import { TransactionsCard } from "../crpto-dash/transactions-card";
 import { WalletCard } from "../crpto-dash/wallet-card";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RepaymentData } from "@/app/loan-details/repayment-types";
 import { PaymentReviewModal } from "@/app/loan-details/payment-review-modal";
 import { PaymentSuccessModal } from "@/app/loan-details/payment-success-modal";
 import { fetchRepay } from "@/services/application.service";
 import { makeRepayment } from "@/services/loan.services";
 import { useRouter } from "next/navigation";
-
-const mockRepaymentData: RepaymentData = {
-  _id: "riyan4",
-  loanDetails: {
-    id: "67cf6594b6e88e5e0c1b221c",
-    username: "riyan4",
-    loan_amount: 50000,
-    contract_address: "",
-    loan_amount_repaid: 5126,
-    no_of_installments: 24,
-    installments_completed: 6,
-    total_discounted_amount: null,
-    status: "ongoing",
-    created_at: "2025-03-10T22:20:04.089000",
-    updated_at: "2025-03-11T19:08:28.176000",
-  },
-  nextInstallment: {
-    installment_id: 7,
-    installment_date: "2025-05-01T00:00:00",
-    installment_paid_date: null,
-    installment_status: "pending",
-    amount_paid: 0,
-    computedDue: 2804.625,
-  },
-  balance: 20000,
-};
 
 export default function Content() {
   const router = useRouter();
@@ -55,25 +27,44 @@ export default function Content() {
 
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [repaymentData, setRepaymentData] =
-    useState<RepaymentData>(mockRepaymentData);
+  const [repaymentData, setRepaymentData] = useState<RepaymentData | null>(
+    null
+  );
   const [isLoadingg, setIsLoadingg] = useState(false);
+  const isFirstRender = useRef(true);
   const [paymentDetails, setPaymentDetails] = useState({
     amount: 0,
     installmentNumber: 0,
     paymentDate: new Date().toISOString(),
     remainingInstallments: 0,
     totalInstallments: 0,
-    nextDueDate: undefined,
+    nextDueDate: "",
   });
 
   const fetchData = async () => {
     setIsLoadingg(true);
 
     try {
-      const repaymentData = await fetchRepay();
+      const fetchedData = await fetchRepay();
 
-      setRepaymentData(repaymentData);
+      setRepaymentData({
+        ...fetchedData,
+        nextInstallment: {
+          installment_id:
+            fetchedData.nextInstallment.installment_id !== undefined
+              ? fetchedData.nextInstallment.installment_id
+              : 0, // Or some other default
+          installment_date: fetchedData.nextInstallment.installment_date || "", // Or some other default
+          installment_paid_date:
+            fetchedData.nextInstallment.installment_paid_date,
+          installment_status: fetchedData.nextInstallment.installment_status,
+          amount_paid: fetchedData.nextInstallment.amount_paid,
+          computedDue:
+            fetchedData.nextInstallment.computedDue !== undefined
+              ? fetchedData.nextInstallment.computedDue
+              : 0, // Or some other default
+        },
+      });
     } catch (error: any) {
       console.error("Error fetching data:", error);
     } finally {
@@ -83,6 +74,10 @@ export default function Content() {
 
   // Simulate fetching data
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false; // Set to false after the first render
+      return; // Skip the first render
+    }
     fetchData();
   }, [isReviewModalOpen]);
 
@@ -106,6 +101,11 @@ export default function Content() {
   };
 
   const handleConfirmPayment = async () => {
+    if (!repaymentData) {
+      console.error("Repayment data is null, cannot confirm payment.");
+      return; // Or handle this error appropriately (e.g., show a message to the user)
+    }
+
     // This would be your actual payment logic
     // For example, calling a smart contract function
     await makeRepayment();
@@ -118,6 +118,8 @@ export default function Content() {
 
         // Update the repayment data after successful payment
         setRepaymentData((prev) => {
+          if (!prev) return prev; // Add a check here as well
+
           const updatedData = { ...prev };
 
           // Mark the next installment as paid
@@ -147,18 +149,20 @@ export default function Content() {
 
         // Set payment details for success modal
         setPaymentDetails({
-          amount: repaymentData.nextInstallment.computedDue,
-          installmentNumber: repaymentData.nextInstallment.installment_id,
+          amount: repaymentData.nextInstallment?.computedDue ?? 0, // Use optional chaining and nullish coalescing
+          installmentNumber: repaymentData.nextInstallment?.installment_id ?? 0, // Use optional chaining and nullish coalescing
           paymentDate: paymentDate,
           remainingInstallments:
-            repaymentData.loanDetails.no_of_installments -
-            (repaymentData.loanDetails.installments_completed + 1),
-          totalInstallments: repaymentData.loanDetails.no_of_installments,
+            repaymentData.loanDetails?.no_of_installments - // Use optional chaining
+            (repaymentData.loanDetails?.installments_completed + 1), // Use optional chaining and nullish coalescing
+          totalInstallments: repaymentData.loanDetails?.no_of_installments ?? 0, // Use optional chaining and nullish coalescing
           nextDueDate:
-            repaymentData.nextInstallment.installment_id <
-            repaymentData.loanDetails.no_of_installments
-              ? getNextMonthDate(repaymentData.nextInstallment.installment_date)
-              : undefined,
+            repaymentData.nextInstallment?.installment_id < // Use optional chaining
+            repaymentData.loanDetails?.no_of_installments // Use optional chaining
+              ? getNextMonthDate(
+                  repaymentData.nextInstallment?.installment_date
+                ) // Use optional chaining
+              : "",
         });
 
         setIsReviewModalOpen(false);
@@ -170,24 +174,22 @@ export default function Content() {
   };
 
   const handlePurchaseTokens = () => {
-    // Close the review modal
-    setIsReviewModalOpen(false);
-
-    // Navigate to token purchase page or open token purchase modal
-    console.log("Navigating to token purchase page");
-
-    // For demo purposes, let's simulate adding tokens to the wallet
-    setTimeout(() => {
-      setRepaymentData((prev) => ({
-        ...prev,
-        balance: prev.balance + 5000,
-      }));
-    }, 1000);
+    // // Close the review modal
+    // setIsReviewModalOpen(false);
+    // // Navigate to token purchase page or open token purchase modal
+    // console.log("Navigating to token purchase page");
+    // // For demo purposes, let's simulate adding tokens to the wallet
+    // setTimeout(() => {
+    //   setRepaymentData((prev) => ({
+    //     ...prev,
+    //     balance: prev.balance + 5000,
+    //   }));
+    // }, 1000);
   };
 
   const handleViewAllTransactions = () => {
     // This would typically navigate to a transactions page
-    console.log("View all transactions");
+    router.push("/transactions");
   };
 
   // if (isLoadingg) {
@@ -227,7 +229,12 @@ export default function Content() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <WalletCard data={data.wallet_data} onBuyToken={() => {}} />
+        <WalletCard
+          data={data.wallet_data}
+          onBuyToken={() => {
+            router.push("/purchase");
+          }}
+        />
         <TransactionsCard
           transactions={data.wallet_data.transactions}
           onViewAll={handleViewAllTransactions}
@@ -246,23 +253,24 @@ export default function Content() {
         )}
       </div>
       {/* Payment Review Modal */}
-      <PaymentReviewModal
-        isOpen={isReviewModalOpen}
-        onClose={() => setIsReviewModalOpen(false)}
-        repaymentData={repaymentData}
-        onConfirmPayment={handleConfirmPayment}
-        onPurchaseTokens={handlePurchaseTokens}
-      />
+      <>
+        <PaymentReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          repaymentData={repaymentData}
+          onConfirmPayment={handleConfirmPayment}
+          onPurchaseTokens={handlePurchaseTokens}
+        />
 
-      {/* Payment Success Modal */}
-      <PaymentSuccessModal
-        isOpen={isSuccessModalOpen}
-        onClose={() => {
-          setIsSuccessModalOpen(false);
-          router.push("/dashboard");
-        }}
-        paymentDetails={paymentDetails}
-      />
+        <PaymentSuccessModal
+          isOpen={isSuccessModalOpen}
+          onClose={() => {
+            setIsSuccessModalOpen(false);
+            window.location.reload();
+          }}
+          paymentDetails={paymentDetails}
+        />
+      </>
     </div>
   );
 }

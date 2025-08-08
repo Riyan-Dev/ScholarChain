@@ -1,10 +1,11 @@
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
 
 from services.application_services import ApplicationService
 from services.risk_score_services import RiskScoreCalCulations
 from services.user_services import UserService
 from services.transaction_services import TransactionServices
+from services.loan_services import LoanService
 from middleware.JWT_authentication import TokenData, get_current_user
 
 from models.application import Application
@@ -32,6 +33,20 @@ async def get_all_application(current_user: TokenData = Depends(get_current_user
 
     return await ApplicationService.get_all_applications()
 
+@admin_router.get('/get-all-loans')
+async def get_all_loans(current_user: TokenData = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=401, detail="Only admin access allowed")
+    
+    return await LoanService.get_all_loans()
+
+@admin_router.get('/get-all-users')
+async def get_all_loans(current_user: TokenData = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=401, detail="Only admin access allowed")
+    
+    return await UserService.get_all_users()
+
 @admin_router.put('/update-plan/')
 async def update_plan(updated_data:Plan, application_id:str, current_user: TokenData = Depends(get_current_user)):
     if current_user.role != "admin":
@@ -45,12 +60,14 @@ async def update_plan(updated_data:Plan, application_id:str, current_user: Token
  also other validation checks need to be make
 """
 @admin_router.put('/verify/')
-async def verify_application(application_id: str, verified: bool, current_user: TokenData = Depends(get_current_user)):
+async def verify_application(application_id: str, verified: bool, request: Request, background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
+    item_data = await request.json()
 
+    reason = item_data.get("reason")
     if current_user.role != "admin":
         raise HTTPException(status_code=401, detail="Only admin access allowed")
 
-    return await ApplicationService.verify_application(application_id, verified)
+    return await ApplicationService.verify_application(application_id, verified, reason, background_tasks)
 
 @admin_router.get('/generate_plan/')
 async def generate_plan(application_id: str, background_tasks: BackgroundTasks, current_user: TokenData = Depends(get_current_user)):
@@ -77,7 +94,7 @@ async def application_details(application_id: str, current_user: TokenData = Dep
 
         total_score = await RiskScoreCalCulations.calculate_total_score(risk_assessment)
 
-        if total_score > 70:
+        if total_score > 0:
         
             plan = await ApplicationService.get_plan_db(application_id)
             if plan:

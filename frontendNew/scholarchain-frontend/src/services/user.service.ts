@@ -1,9 +1,12 @@
 /* eslint-disable prettier/prettier */
 import config from "@/config/config";
 import { commaSplitString } from "@/helpers/helpers";
+import { User } from "@/lib/types";
 import { AuthService } from "@/services/auth.service";
 
 const API_BASE_URL = config.fastApi.baseUrl;
+
+
 
 export async function uploadDocuments(
   uploadedDocuments: Record<string, File>
@@ -85,7 +88,7 @@ export const applicationOverview = async () => {
   return res.json();
 };
 
-export const fetchApplication = async ({ queryKey }) => {
+export const fetchApplication = async ({ queryKey }: { queryKey: any }) => {
   const [_key, id] = queryKey;
   const params = new URLSearchParams({
     application_id: id,
@@ -105,7 +108,7 @@ export const fetchApplication = async ({ queryKey }) => {
   return res.json();
 };
 
-export const fetchPlan = async ({ queryKey }) => {
+export const fetchPlan = async ({ queryKey }: { queryKey: any }) => {
   const [_key, id] = queryKey;
   const params = new URLSearchParams({
     application_id: id,
@@ -128,15 +131,15 @@ export const fetchPlan = async ({ queryKey }) => {
 
 export const submitApplication = async (formData: any) => {
   formData.status = "submitted";
-  formData.financial_info.other_income_sources = commaSplitString(
-    formData.financial_info.other_income_sources
-  );
-  formData.financial_info.outstanding_loans_or_debts = commaSplitString(
-    formData.financial_info.outstanding_loans_or_debts
-  );
-  formData.academic_info.achievements_or_awards = commaSplitString(
-    formData.academic_info.achievements_or_awards
-  );
+  // formData.financial_info.other_income_sources = commaSplitString(
+  //   formData.financial_info.other_income_sources
+  // );
+  // formData.financial_info.outstanding_loans_or_debts = commaSplitString(
+  //   formData.financial_info.outstanding_loans_or_debts
+  // );
+  // formData.academic_info.achievements_or_awards = commaSplitString(
+  //   formData.academic_info.achievements_or_awards
+  // );
   const res = await fetch(`${API_BASE_URL}/application/submit/`, {
     method: "PUT",
     headers: {
@@ -163,3 +166,75 @@ export const updateStage = async (stage: string) => {
   }
   return res.json();
 };
+
+export async function getAllUsers(): Promise<User[]> {
+    const response = await fetch(`${API_BASE_URL}/admin/get-all-users`, {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${AuthService.getToken()}`,
+            "Content-Type": "application/json",
+        },
+    });
+
+    if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to fetch applications: ${errorData}`);
+    };
+
+    const data: User[] = await response.json();
+    return data;
+}
+
+export async function getChatResponse(query: string): Promise<string> {
+    const response = await fetch(`${API_BASE_URL}/rag/chat`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${AuthService.getToken()}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: query
+        })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to fetch applications: ${errorData}`);
+    };
+
+    const data = await response.json();
+    return data["response"];
+}
+
+export async function updateStore() {
+    const response = await fetch(`${API_BASE_URL}/rag/`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${AuthService.getToken()}`,
+            "Content-Type": "application/json",
+        },
+    });
+
+    if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to fetch applications: ${errorData}`);
+    };
+
+    const data = await response.json();
+    return data
+}
+
+export async function getUserDetails(): Promise<any> {
+  const res = await fetch(`${API_BASE_URL}/user/me`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${AuthService.getToken()}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`HTTP error! Status: ${res.status}`);
+  }
+
+  return res.json();
+}
